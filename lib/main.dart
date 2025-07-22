@@ -128,9 +128,9 @@ class MyHomePage extends StatelessWidget {
   String _getDownloadLabel() {
     int activeCount = DownloadManager.activeTasks.length;
     if (activeCount > 0) {
-      return '下载管理($activeCount)';
+      return S.current.downloadManagerWithCount(activeCount);
     } else {
-      return '下载管理';
+      return S.current.downloadManager;
     }
   }
 }

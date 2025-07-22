@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:open_filex/open_filex.dart';
 import '../utils/download_manager.dart';
+import '../generated/l10n.dart';
 
 /// 下载文件管理页面
 class DownloadManagerPage extends StatefulWidget {
@@ -53,7 +54,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
       _downloadedFiles = await DownloadManager.getDownloadedFiles();
       _downloadPath = await DownloadManager.getDownloadDirectoryPath();
     } catch (e) {
-      print('加载下载文件失败: $e');
+      print('${S.current.loadDownloadFilesFailed}: $e');
     }
 
     setState(() {
@@ -126,19 +127,19 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
     List<DownloadTask> activeTasks = DownloadManager.activeTasks;
     
     if (activeTasks.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.download_outlined,
               size: 64,
               color: Colors.grey,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
-              '暂无进行中的下载',
-              style: TextStyle(
+              S.of(context).noActiveDownloads,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
               ),
@@ -237,7 +238,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            task.errorMessage ?? '下载失败',
+                            task.errorMessage ?? S.of(context).downloadFailed,
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.red,
@@ -252,7 +253,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
                 ],
                 const SizedBox(height: 8),
                 Text(
-                  '开始时间: ${_formatDateTime(task.startTime)}',
+                  '${S.of(context).startTime}: ${_formatDateTime(task.startTime)}',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
@@ -271,19 +272,19 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
     }
 
     if (completedTasks.isEmpty && _downloadedFiles.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.download_done,
               size: 64,
               color: Colors.grey,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
-              '暂无已完成的下载',
-              style: TextStyle(
+              S.of(context).noCompletedDownloads,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
               ),
@@ -319,9 +320,9 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
                     style: TextStyle(color: _getStatusColor(task.status)),
                   ),
                   if (task.endTime != null)
-                    Text('完成时间: ${_formatDateTime(task.endTime!)}'),
+                    Text('${S.of(context).completedTime}: ${_formatDateTime(task.endTime!)}'),
                   if (task.totalBytes > 0)
-                    Text('大小: ${_formatFileSize(task.totalBytes)}'),
+                    Text('${S.of(context).size}: ${_formatFileSize(task.totalBytes)}'),
                 ],
               ),
               trailing: PopupMenuButton<String>(
@@ -344,34 +345,34 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
                 },
                 itemBuilder: (context) => [
                   if (task.status == DownloadStatus.completed)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'open',
                       child: Row(
                         children: [
-                          Icon(Icons.open_in_new),
-                          SizedBox(width: 8),
-                          Text('打开文件'),
+                          const Icon(Icons.open_in_new),
+                          const SizedBox(width: 8),
+                          Text(S.of(context).openFile),
                         ],
                       ),
                     ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete_record',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline),
-                        SizedBox(width: 8),
-                        Text('删除记录'),
+                        const Icon(Icons.delete_outline),
+                        const SizedBox(width: 8),
+                        Text(S.of(context).deleteRecord),
                       ],
                     ),
                   ),
                   if (task.status == DownloadStatus.completed)
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete_file',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('删除文件', style: TextStyle(color: Colors.red)),
+                          const Icon(Icons.delete, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Text(S.of(context).deleteFile, style: const TextStyle(color: Colors.red)),
                         ],
                       ),
                     ),
@@ -663,7 +664,6 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
           ));
           break;
         case ResultType.error:
-        default:
           Get.showSnackbar(GetSnackBar(
             message: '打开文件失败: ${result.message}',
             duration: const Duration(seconds: 3),

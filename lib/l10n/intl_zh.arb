@@ -38,5 +38,348 @@
   "dataDirectory": "data 文件夹路径",
   "setDefaultDirectory": "是否设为初始目录？",
   "silentJumpApp": "静默跳转APP",
-  "silentJumpAppDesc": "跳转APP时，不弹出提示框"
+  "silentJumpAppDesc": "跳转APP时，不弹出提示框",
+  "newVersionFound": "发现新版本",
+  "directDownloadApk": "直接下载APK",
+  "initializingNotificationManager": "初始化通知管理器",
+  "downloadManager": "下载管理",
+  "downloadManagerWithCount": "下载管理({count})",
+  "@downloadManagerWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modifyAdminPassword": "修改admin密码",
+  "directDownload": "直接下载",
+  "browserDownload": "浏览器下载",
+  "loadDownloadFilesFailed": "加载下载文件失败",
+  "noActiveDownloads": "暂无进行中的下载",
+  "downloadFailed": "下载失败",
+  "startTime": "开始时间",
+  "noCompletedDownloads": "暂无已完成的下载",
+  "completedTime": "完成时间",
+  "size": "大小",
+  "openFile": "打开文件",
+  "deleteRecord": "删除记录",
+  "deleteFile": "删除文件",
+  "confirmClear": "确认清空",
+  "confirmClearAllFiles": "确定要清空所有下载文件吗？此操作不可撤销。",
+  "cleared": "已清空下载目录",
+  "clearFailed": "清空失败",
+  "cancelDownload": "取消下载",
+  "confirmCancelDownload": "确定要取消下载 \"{filename}\" 吗？",
+  "@confirmCancelDownload": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "continueDownload": "继续下载",
+  "confirmDeleteRecord": "确定要删除 \"{filename}\" 的下载记录吗？",
+  "@confirmDeleteRecord": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "删除",
+  "shareFile": "分享文件",
+  "shareFeatureNotImplemented": "分享功能待实现",
+  "fileInfo": "文件信息",
+  "fileName": "文件名",
+  "modifiedTime": "修改时间",
+  "filePath": "路径",
+  "confirmDelete": "确认删除",
+  "confirmDeleteFile": "确定要删除文件 \"{filename}\" 吗？此操作不可撤销。",
+  "@confirmDeleteFile": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "fileDeleted": "文件已删除",
+  "deleteFailed": "删除失败",
+  "clear": "清空",
+  "noAppToOpenFile": "没有找到可以打开此文件的应用",
+  "viewLocation": "查看位置",
+  "fileNotFound": "文件不存在或已被删除",
+  "noPermissionToOpenFile": "没有权限打开此文件",
+  "openFileFailed": "打开文件失败: {error}",
+  "@openFileFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fileLocation": "文件位置",
+  "fileSavedTo": "文件已保存到:",
+  "fileLocationTip": "您可以使用文件管理器找到此文件，或者尝试安装相应的应用来打开它。",
+  "downloadDirectory": "下载目录",
+  "openDirectory": "打开目录",
+  "clearRecords": "清空记录",
+  "clearAll": "清空所有",
+  "downloadRecordsCleared": "已清空下载记录",
+  "inProgress": "进行中",
+  "completed": "已完成",
+  "refresh": "刷新",
+  "pending": "等待中",
+  "downloading": "下载中",
+  "failed": "失败",
+  "cancelled": "已取消",
+  "cannotGetDownloadDirectory": "无法获取下载目录",
+  "startDownload": "开始下载: {filename}",
+  "@startDownload": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadProgress": "下载进度: {progress}%",
+  "@downloadProgress": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadComplete": "下载完成: {filename}",
+  "@downloadComplete": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "open": "打开",
+  "downloadCancelled": "下载已取消: {url}",
+  "@downloadCancelled": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailedWithError": "下载失败: {filename}",
+  "@downloadFailedWithError": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "userCancelledDownload": "用户取消下载",
+  "cannotGetBaseDownloadDirectory": "无法获取基础下载目录",
+  "createOpenListDownloadDirectory": "创建OpenList下载目录: {path}",
+  "@createOpenListDownloadDirectory": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "createOpenListDirectoryFailed": "创建OpenList目录失败: {error}",
+  "@createOpenListDirectoryFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "openListDownloadDirectory": "OpenList下载目录: {path}",
+  "@openListDownloadDirectory": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "getDownloadDirectoryFailed": "获取下载目录失败: {error}",
+  "@getDownloadDirectoryFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "parseFilenameFailed": "解析文件名失败: {error}",
+  "@parseFilenameFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "needInstallPermission": "需要安装权限",
+  "needInstallPermissionDesc": "为了安装 APK 文件，需要授予安装权限。请在设置中手动开启。",
+  "goToSettings": "去设置",
+  "needInstallPermissionToInstallApk": "需要安装权限才能安装 APK 文件",
+  "checkInstallPermissionFailed": "检查安装权限失败: {error}",
+  "@checkInstallPermissionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tryToOpenFile": "尝试打开文件: {path}",
+  "@tryToOpenFile": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "openFileResult": "打开文件结果: {type} - {message}",
+  "@openFileResult": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotInstallApkFile": "无法安装 APK 文件，可能需要在设置中开启\"允许安装未知来源应用\"",
+  "noPermissionToInstallApk": "没有权限安装 APK 文件，请在设置中开启安装权限",
+  "openFileException": "打开文件异常: {error}",
+  "@openFileException": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "getDownloadFileListFailed": "获取下载文件列表失败: {error}",
+  "@getDownloadFileListFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadDirectoryCleared": "已清理下载目录",
+  "clearDownloadDirectoryFailed": "清理下载目录失败: {error}",
+  "@clearDownloadDirectoryFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fileDeletedLog": "已删除文件: {filename}",
+  "@fileDeletedLog": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFileFailedLog": "删除文件失败: {error}",
+  "@deleteFileFailedLog": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "preparingDownload": "准备下载...",
+  "downloadCancelledStatus": "下载已取消",
+  "notificationManagerInitialized": "通知管理器初始化成功",
+  "notificationManagerInitFailed": "通知管理器初始化失败: {error}",
+  "@notificationManagerInitFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClicked": "通知被点击: {payload}",
+  "@notificationClicked": {
+    "placeholders": {
+      "payload": {
+        "type": "String"
+      }
+    }
+  },
+  "downloading": "正在下载",
+  "currentDownloadingFiles": "当前有 {count} 个文件在下载",
+  "@currentDownloadingFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadProgress": "下载进度",
+  "downloadProgressDesc": "显示文件下载进度",
+  "viewDownloads": "查看下载",
+  "showDownloadProgressNotificationFailed": "显示下载进度通知失败: {error}",
+  "@showDownloadProgressNotificationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadCompleteNotificationTitle": "{filename} 下载完毕",
+  "@downloadCompleteNotificationTitle": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "clickToJumpToDownloadManager": "点击跳转到下载管理",
+  "downloadCompleteTitle": "下载完成",
+  "multipleFilesCompleted": "{count} 个文件已完成，点击跳转到下载管理",
+  "@multipleFilesCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "downloadCompleteChannel": "下载完成",
+  "downloadCompleteChannelDesc": "文件下载完成通知",
+  "openDownloadManager": "打开下载管理",
+  "showDownloadCompleteNotificationFailed": "显示下载完成通知失败: {error}",
+  "@showDownloadCompleteNotificationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "showSingleFileCompleteNotificationFailed": "显示单个文件下载完成通知失败: {error}",
+  "@showSingleFileCompleteNotificationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelDownloadNotificationFailed": "取消下载通知失败: {error}",
+  "@cancelDownloadNotificationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelAllNotificationsFailed": "取消所有通知失败: {error}",
+  "@cancelAllNotificationsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

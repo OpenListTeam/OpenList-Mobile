@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../generated/l10n.dart';
 
 class PwdEditDialog extends StatefulWidget {
   final ValueChanged<String> onConfirm;
@@ -25,7 +26,7 @@ class _PwdEditDialogState extends State<PwdEditDialog>
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("修改admin密码"),
+      title: Text(S.of(context).modifyAdminPassword),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -40,14 +41,14 @@ class _PwdEditDialogState extends State<PwdEditDialog>
       actions: [
         TextButton(
           onPressed: () {Get.back();},
-          child: const Text("取消"),
+          child: Text(S.of(context).cancel),
         ),
         FilledButton(
           onPressed: () {
             Get.back();
             widget.onConfirm(pwdController.text);
           },
-          child: const Text("确定"),
+          child: Text(S.of(context).confirm),
         ),
       ],
     );

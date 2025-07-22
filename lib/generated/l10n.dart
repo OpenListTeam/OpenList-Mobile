@@ -439,6 +439,1076 @@ class S {
       args: [],
     );
   }
+
+  /// `发现新版本`
+  String get newVersionFound {
+    return Intl.message(
+      '发现新版本',
+      name: 'newVersionFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `直接下载APK`
+  String get directDownloadApk {
+    return Intl.message(
+      '直接下载APK',
+      name: 'directDownloadApk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `初始化通知管理器`
+  String get initializingNotificationManager {
+    return Intl.message(
+      '初始化通知管理器',
+      name: 'initializingNotificationManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `下载管理`
+  String get downloadManager {
+    return Intl.message(
+      '下载管理',
+      name: 'downloadManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `下载管理({count})`
+  String downloadManagerWithCount(int count) {
+    return Intl.message(
+      '下载管理($count)',
+      name: 'downloadManagerWithCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `修改admin密码`
+  String get modifyAdminPassword {
+    return Intl.message(
+      '修改admin密码',
+      name: 'modifyAdminPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `直接下载`
+  String get directDownload {
+    return Intl.message(
+      '直接下载',
+      name: 'directDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `浏览器下载`
+  String get browserDownload {
+    return Intl.message(
+      '浏览器下载',
+      name: 'browserDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `加载下载文件失败`
+  String get loadDownloadFilesFailed {
+    return Intl.message(
+      '加载下载文件失败',
+      name: 'loadDownloadFilesFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `暂无进行中的下载`
+  String get noActiveDownloads {
+    return Intl.message(
+      '暂无进行中的下载',
+      name: 'noActiveDownloads',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `下载失败`
+  String get downloadFailed {
+    return Intl.message(
+      '下载失败',
+      name: 'downloadFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `开始时间`
+  String get startTime {
+    return Intl.message(
+      '开始时间',
+      name: 'startTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `暂无已完成的下载`
+  String get noCompletedDownloads {
+    return Intl.message(
+      '暂无已完成的下载',
+      name: 'noCompletedDownloads',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `完成时间`
+  String get completedTime {
+    return Intl.message(
+      '完成时间',
+      name: 'completedTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `大小`
+  String get size {
+    return Intl.message(
+      '大小',
+      name: 'size',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `打开文件`
+  String get openFile {
+    return Intl.message(
+      '打开文件',
+      name: 'openFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `删除记录`
+  String get deleteRecord {
+    return Intl.message(
+      '删除记录',
+      name: 'deleteRecord',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `删除文件`
+  String get deleteFile {
+    return Intl.message(
+      '删除文件',
+      name: 'deleteFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确认清空`
+  String get confirmClear {
+    return Intl.message(
+      '确认清空',
+      name: 'confirmClear',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确定要清空所有下载文件吗？此操作不可撤销。`
+  String get confirmClearAllFiles {
+    return Intl.message(
+      '确定要清空所有下载文件吗？此操作不可撤销。',
+      name: 'confirmClearAllFiles',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已清空下载目录`
+  String get cleared {
+    return Intl.message(
+      '已清空下载目录',
+      name: 'cleared',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `清空失败`
+  String get clearFailed {
+    return Intl.message(
+      '清空失败',
+      name: 'clearFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `取消下载`
+  String get cancelDownload {
+    return Intl.message(
+      '取消下载',
+      name: 'cancelDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确定要取消下载 "{filename}" 吗？`
+  String confirmCancelDownload(String filename) {
+    return Intl.message(
+      '确定要取消下载 "$filename" 吗？',
+      name: 'confirmCancelDownload',
+      desc: '',
+      args: [filename],
+    );
+  }
+
+  /// `继续下载`
+  String get continueDownload {
+    return Intl.message(
+      '继续下载',
+      name: 'continueDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确定要删除 "{filename}" 的下载记录吗？`
+  String confirmDeleteRecord(String filename) {
+    return Intl.message(
+      '确定要删除 "$filename" 的下载记录吗？',
+      name: 'confirmDeleteRecord',
+      desc: '',
+      args: [filename],
+    );
+  }
+
+  /// `删除`
+  String get delete {
+    return Intl.message(
+      '删除',
+      name: 'delete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `分享文件`
+  String get shareFile {
+    return Intl.message(
+      '分享文件',
+      name: 'shareFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `分享功能待实现`
+  String get shareFeatureNotImplemented {
+    return Intl.message(
+      '分享功能待实现',
+      name: 'shareFeatureNotImplemented',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `文件信息`
+  String get fileInfo {
+    return Intl.message(
+      '文件信息',
+      name: 'fileInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `文件名`
+  String get fileName {
+    return Intl.message(
+      '文件名',
+      name: 'fileName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `修改时间`
+  String get modifiedTime {
+    return Intl.message(
+      '修改时间',
+      name: 'modifiedTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `路径`
+  String get filePath {
+    return Intl.message(
+      '路径',
+      name: 'filePath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确认删除`
+  String get confirmDelete {
+    return Intl.message(
+      '确认删除',
+      name: 'confirmDelete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确定要删除文件 "{filename}" 吗？此操作不可撤销。`
+  String confirmDeleteFile(String filename) {
+    return Intl.message(
+      '确定要删除文件 "$filename" 吗？此操作不可撤销。',
+      name: 'confirmDeleteFile',
+      desc: '',
+      args: [filename],
+    );
+  }
+
+  /// `文件已删除`
+  String get fileDeleted {
+    return Intl.message(
+      '文件已删除',
+      name: 'fileDeleted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `删除失败`
+  String get deleteFailed {
+    return Intl.message(
+      '删除失败',
+      name: 'deleteFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `清空`
+  String get clear {
+    return Intl.message(
+      '清空',
+      name: 'clear',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `没有找到可以打开此文件的应用`
+  String get noAppToOpenFile {
+    return Intl.message(
+      '没有找到可以打开此文件的应用',
+      name: 'noAppToOpenFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `查看位置`
+  String get viewLocation {
+    return Intl.message(
+      '查看位置',
+      name: 'viewLocation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `文件不存在或已被删除`
+  String get fileNotFound {
+    return Intl.message(
+      '文件不存在或已被删除',
+      name: 'fileNotFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `没有权限打开此文件`
+  String get noPermissionToOpenFile {
+    return Intl.message(
+      '没有权限打开此文件',
+      name: 'noPermissionToOpenFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `打开文件失败: {error}`
+  String openFileFailed(String error) {
+    return Intl.message(
+      '打开文件失败: $error',
+      name: 'openFileFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `文件位置`
+  String get fileLocation {
+    return Intl.message(
+      '文件位置',
+      name: 'fileLocation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `文件已保存到:`
+  String get fileSavedTo {
+    return Intl.message(
+      '文件已保存到:',
+      name: 'fileSavedTo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `您可以使用文件管理器找到此文件，或者尝试安装相应的应用来打开它。`
+  String get fileLocationTip {
+    return Intl.message(
+      '您可以使用文件管理器找到此文件，或者尝试安装相应的应用来打开它。',
+      name: 'fileLocationTip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `下载目录`
+  String get downloadDirectory {
+    return Intl.message(
+      '下载目录',
+      name: 'downloadDirectory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `打开目录`
+  String get openDirectory {
+    return Intl.message(
+      '打开目录',
+      name: 'openDirectory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `清空记录`
+  String get clearRecords {
+    return Intl.message(
+      '清空记录',
+      name: 'clearRecords',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `清空所有`
+  String get clearAll {
+    return Intl.message(
+      '清空所有',
+      name: 'clearAll',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已清空下载记录`
+  String get downloadRecordsCleared {
+    return Intl.message(
+      '已清空下载记录',
+      name: 'downloadRecordsCleared',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `进行中`
+  String get inProgress {
+    return Intl.message(
+      '进行中',
+      name: 'inProgress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已完成`
+  String get completed {
+    return Intl.message(
+      '已完成',
+      name: 'completed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `刷新`
+  String get refresh {
+    return Intl.message(
+      '刷新',
+      name: 'refresh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `等待中`
+  String get pending {
+    return Intl.message(
+      '等待中',
+      name: 'pending',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `正在下载`
+  String get downloading {
+    return Intl.message(
+      '正在下载',
+      name: 'downloading',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `失败`
+  String get failed {
+    return Intl.message(
+      '失败',
+      name: 'failed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已取消`
+  String get cancelled {
+    return Intl.message(
+      '已取消',
+      name: 'cancelled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `无法获取下载目录`
+  String get cannotGetDownloadDirectory {
+    return Intl.message(
+      '无法获取下载目录',
+      name: 'cannotGetDownloadDirectory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `开始下载: {filename}`
+  String startDownload(String filename) {
+    return Intl.message(
+      '开始下载: $filename',
+      name: 'startDownload',
+      desc: '',
+      args: [filename],
+    );
+  }
+
+  /// `下载进度`
+  String downloadProgress(String progress) {
+    return Intl.message(
+      '下载进度',
+      name: 'downloadProgress',
+      desc: '',
+      args: [progress],
+    );
+  }
+
+  /// `下载完成: {filename}`
+  String downloadComplete(String filename) {
+    return Intl.message(
+      '下载完成: $filename',
+      name: 'downloadComplete',
+      desc: '',
+      args: [filename],
+    );
+  }
+
+  /// `打开`
+  String get open {
+    return Intl.message(
+      '打开',
+      name: 'open',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `下载已取消: {url}`
+  String downloadCancelled(String url) {
+    return Intl.message(
+      '下载已取消: $url',
+      name: 'downloadCancelled',
+      desc: '',
+      args: [url],
+    );
+  }
+
+  /// `下载失败: {filename}`
+  String downloadFailedWithError(String filename) {
+    return Intl.message(
+      '下载失败: $filename',
+      name: 'downloadFailedWithError',
+      desc: '',
+      args: [filename],
+    );
+  }
+
+  /// `用户取消下载`
+  String get userCancelledDownload {
+    return Intl.message(
+      '用户取消下载',
+      name: 'userCancelledDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `无法获取基础下载目录`
+  String get cannotGetBaseDownloadDirectory {
+    return Intl.message(
+      '无法获取基础下载目录',
+      name: 'cannotGetBaseDownloadDirectory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `创建OpenList下载目录: {path}`
+  String createOpenListDownloadDirectory(String path) {
+    return Intl.message(
+      '创建OpenList下载目录: $path',
+      name: 'createOpenListDownloadDirectory',
+      desc: '',
+      args: [path],
+    );
+  }
+
+  /// `创建OpenList目录失败: {error}`
+  String createOpenListDirectoryFailed(String error) {
+    return Intl.message(
+      '创建OpenList目录失败: $error',
+      name: 'createOpenListDirectoryFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `OpenList下载目录: {path}`
+  String openListDownloadDirectory(String path) {
+    return Intl.message(
+      'OpenList下载目录: $path',
+      name: 'openListDownloadDirectory',
+      desc: '',
+      args: [path],
+    );
+  }
+
+  /// `获取下载目录失败: {error}`
+  String getDownloadDirectoryFailed(String error) {
+    return Intl.message(
+      '获取下载目录失败: $error',
+      name: 'getDownloadDirectoryFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `解析文件名失败: {error}`
+  String parseFilenameFailed(String error) {
+    return Intl.message(
+      '解析文件名失败: $error',
+      name: 'parseFilenameFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `需要安装权限`
+  String get needInstallPermission {
+    return Intl.message(
+      '需要安装权限',
+      name: 'needInstallPermission',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `为了安装 APK 文件，需要授予安装权限。请在设置中手动开启。`
+  String get needInstallPermissionDesc {
+    return Intl.message(
+      '为了安装 APK 文件，需要授予安装权限。请在设置中手动开启。',
+      name: 'needInstallPermissionDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `去设置`
+  String get goToSettings {
+    return Intl.message(
+      '去设置',
+      name: 'goToSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `需要安装权限才能安装 APK 文件`
+  String get needInstallPermissionToInstallApk {
+    return Intl.message(
+      '需要安装权限才能安装 APK 文件',
+      name: 'needInstallPermissionToInstallApk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `检查安装权限失败: {error}`
+  String checkInstallPermissionFailed(String error) {
+    return Intl.message(
+      '检查安装权限失败: $error',
+      name: 'checkInstallPermissionFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `尝试打开文件: {path}`
+  String tryToOpenFile(String path) {
+    return Intl.message(
+      '尝试打开文件: $path',
+      name: 'tryToOpenFile',
+      desc: '',
+      args: [path],
+    );
+  }
+
+  /// `打开文件结果: {type} - {message}`
+  String openFileResult(String type, String message) {
+    return Intl.message(
+      '打开文件结果: $type - $message',
+      name: 'openFileResult',
+      desc: '',
+      args: [type, message],
+    );
+  }
+
+  /// `无法安装 APK 文件，可能需要在设置中开启"允许安装未知来源应用"`
+  String get cannotInstallApkFile {
+    return Intl.message(
+      '无法安装 APK 文件，可能需要在设置中开启"允许安装未知来源应用"',
+      name: 'cannotInstallApkFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `没有权限安装 APK 文件，请在设置中开启安装权限`
+  String get noPermissionToInstallApk {
+    return Intl.message(
+      '没有权限安装 APK 文件，请在设置中开启安装权限',
+      name: 'noPermissionToInstallApk',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `打开文件异常: {error}`
+  String openFileException(String error) {
+    return Intl.message(
+      '打开文件异常: $error',
+      name: 'openFileException',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `获取下载文件列表失败: {error}`
+  String getDownloadFileListFailed(String error) {
+    return Intl.message(
+      '获取下载文件列表失败: $error',
+      name: 'getDownloadFileListFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `已清理下载目录`
+  String get downloadDirectoryCleared {
+    return Intl.message(
+      '已清理下载目录',
+      name: 'downloadDirectoryCleared',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `清理下载目录失败: {error}`
+  String clearDownloadDirectoryFailed(String error) {
+    return Intl.message(
+      '清理下载目录失败: $error',
+      name: 'clearDownloadDirectoryFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `已删除文件: {filename}`
+  String fileDeletedLog(String filename) {
+    return Intl.message(
+      '已删除文件: $filename',
+      name: 'fileDeletedLog',
+      desc: '',
+      args: [filename],
+    );
+  }
+
+  /// `删除文件失败: {error}`
+  String deleteFileFailedLog(String error) {
+    return Intl.message(
+      '删除文件失败: $error',
+      name: 'deleteFileFailedLog',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `准备下载...`
+  String get preparingDownload {
+    return Intl.message(
+      '准备下载...',
+      name: 'preparingDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `下载已取消`
+  String get downloadCancelledStatus {
+    return Intl.message(
+      '下载已取消',
+      name: 'downloadCancelledStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `通知管理器初始化成功`
+  String get notificationManagerInitialized {
+    return Intl.message(
+      '通知管理器初始化成功',
+      name: 'notificationManagerInitialized',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `通知管理器初始化失败: {error}`
+  String notificationManagerInitFailed(String error) {
+    return Intl.message(
+      '通知管理器初始化失败: $error',
+      name: 'notificationManagerInitFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `通知被点击: {payload}`
+  String notificationClicked(String payload) {
+    return Intl.message(
+      '通知被点击: $payload',
+      name: 'notificationClicked',
+      desc: '',
+      args: [payload],
+    );
+  }
+
+  /// `当前有 {count} 个文件在下载`
+  String currentDownloadingFiles(int count) {
+    return Intl.message(
+      '当前有 $count 个文件在下载',
+      name: 'currentDownloadingFiles',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `显示文件下载进度`
+  String get downloadProgressDesc {
+    return Intl.message(
+      '显示文件下载进度',
+      name: 'downloadProgressDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `查看下载`
+  String get viewDownloads {
+    return Intl.message(
+      '查看下载',
+      name: 'viewDownloads',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `显示下载进度通知失败: {error}`
+  String showDownloadProgressNotificationFailed(String error) {
+    return Intl.message(
+      '显示下载进度通知失败: $error',
+      name: 'showDownloadProgressNotificationFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `{filename} 下载完毕`
+  String downloadCompleteNotificationTitle(String filename) {
+    return Intl.message(
+      '$filename 下载完毕',
+      name: 'downloadCompleteNotificationTitle',
+      desc: '',
+      args: [filename],
+    );
+  }
+
+  /// `点击跳转到下载管理`
+  String get clickToJumpToDownloadManager {
+    return Intl.message(
+      '点击跳转到下载管理',
+      name: 'clickToJumpToDownloadManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `下载完成`
+  String get downloadCompleteTitle {
+    return Intl.message(
+      '下载完成',
+      name: 'downloadCompleteTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} 个文件已完成，点击跳转到下载管理`
+  String multipleFilesCompleted(int count) {
+    return Intl.message(
+      '$count 个文件已完成，点击跳转到下载管理',
+      name: 'multipleFilesCompleted',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `下载完成`
+  String get downloadCompleteChannel {
+    return Intl.message(
+      '下载完成',
+      name: 'downloadCompleteChannel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `文件下载完成通知`
+  String get downloadCompleteChannelDesc {
+    return Intl.message(
+      '文件下载完成通知',
+      name: 'downloadCompleteChannelDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `打开下载管理`
+  String get openDownloadManager {
+    return Intl.message(
+      '打开下载管理',
+      name: 'openDownloadManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `显示下载完成通知失败: {error}`
+  String showDownloadCompleteNotificationFailed(String error) {
+    return Intl.message(
+      '显示下载完成通知失败: $error',
+      name: 'showDownloadCompleteNotificationFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `显示单个文件下载完成通知失败: {error}`
+  String showSingleFileCompleteNotificationFailed(String error) {
+    return Intl.message(
+      '显示单个文件下载完成通知失败: $error',
+      name: 'showSingleFileCompleteNotificationFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `取消下载通知失败: {error}`
+  String cancelDownloadNotificationFailed(String error) {
+    return Intl.message(
+      '取消下载通知失败: $error',
+      name: 'cancelDownloadNotificationFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `取消所有通知失败: {error}`
+  String cancelAllNotificationsFailed(String error) {
+    return Intl.message(
+      '取消所有通知失败: $error',
+      name: 'cancelAllNotificationsFailed',
+      desc: '',
+      args: [error],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

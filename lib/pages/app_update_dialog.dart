@@ -44,7 +44,7 @@ class AppUpdateDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("发现新版本"),
+      title: Text(S.of(context).newVersionFound),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         Text("v$version"),
         Text(content),
@@ -65,7 +65,7 @@ class AppUpdateDialog extends StatelessWidget {
           },
         ),
         TextButton(
-          child: Text('直接下载APK'),
+          child: Text(S.of(context).directDownloadApk),
           onPressed: () async {
             Navigator.pop(context);
             // 使用内置下载管理器后台下载APK

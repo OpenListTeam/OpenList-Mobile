@@ -7,7 +7,7 @@ class DownloadExamples {
   
   /// 示例1: 简单文件下载
   static Future<void> downloadSimpleFile() async {
-    await DownloadManager.downloadFile(
+    await DownloadManager.downloadFileInBackground(
       url: 'https://example.com/document.pdf',
       filename: 'my_document.pdf',
     );
@@ -23,16 +23,9 @@ class DownloadExamples {
 
   /// 示例3: 自定义进度回调
   static Future<void> downloadWithCustomProgress() async {
-    await DownloadManager.downloadFile(
+    await DownloadManager.downloadFileWithProgress(
       url: 'https://example.com/video.mp4',
       filename: 'video.mp4',
-      onProgress: (received, total) {
-        double progress = received / total;
-        print('下载进度: ${(progress * 100).toStringAsFixed(1)}%');
-        
-        // 可以在这里更新自定义的进度UI
-        // 例如更新通知栏进度、页面进度条等
-      },
     );
   }
 
@@ -47,7 +40,7 @@ class DownloadExamples {
         duration: Duration(seconds: 2),
       ));
       
-      bool success = await DownloadManager.downloadFile(
+      bool success = await DownloadManager.downloadFileInBackground(
         url: url,
         filename: filename,
       );
@@ -113,7 +106,7 @@ class DownloadExamples {
       barrierDismissible: false,
     );
 
-    bool success = await DownloadManager.downloadFile(
+    bool success = await DownloadManager.downloadFileInBackground(
       url: imageUrl,
       filename: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
     );

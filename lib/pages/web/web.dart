@@ -156,7 +156,7 @@ class WebScreenState extends State<WebScreen> {
                             filename: url.suggestedFilename,
                           );
                         },
-                        child: Text('直接下载'),
+                        child: Text(S.of(context).directDownload),
                       ),
                       TextButton(
                         onPressed: () {
@@ -169,7 +169,7 @@ class WebScreenState extends State<WebScreen> {
                         onPressed: () {
                           IntentUtils.getUrlIntent(url.url.toString()).launch();
                         },
-                        child: Text('浏览器下载'),
+                        child: Text(S.of(context).browserDownload),
                       ),
                     ]),
                     onTap: (_) {

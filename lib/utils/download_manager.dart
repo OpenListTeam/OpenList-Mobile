@@ -7,6 +7,7 @@ import 'package:get/get.dart' as getx;
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'notification_manager.dart';
+import '../generated/l10n.dart';
 
 /// 下载任务状态
 enum DownloadStatus {
@@ -50,15 +51,15 @@ class DownloadTask {
   String get statusText {
     switch (status) {
       case DownloadStatus.pending:
-        return '等待中';
+        return S.current.pending;
       case DownloadStatus.downloading:
-        return '下载中';
+        return S.current.downloading;
       case DownloadStatus.completed:
-        return '已完成';
+        return S.current.completed;
       case DownloadStatus.failed:
-        return '失败';
+        return S.current.failed;
       case DownloadStatus.cancelled:
-        return '已取消';
+        return S.current.cancelled;
     }
   }
 
@@ -66,7 +67,7 @@ class DownloadTask {
     if (totalBytes > 0) {
       return '${_formatBytes(receivedBytes)} / ${_formatBytes(totalBytes)}';
     }
-    return '${_formatBytes(receivedBytes)}';
+    return _formatBytes(receivedBytes);
   }
 
   String _formatBytes(int bytes) {
@@ -278,9 +279,7 @@ class DownloadManager {
       } else if (Platform.isIOS) {
         // iOS: 使用应用文档目录下的Downloads文件夹
         baseDir = await getApplicationDocumentsDirectory();
-        if (baseDir != null) {
-          baseDir = Directory('${baseDir.path}/Downloads');
-        }
+        baseDir = Directory('${baseDir.path}/Downloads');
       } else {
         // 其他平台（如Windows、macOS、Linux）
         baseDir = await getDownloadsDirectory();
@@ -487,7 +486,6 @@ class DownloadManager {
           }
           break;
         case ResultType.error:
-        default:
           getx.Get.showSnackbar(getx.GetSnackBar(
             message: '打开文件失败: ${result.message}',
             duration: const Duration(seconds: 3),
