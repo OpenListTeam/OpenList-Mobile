@@ -14,6 +14,7 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.openlist.mobile.config.AppConfig
 import com.openlist.mobile.model.openlist.OpenList
@@ -23,9 +24,15 @@ import com.openlist.mobile.utils.ToastUtils.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import splitties.systemservices.powerManager
 
+/**
+ * OpenList后台服务 - 提供OpenList核心功能并实现保活机制
+ */
 class OpenListService : Service(), OpenList.Listener {
     companion object {
         const val TAG = "OpenListService"
@@ -41,14 +48,21 @@ class OpenListService : Service(), OpenList.Listener {
         const val NOTIFICATION_CHAN_ID = "openlist_server"
         const val FOREGROUND_ID = 5224
 
+        @Volatile
         var isRunning: Boolean = false
+            private set
+
+        @Volatile
+        var serviceInstance: OpenListService? = null
+            private set
     }
 
-    private val mScope = CoroutineScope(Job())
+    private val mScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mNotificationReceiver = NotificationActionReceiver()
     private val mReceiver = MyReceiver()
     private var mWakeLock: PowerManager.WakeLock? = null
     private var mLocalAddress: String = ""
+    private var networkMonitor: com.openlist.mobile.utils.NetworkMonitor? = null
 
     override fun onBind(p0: Intent?): IBinder? = null
 
@@ -58,97 +72,170 @@ class OpenListService : Service(), OpenList.Listener {
             .sendBroadcast(Intent(ACTION_STATUS_CHANGED))
 
         if (!isRunning) {
-            // 后台服务不需要调用 stopForeground
+            // 如果服务停止，则停止前台服务
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                stopForeground(true)
+            }
             stopSelf()
+        } else {
+            // 如果服务运行，更新通知
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                updateNotification()
+            }
         }
     }
 
     @SuppressLint("WakelockTimeout")
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "OpenListService created")
 
-        // 移除前台服务通知，改为后台服务
-        // initOrUpdateNotification()
+        serviceInstance = this
 
-        if (AppConfig.isWakeLockEnabled) {
-            mWakeLock = powerManager.newWakeLock(
-                PowerManager.PARTIAL_WAKE_LOCK,
-                "openlist::service"
-            )
-            mWakeLock?.acquire()
+        // Android 8.0+ 必须启动前台服务
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            initOrUpdateNotification()
         }
 
-        LocalBroadcastManager.getInstance(this)
-            .registerReceiver(
-                mReceiver,
-                IntentFilter(ACTION_STATUS_CHANGED)
+        // 启用唤醒锁保持CPU运行
+        if (AppConfig.isWakeLockEnabled) {
+            try {
+                mWakeLock = powerManager.newWakeLock(
+                    PowerManager.PARTIAL_WAKE_LOCK,
+                    "openlist::service"
+                )
+                mWakeLock?.acquire()
+                Log.d(TAG, "Wake lock acquired")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to acquire wake lock", e)
+            }
+        }
+
+        // 注册广播接收器
+        try {
+            LocalBroadcastManager.getInstance(this)
+                .registerReceiver(
+                    mReceiver,
+                    IntentFilter(ACTION_STATUS_CHANGED)
+                )
+            registerReceiverCompat(
+                mNotificationReceiver,
+                ACTION_SHUTDOWN,
+                ACTION_COPY_ADDRESS
             )
-        registerReceiverCompat(
-            mNotificationReceiver,
-            ACTION_SHUTDOWN,
-            ACTION_COPY_ADDRESS
-        )
+            Log.d(TAG, "Broadcast receivers registered")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to register receivers", e)
+        }
 
+        // 添加OpenList监听器
         OpenList.addListener(this)
-    }
 
+        // 启动保活服务
+        startKeepAliveService()
+
+        // 启动网络监听
+        startNetworkMonitoring()
+
+        // 启动心跳检测
+        startHeartbeat()
+    }
 
     @Suppress("DEPRECATION")
     override fun onDestroy() {
         super.onDestroy()
+        Log.d(TAG, "OpenListService destroyed")
+
+        serviceInstance = null
 
         // 取消所有协程作业
         mScope.coroutineContext[Job]?.cancel()
 
-        mWakeLock?.release()
-        mWakeLock = null
+        // 释放唤醒锁
+        try {
+            mWakeLock?.release()
+            mWakeLock = null
+            Log.d(TAG, "Wake lock released")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to release wake lock", e)
+        }
 
-        // 后台服务不需要调用 stopForeground
-        // stopForeground(true)
+        // 停止前台服务
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            stopForeground(true)
+        }
 
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver)
-        unregisterReceiver(mNotificationReceiver)
+        // 注销广播接收器
+        try {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver)
+            unregisterReceiver(mNotificationReceiver)
+            Log.d(TAG, "Broadcast receivers unregistered")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to unregister receivers", e)
+        }
 
+        // 停止网络监听
+        stopNetworkMonitoring()
+
+        // 移除OpenList监听器
         OpenList.removeListener(this)
+
+        // 尝试重启服务（保活机制）
+        if (isRunning && AppConfig.isStartAtBootEnabled) {
+            restartService()
+        }
     }
 
     override fun onShutdown(type: String) {
+        Log.d(TAG, "OpenList shutdown: $type")
         if (!OpenList.isRunning()) {
             isRunning = false
             notifyStatusChanged()
         }
     }
 
+    /**
+     * 启动或关闭OpenList服务
+     */
     private fun startOrShutdown() {
         if (isRunning) {
-            // 关闭操作也放到子线程中执行，避免阻塞主线程
+            Log.d(TAG, "Shutting down OpenList")
+            // 关闭操作���子线程中执行，避免阻塞主线程
             mScope.launch(Dispatchers.IO) {
                 try {
                     OpenList.shutdown()
+                    isRunning = false
+                    launch(Dispatchers.Main) {
+                        notifyStatusChanged()
+                    }
                 } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Shutdown error", e)
+                    Log.e(TAG, "Shutdown error", e)
                     launch(Dispatchers.Main) {
                         toast("关闭失败: ${e.message}")
                     }
                 }
             }
         } else {
+            Log.d(TAG, "Starting OpenList")
             toast(getString(R.string.starting))
             isRunning = true
+            
             // 在子线程中启动OpenList服务，避免阻塞主线程
             mScope.launch(Dispatchers.IO) {
                 try {
                     // 确保在启动前进行初始化
                     OpenList.init()
                     // 添加延迟确保初始化完成
-                    kotlinx.coroutines.delay(100)
+                    delay(100)
                     OpenList.startup()
+                    
                     // 启动完成后在主线程中更新状态
                     launch(Dispatchers.Main) {
                         notifyStatusChanged()
+                        toast("OpenList 启动成功")
                     }
                 } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Startup error", e)
+                    Log.e(TAG, "Startup error", e)
                     // 启动失败时重置状态
                     isRunning = false
                     launch(Dispatchers.Main) {
@@ -156,7 +243,7 @@ class OpenListService : Service(), OpenList.Listener {
                         notifyStatusChanged()
                     }
                 } catch (t: Throwable) {
-                    android.util.Log.e(TAG, "Startup fatal error", t)
+                    Log.e(TAG, "Startup fatal error", t)
                     // 处理更严重的错误（如 JNI 崩溃）
                     isRunning = false
                     launch(Dispatchers.Main) {
@@ -169,108 +256,225 @@ class OpenListService : Service(), OpenList.Listener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startOrShutdown()
+        Log.d(TAG, "onStartCommand called")
+        
+        // 如果还没有启动，则启动OpenList
+        if (!isRunning) {
+            startOrShutdown()
+        }
 
-        return super.onStartCommand(intent, flags, startId)
+        // 返回 START_STICKY 确保服务被杀死后会重启
+        return START_STICKY
+    }
+
+    /**
+     * 启动保活服务
+     */
+    private fun startKeepAliveService() {
+        try {
+            val intent = Intent(this, KeepAliveService::class.java)
+            startService(intent)
+            Log.d(TAG, "Keep alive service started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start keep alive service", e)
+        }
+    }
+
+    /**
+     * 启动网络监听
+     */
+    private fun startNetworkMonitoring() {
+        try {
+            networkMonitor = com.openlist.mobile.utils.NetworkMonitor(this)
+            networkMonitor?.startMonitoring()
+            Log.d(TAG, "Network monitoring started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start network monitoring", e)
+        }
+    }
+
+    /**
+     * 停止网络监听
+     */
+    private fun stopNetworkMonitoring() {
+        try {
+            networkMonitor?.stopMonitoring()
+            networkMonitor = null
+            Log.d(TAG, "Network monitoring stopped")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stop network monitoring", e)
+        }
+    }
+
+    /**
+     * 启动心跳检测
+     */
+    private fun startHeartbeat() {
+        mScope.launch {
+            while (isActive) {
+                try {
+                    // 每30秒检查一次服务状态
+                    delay(30000)
+                    
+                    if (isRunning && !OpenList.isRunning()) {
+                        Log.w(TAG, "OpenList stopped unexpectedly, restarting...")
+                        // 重新启动OpenList
+                        launch(Dispatchers.IO) {
+                            try {
+                                OpenList.startup()
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to restart OpenList", e)
+                                isRunning = false
+                                launch(Dispatchers.Main) {
+                                    notifyStatusChanged()
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Heartbeat error", e)
+                }
+            }
+        }
+    }
+
+    /**
+     * 重启服务
+     */
+    private fun restartService() {
+        try {
+            val intent = Intent(this, OpenListService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            Log.d(TAG, "Service restart command sent")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to restart service", e)
+        }
     }
 
     inner class MyReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
             when (intent.action) {
                 ACTION_STATUS_CHANGED -> {
-
+                    Log.d(TAG, "Status changed broadcast received")
                 }
             }
-
         }
     }
 
-    private fun localAddress(): String = Openlistlib.getOutboundIPString()
+    /**
+     * 获取本地地址
+     */
+    private fun localAddress(): String {
+        return try {
+            if (mLocalAddress.isEmpty()) {
+                mLocalAddress = Openlistlib.getOutboundIPString()
+            }
+            mLocalAddress
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get local address", e)
+            "Unknown"
+        }
+    }
 
-
+    /**
+     * 初始化或更新通知
+     */
     @Suppress("DEPRECATION")
     private fun initOrUpdateNotification() {
-        // Android 12(S)+ 必须指定PendingIntent.FLAG_
-        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            PendingIntent.FLAG_IMMUTABLE
-        else
-            0
+        try {
+            // Android 12(S)+ 必须指定PendingIntent.FLAG_IMMUTABLE
+            val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                PendingIntent.FLAG_IMMUTABLE
+            else
+                0
 
-        /*点击通知跳转*/
-        val pendingIntent =
-            PendingIntent.getActivity(
-                this, 0, Intent(
-                    this,
-                    MainActivity::class.java
-                ),
-                pendingIntentFlags
-            )
-        /*当点击退出按钮时发送广播*/
-        val shutdownAction: PendingIntent =
-            PendingIntent.getBroadcast(
-                this,
-                0,
-                Intent(ACTION_SHUTDOWN),
-                pendingIntentFlags
-            )
-        val copyAddressPendingIntent =
-            PendingIntent.getBroadcast(
-                this,
-                0,
-                Intent(ACTION_COPY_ADDRESS),
+            // 点击通知跳转到主界面
+            val pendingIntent = PendingIntent.getActivity(
+                this, 0, Intent(this, MainActivity::class.java),
                 pendingIntentFlags
             )
 
-//        val color = com.github.openlistteam.openlistandroid.ui.theme.seed.androidColor
-        val smallIconRes: Int
-        val builder = Notification.Builder(applicationContext)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {/*Android 8.0+ 要求必须设置通知信道*/
-            val chan = NotificationChannel(
-                NOTIFICATION_CHAN_ID,
-                getString(R.string.openlist_server),
-                NotificationManager.IMPORTANCE_NONE
+            // 关闭按钮
+            val shutdownAction = PendingIntent.getBroadcast(
+                this, 0, Intent(ACTION_SHUTDOWN), pendingIntentFlags
             )
-//            chan.lightColor = color
-            chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-            val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            service.createNotificationChannel(chan)
-            smallIconRes = when ((0..1).random()) {
-                0 -> R.drawable.server
-                1 -> R.drawable.server2
-                else -> R.drawable.server2
+
+            // 复制地址按钮
+            val copyAddressPendingIntent = PendingIntent.getBroadcast(
+                this, 0, Intent(ACTION_COPY_ADDRESS), pendingIntentFlags
+            )
+
+            val smallIconRes: Int
+            val builder = Notification.Builder(applicationContext)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Android 8.0+ 要求必须设置通知信道
+                val chan = NotificationChannel(
+                    NOTIFICATION_CHAN_ID,
+                    getString(R.string.openlist_server),
+                    NotificationManager.IMPORTANCE_LOW // 使用低重要性避免打扰用户
+                )
+                chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+                chan.setShowBadge(false) // 不显示角标
+                
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.createNotificationChannel(chan)
+                
+                smallIconRes = when ((0..1).random()) {
+                    0 -> R.drawable.server
+                    1 -> R.drawable.server2
+                    else -> R.drawable.server2
+                }
+
+                builder.setChannelId(NOTIFICATION_CHAN_ID)
+            } else {
+                smallIconRes = R.mipmap.ic_launcher_round
             }
 
-            builder.setChannelId(NOTIFICATION_CHAN_ID)
-        } else {
-            smallIconRes = R.mipmap.ic_launcher_round
+            val notification = builder
+                .setContentTitle(getString(R.string.openlist_server_running))
+                .setContentText("地址: ${localAddress()}")
+                .setSmallIcon(smallIconRes)
+                .setContentIntent(pendingIntent)
+                .addAction(0, getString(R.string.shutdown), shutdownAction)
+                .addAction(0, getString(R.string.copy_address), copyAddressPendingIntent)
+                .setOngoing(true) // 设置为持续通知，不能被滑动删除
+                .build()
+
+            startForeground(FOREGROUND_ID, notification)
+            Log.d(TAG, "Foreground notification started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create notification", e)
         }
-        val notification = builder
-//            .setColor(color)
-            .setContentTitle(getString(R.string.openlist_server_running))
-            .setContentText(localAddress())
-            .setSmallIcon(smallIconRes)
-            .setContentIntent(pendingIntent)
-            .addAction(0, getString(R.string.shutdown), shutdownAction)
-            .addAction(0, getString(R.string.copy_address), copyAddressPendingIntent)
+    }
 
-            .build()
-
-        startForeground(FOREGROUND_ID, notification)
+    /**
+     * 更新通知
+     */
+    private fun updateNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            initOrUpdateNotification()
+        }
     }
 
     inner class NotificationActionReceiver : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {
             when (intent?.action) {
                 ACTION_SHUTDOWN -> {
+                    Log.d(TAG, "Shutdown action received from notification")
                     startOrShutdown()
                 }
 
                 ACTION_COPY_ADDRESS -> {
+                    Log.d(TAG, "Copy address action received from notification")
                     ClipboardUtils.copyText("OpenList", localAddress())
                     toast(R.string.address_copied)
                 }
             }
         }
     }
-
 }

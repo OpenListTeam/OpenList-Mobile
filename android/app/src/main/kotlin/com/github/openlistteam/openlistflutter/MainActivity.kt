@@ -10,11 +10,13 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.openlist.mobile.bridge.AndroidBridge
 import com.openlist.mobile.bridge.AppConfigBridge
 import com.openlist.mobile.bridge.CommonBridge
+import com.openlist.mobile.bridge.ServiceBridge
 import com.openlist.mobile.model.ShortCuts
 import com.openlist.mobile.model.openlist.Logger
 import com.github.openlistteam.pigeon.GeneratedApi
 import com.github.openlistteam.pigeon.GeneratedApi.VoidResult
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +30,7 @@ class MainActivity : FlutterActivity() {
 
     private val receiver by lazy { MyReceiver() }
     private var mEvent: GeneratedApi.Event? = null
+    private var serviceBridge: ServiceBridge? = null
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +47,10 @@ class MainActivity : FlutterActivity() {
         GeneratedApi.Android.setUp(binaryMessage, AndroidBridge(this))
         GeneratedApi.NativeCommon.setUp(binaryMessage, CommonBridge(this))
         mEvent = GeneratedApi.Event(binaryMessage)
+
+        // 设置服务桥接
+        val serviceChannel = MethodChannel(binaryMessage, "com.openlist.mobile/service")
+        serviceBridge = ServiceBridge(this, serviceChannel)
 
         Logger.addListener(object : Logger.Listener {
             override fun onLog(level: Int, time: String, msg: String) {

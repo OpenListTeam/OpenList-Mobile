@@ -6,6 +6,7 @@ import 'package:openlist_flutter/pages/web/web.dart';
 import 'package:openlist_flutter/pages/download_manager_page.dart';
 import 'package:openlist_flutter/utils/download_manager.dart';
 import 'package:openlist_flutter/utils/notification_manager.dart';
+import 'package:openlist_flutter/utils/service_manager.dart';
 import 'package:fade_indexed_stack/fade_indexed_stack.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,9 @@ void main() async {
   
   // 初始化通知管理器
   await NotificationManager.initialize();
+  
+  // 初始化服务管理器
+  await ServiceManager.instance.initialize();
   
   // Android
   if (!kIsWeb &&
