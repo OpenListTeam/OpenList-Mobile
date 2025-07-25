@@ -1,4 +1,4 @@
-package com.github.openlistteam.utils
+package com.openlist.utils
 
 object NativeLib {
     external fun getLocalIp(): String

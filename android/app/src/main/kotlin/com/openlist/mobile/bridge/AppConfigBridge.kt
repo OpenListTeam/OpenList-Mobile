@@ -1,7 +1,7 @@
 package com.openlist.mobile.bridge
 
 import com.openlist.mobile.config.AppConfig
-import com.github.openlistteam.pigeon.GeneratedApi
+import com.openlist.pigeon.GeneratedApi
 
 
 object AppConfigBridge : GeneratedApi.AppConfig {

@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace "com.github.openlistteam.utils"
+    namespace "com.openlist.utils"
     compileSdk 35
 
     defaultConfig {

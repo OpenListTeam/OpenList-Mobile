@@ -1,4 +1,4 @@
-package com.github.openlistteam.openlistandroid.model
+package com.openlist.openlistandroid.model
 
 data class UpdateResult(
     val version: String = "",

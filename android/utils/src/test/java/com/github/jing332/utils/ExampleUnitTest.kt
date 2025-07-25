@@ -1,4 +1,4 @@
-package com.github.openlistteam.utils
+package com.openlist.utils
 
 import org.junit.Test
 

@@ -37,13 +37,13 @@ class OpenListService : Service(), OpenList.Listener {
     companion object {
         const val TAG = "OpenListService"
         const val ACTION_SHUTDOWN =
-            "com.github.openlistteam.openlistandroid.service.OpenListService.ACTION_SHUTDOWN"
+            "com.openlist.openlistandroid.service.OpenListService.ACTION_SHUTDOWN"
 
         const val ACTION_COPY_ADDRESS =
-            "com.github.openlistteam.openlistandroid.service.OpenListService.ACTION_COPY_ADDRESS"
+            "com.openlist.openlistandroid.service.OpenListService.ACTION_COPY_ADDRESS"
 
         const val ACTION_STATUS_CHANGED =
-            "com.github.openlistteam.openlistandroid.service.OpenListService.ACTION_STATUS_CHANGED"
+            "com.openlist.openlistandroid.service.OpenListService.ACTION_STATUS_CHANGED"
 
         const val NOTIFICATION_CHAN_ID = "openlist_server"
         const val FOREGROUND_ID = 5224

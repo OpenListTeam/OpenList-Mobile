@@ -13,8 +13,8 @@ import com.openlist.mobile.bridge.CommonBridge
 import com.openlist.mobile.bridge.ServiceBridge
 import com.openlist.mobile.model.ShortCuts
 import com.openlist.mobile.model.openlist.Logger
-import com.github.openlistteam.pigeon.GeneratedApi
-import com.github.openlistteam.pigeon.GeneratedApi.VoidResult
+import com.openlist.pigeon.GeneratedApi
+import com.openlist.pigeon.GeneratedApi.VoidResult
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant

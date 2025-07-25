@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class OpenListConfig(
     @SerialName("bleve_dir")
-    val bleveDir: String = "", // /storage/emulated/0/Android/data/com.github.openlistteam.openlistandroid.debug/files/data/bleve
+    val bleveDir: String = "", // /storage/emulated/0/Android/data/com.openlist.openlistandroid.debug/files/data/bleve
     @SerialName("cdn")
     val cdn: String = "",
 //    @SerialName("database")
@@ -27,7 +27,7 @@ data class OpenListConfig(
     @SerialName("site_url")
     val siteUrl: String = "",
     @SerialName("temp_dir")
-    val tempDir: String = "", // /storage/emulated/0/Android/data/com.github.openlistteam.openlistandroid.debug/files/data/temp
+    val tempDir: String = "", // /storage/emulated/0/Android/data/com.openlist.openlistandroid.debug/files/data/temp
     @SerialName("tls_insecure_skip_verify")
     val tlsInsecureSkipVerify: Boolean = true, // true
     @SerialName("token_expires_in")
@@ -36,7 +36,7 @@ data class OpenListConfig(
     @Serializable
     data class Database(
         @SerialName("db_file")
-        val dbFile: String = "", // /storage/emulated/0/Android/data/com.github.openlistteam.openlistandroid.debug/files/data/data.db
+        val dbFile: String = "", // /storage/emulated/0/Android/data/com.openlist.openlistandroid.debug/files/data/data.db
         @SerialName("host")
         val host: String = "",
         @SerialName("name")
@@ -68,7 +68,7 @@ data class OpenListConfig(
         @SerialName("max_size")
         val maxSize: Int = 10, // 10
         @SerialName("name")
-        val name: String = "" // /storage/emulated/0/Android/data/com.github.openlistteam.openlistandroid.debug/files/data/log/log.log
+        val name: String = "" // /storage/emulated/0/Android/data/com.openlist.openlistandroid.debug/files/data/log/log.log
     )
 
     @Serializable

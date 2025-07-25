@@ -6,7 +6,7 @@ import android.os.Build
 import com.openlist.mobile.BuildConfig
 import com.openlist.mobile.utils.ToastUtils.longToast
 import com.openlist.mobile.utils.ToastUtils.toast
-import com.github.openlistteam.pigeon.GeneratedApi
+import com.openlist.pigeon.GeneratedApi
 
 class CommonBridge(private val context: Context) : GeneratedApi.NativeCommon {
     override fun startActivityFromUri(intentUri: String): Boolean {

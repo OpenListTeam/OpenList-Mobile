@@ -11,7 +11,7 @@ import com.openlist.mobile.model.openlist.OpenList
 import com.openlist.mobile.utils.MyTools
 import com.openlist.mobile.utils.ToastUtils.longToast
 import com.openlist.mobile.utils.ToastUtils.toast
-import com.github.openlistteam.pigeon.GeneratedApi
+import com.openlist.pigeon.GeneratedApi
 
 class AndroidBridge(private val context: Context) : GeneratedApi.Android {
     override fun addShortcut() {

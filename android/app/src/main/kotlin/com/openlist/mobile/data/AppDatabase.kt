@@ -5,7 +5,7 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.github.openlistteam.openlistandroid.data.dao.ServerLogDao
+import com.openlist.openlistandroid.data.dao.ServerLogDao
 import com.openlist.mobile.data.entities.ServerLog
 import com.openlist.mobile.App.Companion.app
 
