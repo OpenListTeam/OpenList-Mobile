@@ -95,6 +95,9 @@ class ServiceBridge(private val context: Context, private val channel: MethodCha
      */
     private fun startOpenListService(): Boolean {
         return try {
+            // 清除手动停止标志，表示用户手动启动了服务
+            AppConfig.isManuallyStoppedByUser = false
+            
             val intent = Intent(context, OpenListService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -106,7 +109,7 @@ class ServiceBridge(private val context: Context, private val channel: MethodCha
             val keepAliveIntent = Intent(context, KeepAliveService::class.java)
             context.startService(keepAliveIntent)
             
-            Log.d(TAG, "OpenList service start command sent")
+            Log.d(TAG, "OpenList service start command sent, manual stop flag cleared")
             true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start OpenList service", e)
@@ -119,6 +122,9 @@ class ServiceBridge(private val context: Context, private val channel: MethodCha
      */
     private fun stopOpenListService(): Boolean {
         return try {
+            // 设置手动停止标志，阻止保活机制重启服务
+            AppConfig.isManuallyStoppedByUser = true
+            
             // 停止主服务
             val intent = Intent(context, OpenListService::class.java)
             context.stopService(intent)
@@ -127,7 +133,7 @@ class ServiceBridge(private val context: Context, private val channel: MethodCha
             val keepAliveIntent = Intent(context, KeepAliveService::class.java)
             context.stopService(keepAliveIntent)
             
-            Log.d(TAG, "OpenList service stop command sent")
+            Log.d(TAG, "OpenList service stop command sent, manual stop flag set")
             true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to stop OpenList service", e)

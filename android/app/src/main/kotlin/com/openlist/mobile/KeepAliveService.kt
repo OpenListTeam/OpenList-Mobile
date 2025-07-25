@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
 import android.util.Log
+import com.openlist.mobile.config.AppConfig
 import kotlinx.coroutines.*
 
 /**
@@ -142,6 +143,18 @@ class KeepAliveService : Service() {
      */
     private fun checkAndRestartMainService() {
         try {
+            // 检查是否被用户手动停止
+            if (AppConfig.isManuallyStoppedByUser) {
+                Log.d(TAG, "Service was manually stopped by user, skipping restart")
+                return
+            }
+            
+            // 检查是否启用了开机启动（保活功能）
+            if (!AppConfig.isStartAtBootEnabled) {
+                Log.d(TAG, "Auto start disabled, skipping service check")
+                return
+            }
+            
             if (!isMainServiceRunning()) {
                 Log.w(TAG, "Main service not running, attempting to restart")
                 startMainService()
@@ -188,6 +201,18 @@ class KeepAliveService : Service() {
      */
     private fun restartKeepAliveService() {
         try {
+            // 检查是否被用户手动停止
+            if (AppConfig.isManuallyStoppedByUser) {
+                Log.d(TAG, "Service was manually stopped by user, skipping keep alive restart")
+                return
+            }
+            
+            // 检查是否启用了开机启动（保活功能）
+            if (!AppConfig.isStartAtBootEnabled) {
+                Log.d(TAG, "Auto start disabled, skipping keep alive restart")
+                return
+            }
+            
             val intent = Intent(this, KeepAliveService::class.java)
             startService(intent)
             Log.d(TAG, "Keep alive service restart command sent")

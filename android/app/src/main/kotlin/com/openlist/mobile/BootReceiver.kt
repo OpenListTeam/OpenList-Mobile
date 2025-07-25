@@ -52,6 +52,10 @@ class BootReceiver : BroadcastReceiver() {
             return
         }
 
+        // 开机时清除手动停止标志，因为设备重启了
+        AppConfig.isManuallyStoppedByUser = false
+        Log.d(TAG, "Manual stop flag cleared on boot")
+
         Log.d(TAG, "Starting services after boot")
         startServices(context)
     }

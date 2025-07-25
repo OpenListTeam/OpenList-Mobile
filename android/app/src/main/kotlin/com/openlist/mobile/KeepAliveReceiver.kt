@@ -73,6 +73,12 @@ class KeepAliveReceiver : BroadcastReceiver() {
      */
     private fun ensureServicesRunning(context: Context) {
         try {
+            // 检查是否被用户手动停止
+            if (AppConfig.isManuallyStoppedByUser) {
+                Log.d(TAG, "Service was manually stopped by user, skipping service start")
+                return
+            }
+            
             // 检查是否启用了开机启动
             if (!AppConfig.isStartAtBootEnabled) {
                 Log.d(TAG, "Auto start is disabled, skipping service start")

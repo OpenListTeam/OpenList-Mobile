@@ -122,6 +122,12 @@ object WorkManagerHelper {
             return try {
                 Log.d(TAG, "KeepAliveWorker executing")
 
+                // 检查是否被用户手动停止
+                if (AppConfig.isManuallyStoppedByUser) {
+                    Log.d(TAG, "Service was manually stopped by user, skipping keep alive")
+                    return Result.success()
+                }
+
                 if (!AppConfig.isStartAtBootEnabled) {
                     Log.d(TAG, "Auto start disabled, skipping keep alive")
                     return Result.success()
@@ -162,6 +168,12 @@ object WorkManagerHelper {
         override fun doWork(): Result {
             return try {
                 Log.d(TAG, "ServiceCheckWorker executing")
+
+                // 检查是否被用户手动停止
+                if (AppConfig.isManuallyStoppedByUser) {
+                    Log.d(TAG, "Service was manually stopped by user, skipping service check")
+                    return Result.success()
+                }
 
                 if (!AppConfig.isStartAtBootEnabled) {
                     Log.d(TAG, "Auto start disabled, skipping service check")

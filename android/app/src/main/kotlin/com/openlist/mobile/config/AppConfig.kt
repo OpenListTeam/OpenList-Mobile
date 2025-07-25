@@ -21,6 +21,9 @@ object AppConfig {
         fallback = false
     )
 
+    // 用户手动停止服务的标志，当为true时，保活机制不会重启服务
+    var isManuallyStoppedByUser: Boolean by prefs.dynamic("isManuallyStoppedByUser", fallback = false)
+
     val defaultDataDir by lazy { app.getExternalFilesDir("data")?.absolutePath!! }
 
     private var mDataDir: String by prefs.dynamic("dataDir", fallback = defaultDataDir)

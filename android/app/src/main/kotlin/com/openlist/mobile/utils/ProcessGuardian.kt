@@ -8,6 +8,7 @@ import android.os.Process
 import android.util.Log
 import com.openlist.mobile.KeepAliveService
 import com.openlist.mobile.OpenListService
+import com.openlist.mobile.config.AppConfig
 import kotlinx.coroutines.*
 
 /**
@@ -125,6 +126,18 @@ object ProcessGuardian {
      */
     private fun restartMainService(context: Context) {
         try {
+            // 检查是否被用户手动停止
+            if (AppConfig.isManuallyStoppedByUser) {
+                Log.d(TAG, "Service was manually stopped by user, skipping main service restart")
+                return
+            }
+            
+            // 检查是否启用���开机启动（保活功能）
+            if (!AppConfig.isStartAtBootEnabled) {
+                Log.d(TAG, "Auto start disabled, skipping main service restart")
+                return
+            }
+            
             val intent = Intent(context, OpenListService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -142,6 +155,18 @@ object ProcessGuardian {
      */
     private fun restartKeepAliveService(context: Context) {
         try {
+            // 检查是否被用户手动停止
+            if (AppConfig.isManuallyStoppedByUser) {
+                Log.d(TAG, "Service was manually stopped by user, skipping keep alive service restart")
+                return
+            }
+            
+            // 检查是否启用了开机启动（保活功能）
+            if (!AppConfig.isStartAtBootEnabled) {
+                Log.d(TAG, "Auto start disabled, skipping keep alive service restart")
+                return
+            }
+            
             val intent = Intent(context, KeepAliveService::class.java)
             context.startService(intent)
             Log.d(TAG, "Keep alive service restart command sent")

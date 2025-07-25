@@ -165,6 +165,12 @@ class NetworkMonitor(private val context: Context) {
                 // 延迟一段时间确保网络稳定
                 delay(2000)
                 
+                // 检查是否被用户手动停止
+                if (AppConfig.isManuallyStoppedByUser) {
+                    Log.d(TAG, "Service was manually stopped by user, skipping network restart")
+                    return@launch
+                }
+                
                 if (!AppConfig.isStartAtBootEnabled) {
                     Log.d(TAG, "Auto start disabled, skipping service check")
                     return@launch

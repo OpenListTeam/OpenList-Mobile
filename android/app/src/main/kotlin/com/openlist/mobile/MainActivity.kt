@@ -26,11 +26,15 @@ import kotlinx.coroutines.launch
 class MainActivity : FlutterActivity() {
     companion object {
         private const val TAG = "MainActivity"
+        
+        // 静态引用，供其他组件访问
+        @Volatile
+        var serviceBridge: ServiceBridge? = null
+            private set
     }
 
     private val receiver by lazy { MyReceiver() }
     private var mEvent: GeneratedApi.Event? = null
-    private var serviceBridge: ServiceBridge? = null
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {

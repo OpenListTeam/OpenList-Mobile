@@ -71,17 +71,22 @@ class OpenListService : Service(), OpenList.Listener {
         LocalBroadcastManager.getInstance(this)
             .sendBroadcast(Intent(ACTION_STATUS_CHANGED))
 
+        // 通知ServiceBridge状态变化
+        try {
+            MainActivity.serviceBridge?.notifyServiceStatusChanged(isRunning)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to notify ServiceBridge", e)
+        }
+
         if (!isRunning) {
-            // 如果服务停止，则停止前台服务
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                stopForeground(true)
-            }
+            // 如果服务停止，则停止前台服务并移除通知
+            stopForeground(true)
+            // 确保通知被完全移除
+            cancelNotification()
             stopSelf()
         } else {
             // 如果服务运行，更新通知
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                updateNotification()
-            }
+            updateNotification()
         }
     }
 
@@ -160,10 +165,9 @@ class OpenListService : Service(), OpenList.Listener {
             Log.e(TAG, "Failed to release wake lock", e)
         }
 
-        // 停止前台服务
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            stopForeground(true)
-        }
+        // 停止前台服务并取消通知
+        stopForeground(true)
+        cancelNotification()
 
         // 注销广播接收器
         try {
@@ -181,7 +185,7 @@ class OpenListService : Service(), OpenList.Listener {
         OpenList.removeListener(this)
 
         // 尝试重启服务（保活机制）
-        if (isRunning && AppConfig.isStartAtBootEnabled) {
+        if (isRunning && AppConfig.isStartAtBootEnabled && !AppConfig.isManuallyStoppedByUser) {
             restartService()
         }
     }
@@ -316,6 +320,12 @@ class OpenListService : Service(), OpenList.Listener {
                     // 每30秒检查一次服务状态
                     delay(30000)
                     
+                    // 检查是否被用户手动停止
+                    if (AppConfig.isManuallyStoppedByUser) {
+                        Log.d(TAG, "Service was manually stopped by user, skipping heartbeat restart")
+                        continue
+                    }
+                    
                     if (isRunning && !OpenList.isRunning()) {
                         Log.w(TAG, "OpenList stopped unexpectedly, restarting...")
                         // 重新启动OpenList
@@ -421,6 +431,11 @@ class OpenListService : Service(), OpenList.Listener {
                 chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
                 chan.setShowBadge(false) // 不显示角标
                 
+                // 设置通知渠道为不可清除（常驻通知）
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    chan.setBlockable(false) // Android 10+ 设置为不可屏蔽
+                }
+                
                 val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.createNotificationChannel(chan)
                 
@@ -443,10 +458,16 @@ class OpenListService : Service(), OpenList.Listener {
                 .addAction(0, getString(R.string.shutdown), shutdownAction)
                 .addAction(0, getString(R.string.copy_address), copyAddressPendingIntent)
                 .setOngoing(true) // 设置为持续通知，不能被滑动删除
+                .setAutoCancel(false) // 点击后不自动取消
                 .build()
 
+            // 设置通知标志，确保通知常驻
+            notification.flags = notification.flags or 
+                Notification.FLAG_NO_CLEAR or // 不能被清除按钮清除
+                Notification.FLAG_ONGOING_EVENT // 标记为持续事���
+
             startForeground(FOREGROUND_ID, notification)
-            Log.d(TAG, "Foreground notification started")
+            Log.d(TAG, "Foreground notification started with persistent flags")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create notification", e)
         }
@@ -456,8 +477,19 @@ class OpenListService : Service(), OpenList.Listener {
      * 更新通知
      */
     private fun updateNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            initOrUpdateNotification()
+        initOrUpdateNotification()
+    }
+
+    /**
+     * 取消通知
+     */
+    private fun cancelNotification() {
+        try {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancel(FOREGROUND_ID)
+            Log.d(TAG, "Notification cancelled")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to cancel notification", e)
         }
     }
 
