@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:openlist_flutter/contant/native_bridge.dart';
+import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -43,7 +43,7 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
     final openlistUrl =
         "https://github.com/OpenListTeam/OpenList/releases/tag/$_openlistVersion";
     final appUrl =
-        "https://github.com/OpenListTeam/OpenListFlutter/releases/tag/$_version";
+        "https://github.com/OpenListTeam/OpenList-Mobile/releases/tag/$_version";
     return AboutDialog(
       applicationName: S.of(context).appName,
       applicationVersion: '$_version ($_versionCode)',
@@ -67,7 +67,7 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
         ),
         TextButton(
             onPressed: () {
-              IntentUtils.getUrlIntent(appUrl).launchChooser("OpenListFlutter");
+              IntentUtils.getUrlIntent(appUrl).launchChooser("OpenList Mobile");
             },
             onLongPress: () {
               Clipboard.setData(ClipboardData(text: appUrl));
@@ -75,7 +75,7 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
                   message: S.of(context).copiedToClipboard,
                   duration: const Duration(seconds: 1)));
             },
-            child: const Text("OpenListFlutter")),
+            child: const Text("OpenList Mobile")),
       ],
     );
   }

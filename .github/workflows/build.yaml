@@ -94,21 +94,21 @@ jobs:
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenListFlutter-v${{ env.ver_name }}_arm64-v8a"
+          name: "OpenList-Mobile-v${{ env.ver_name }}_arm64-v8a"
           path: "${{ env.output }}/*-v8a.apk"
 
       - name: Upload App To Artifact arm-v7a
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenListFlutter-v${{ env.ver_name }}_arm-v7a"
+          name: "OpenList-Mobile-v${{ env.ver_name }}_arm-v7a"
           path: "${{ env.output }}/*-v7a.apk"
 
       - name: Upload App To Artifact x86
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenListFlutter-v${{ env.ver_name }}_x86_64"
+          name: "OpenList-Mobile-v${{ env.ver_name }}_x86_64"
           path: "${{ env.output }}/*64.apk"
 
   ios:
@@ -182,7 +182,7 @@ jobs:
           cd build/ios/iphoneos
           mkdir Payload
           cp -r Runner.app Payload/
-          zip -r ${{ env.output }}/OpenListFlutter.ipa Payload/
+          zip -r ${{ env.output }}/OpenList-Mobile.ipa Payload/
 
       - name: Get App Version
         run: |
@@ -197,5 +197,5 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenListFlutter-iOS-${{ env.ver_name }}"
-          path: "${{ env.output }}/OpenListFlutter.ipa"
+          name: "OpenList-Mobile-iOS-${{ env.ver_name }}"
+          path: "${{ env.output }}/OpenList-Mobile.ipa"

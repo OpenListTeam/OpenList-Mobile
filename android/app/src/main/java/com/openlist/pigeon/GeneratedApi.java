@@ -128,7 +128,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.isWakeLockEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.isWakeLockEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -150,7 +150,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.setWakeLockEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.setWakeLockEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -174,7 +174,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.isStartAtBootEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.isStartAtBootEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -196,7 +196,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.setStartAtBootEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.setStartAtBootEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -220,7 +220,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.isAutoCheckUpdateEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.isAutoCheckUpdateEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -242,7 +242,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.setAutoCheckUpdateEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.setAutoCheckUpdateEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -266,7 +266,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.isAutoOpenWebPageEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.isAutoOpenWebPageEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -288,7 +288,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.setAutoOpenWebPageEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.setAutoOpenWebPageEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -312,7 +312,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.getDataDir", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.getDataDir", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -334,7 +334,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.setDataDir", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.setDataDir", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -358,7 +358,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.isSilentJumpAppEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.isSilentJumpAppEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -380,7 +380,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.AppConfig.setSilentJumpAppEnabled", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.AppConfig.setSilentJumpAppEnabled", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -434,7 +434,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.NativeCommon.startActivityFromUri", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.NativeCommon.startActivityFromUri", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -458,7 +458,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.NativeCommon.getDeviceSdkInt", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.NativeCommon.getDeviceSdkInt", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -480,7 +480,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.NativeCommon.getDeviceCPUABI", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.NativeCommon.getDeviceCPUABI", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -502,7 +502,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.NativeCommon.getVersionName", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.NativeCommon.getVersionName", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -524,7 +524,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.NativeCommon.getVersionCode", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.NativeCommon.getVersionCode", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -546,7 +546,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.NativeCommon.toast", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.NativeCommon.toast", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -570,7 +570,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.NativeCommon.longToast", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.NativeCommon.longToast", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -620,7 +620,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.Android.addShortcut", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.Android.addShortcut", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -642,7 +642,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.Android.startService", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.Android.startService", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -664,7 +664,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.Android.setAdminPwd", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.Android.setAdminPwd", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -688,7 +688,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.Android.getOpenListHttpPort", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.Android.getOpenListHttpPort", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -710,7 +710,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.Android.isRunning", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.Android.isRunning", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -732,7 +732,7 @@ public class GeneratedApi {
       {
         BasicMessageChannel<Object> channel =
             new BasicMessageChannel<>(
-                binaryMessenger, "dev.flutter.pigeon.openlist_flutter.Android.getOpenListVersion", getCodec());
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.Android.getOpenListVersion", getCodec());
         if (api != null) {
           channel.setMessageHandler(
               (message, reply) -> {
@@ -767,7 +767,7 @@ public class GeneratedApi {
       return new StandardMessageCodec();
     }
     public void onServiceStatusChanged(@NonNull Boolean isRunningArg, @NonNull VoidResult result) {
-      final String channelName = "dev.flutter.pigeon.openlist_flutter.Event.onServiceStatusChanged";
+      final String channelName = "dev.flutter.pigeon.openlist_mobile.Event.onServiceStatusChanged";
       BasicMessageChannel<Object> channel =
           new BasicMessageChannel<>(
               binaryMessenger, channelName, getCodec());
@@ -787,7 +787,7 @@ public class GeneratedApi {
           });
     }
     public void onServerLog(@NonNull Long levelArg, @NonNull String timeArg, @NonNull String logArg, @NonNull VoidResult result) {
-      final String channelName = "dev.flutter.pigeon.openlist_flutter.Event.onServerLog";
+      final String channelName = "dev.flutter.pigeon.openlist_mobile.Event.onServerLog";
       BasicMessageChannel<Object> channel =
           new BasicMessageChannel<>(
               binaryMessenger, channelName, getCodec());

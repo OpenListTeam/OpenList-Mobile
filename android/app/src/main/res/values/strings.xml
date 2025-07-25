@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">OpenList</string>
+    <string name="app_name">OpenList Mobile</string>
 
     <string name="open_source_license">开源许可</string>
     <string name="back">返回</string>

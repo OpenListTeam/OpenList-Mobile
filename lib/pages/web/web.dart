@@ -1,9 +1,9 @@
 import 'dart:developer';
 
-import 'package:openlist_flutter/contant/native_bridge.dart';
-import 'package:openlist_flutter/generated_api.dart';
-import 'package:openlist_flutter/utils/intent_utils.dart';
-import 'package:openlist_flutter/utils/download_manager.dart';
+import 'package:openlist_mobile/contant/native_bridge.dart';
+import 'package:openlist_mobile/generated_api.dart';
+import 'package:openlist_mobile/utils/intent_utils.dart';
+import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';

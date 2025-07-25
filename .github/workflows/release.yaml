@@ -165,7 +165,7 @@ jobs:
   #         cd build/ios/iphoneos
   #         mkdir Payload
   #         cp -r Runner.app Payload/
-  #         zip -r ${{ env.output }}/OpenListFlutter.ipa Payload/
+  #         zip -r ${{ env.output }}/OpenList-Mobile.ipa Payload/
 
   #     - name: Get App Version
   #       run: |
@@ -180,7 +180,7 @@ jobs:
   #       uses: actions/upload-artifact@v4
   #       with:
   #         name: "ios-release-files"
-  #         path: "${{ env.output }}/OpenListFlutter.ipa"
+  #         path: "${{ env.output }}/OpenList-Mobile.ipa"
 
   release:
     needs: [android]

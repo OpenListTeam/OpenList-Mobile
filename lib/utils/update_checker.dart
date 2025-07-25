@@ -3,7 +3,7 @@ import 'dart:core';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:openlist_flutter/contant/native_bridge.dart';
+import 'package:openlist_mobile/contant/native_bridge.dart';
 
 class UpdateChecker {
   String owner;

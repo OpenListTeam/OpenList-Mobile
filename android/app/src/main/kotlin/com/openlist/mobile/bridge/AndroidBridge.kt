@@ -24,7 +24,7 @@ class AndroidBridge(private val context: Context) : GeneratedApi.Android {
         MyTools.addShortcut(
             context,
             context.getString(R.string.app_switch),
-            "openlist_flutter_switch",
+            "openlist_mobile_switch",
             R.drawable.openlist_switch,
             Intent(context, SwitchServerActivity::class.java)
         )

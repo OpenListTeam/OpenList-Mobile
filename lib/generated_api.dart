@@ -36,7 +36,7 @@ class AppConfig {
   static const MessageCodec<Object?> pigeonChannelCodec = StandardMessageCodec();
 
   Future<bool> isWakeLockEnabled() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.isWakeLockEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.isWakeLockEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -63,7 +63,7 @@ class AppConfig {
   }
 
   Future<void> setWakeLockEnabled(bool enabled) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.setWakeLockEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.setWakeLockEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -85,7 +85,7 @@ class AppConfig {
   }
 
   Future<bool> isStartAtBootEnabled() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.isStartAtBootEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.isStartAtBootEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -112,7 +112,7 @@ class AppConfig {
   }
 
   Future<void> setStartAtBootEnabled(bool enabled) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.setStartAtBootEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.setStartAtBootEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -134,7 +134,7 @@ class AppConfig {
   }
 
   Future<bool> isAutoCheckUpdateEnabled() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.isAutoCheckUpdateEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.isAutoCheckUpdateEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -161,7 +161,7 @@ class AppConfig {
   }
 
   Future<void> setAutoCheckUpdateEnabled(bool enabled) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.setAutoCheckUpdateEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.setAutoCheckUpdateEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -183,7 +183,7 @@ class AppConfig {
   }
 
   Future<bool> isAutoOpenWebPageEnabled() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.isAutoOpenWebPageEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.isAutoOpenWebPageEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -210,7 +210,7 @@ class AppConfig {
   }
 
   Future<void> setAutoOpenWebPageEnabled(bool enabled) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.setAutoOpenWebPageEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.setAutoOpenWebPageEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -232,7 +232,7 @@ class AppConfig {
   }
 
   Future<String> getDataDir() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.getDataDir';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.getDataDir';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -259,7 +259,7 @@ class AppConfig {
   }
 
   Future<void> setDataDir(String dir) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.setDataDir';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.setDataDir';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -281,7 +281,7 @@ class AppConfig {
   }
 
   Future<bool> isSilentJumpAppEnabled() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.isSilentJumpAppEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.isSilentJumpAppEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -308,7 +308,7 @@ class AppConfig {
   }
 
   Future<void> setSilentJumpAppEnabled(bool enabled) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.AppConfig.setSilentJumpAppEnabled';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.AppConfig.setSilentJumpAppEnabled';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -341,7 +341,7 @@ class NativeCommon {
   static const MessageCodec<Object?> pigeonChannelCodec = StandardMessageCodec();
 
   Future<bool> startActivityFromUri(String intentUri) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.NativeCommon.startActivityFromUri';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.NativeCommon.startActivityFromUri';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -368,7 +368,7 @@ class NativeCommon {
   }
 
   Future<int> getDeviceSdkInt() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.NativeCommon.getDeviceSdkInt';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.NativeCommon.getDeviceSdkInt';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -395,7 +395,7 @@ class NativeCommon {
   }
 
   Future<String> getDeviceCPUABI() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.NativeCommon.getDeviceCPUABI';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.NativeCommon.getDeviceCPUABI';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -422,7 +422,7 @@ class NativeCommon {
   }
 
   Future<String> getVersionName() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.NativeCommon.getVersionName';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.NativeCommon.getVersionName';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -449,7 +449,7 @@ class NativeCommon {
   }
 
   Future<int> getVersionCode() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.NativeCommon.getVersionCode';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.NativeCommon.getVersionCode';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -476,7 +476,7 @@ class NativeCommon {
   }
 
   Future<void> toast(String msg) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.NativeCommon.toast';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.NativeCommon.toast';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -498,7 +498,7 @@ class NativeCommon {
   }
 
   Future<void> longToast(String msg) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.NativeCommon.longToast';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.NativeCommon.longToast';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -531,7 +531,7 @@ class Android {
   static const MessageCodec<Object?> pigeonChannelCodec = StandardMessageCodec();
 
   Future<void> addShortcut() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.Android.addShortcut';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.Android.addShortcut';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -553,7 +553,7 @@ class Android {
   }
 
   Future<void> startService() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.Android.startService';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.Android.startService';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -575,7 +575,7 @@ class Android {
   }
 
   Future<void> setAdminPwd(String pwd) async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.Android.setAdminPwd';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.Android.setAdminPwd';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -597,7 +597,7 @@ class Android {
   }
 
   Future<int> getOpenListHttpPort() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.Android.getOpenListHttpPort';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.Android.getOpenListHttpPort';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -624,7 +624,7 @@ class Android {
   }
 
   Future<bool> isRunning() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.Android.isRunning';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.Android.isRunning';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -651,7 +651,7 @@ class Android {
   }
 
   Future<String> getOpenListVersion() async {
-    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_flutter.Android.getOpenListVersion';
+    const String __pigeon_channelName = 'dev.flutter.pigeon.openlist_mobile.Android.getOpenListVersion';
     final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
       __pigeon_channelName,
       pigeonChannelCodec,
@@ -688,18 +688,18 @@ abstract class Event {
   static void setup(Event? api, {BinaryMessenger? binaryMessenger}) {
     {
       final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.openlist_flutter.Event.onServiceStatusChanged', pigeonChannelCodec,
+          'dev.flutter.pigeon.openlist_mobile.Event.onServiceStatusChanged', pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         __pigeon_channel.setMessageHandler(null);
       } else {
         __pigeon_channel.setMessageHandler((Object? message) async {
           assert(message != null,
-          'Argument for dev.flutter.pigeon.openlist_flutter.Event.onServiceStatusChanged was null.');
+          'Argument for dev.flutter.pigeon.openlist_mobile.Event.onServiceStatusChanged was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final bool? arg_isRunning = (args[0] as bool?);
           assert(arg_isRunning != null,
-              'Argument for dev.flutter.pigeon.openlist_flutter.Event.onServiceStatusChanged was null, expected non-null bool.');
+              'Argument for dev.flutter.pigeon.openlist_mobile.Event.onServiceStatusChanged was null, expected non-null bool.');
           try {
             api.onServiceStatusChanged(arg_isRunning!);
             return wrapResponse(empty: true);
@@ -713,24 +713,24 @@ abstract class Event {
     }
     {
       final BasicMessageChannel<Object?> __pigeon_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.openlist_flutter.Event.onServerLog', pigeonChannelCodec,
+          'dev.flutter.pigeon.openlist_mobile.Event.onServerLog', pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         __pigeon_channel.setMessageHandler(null);
       } else {
         __pigeon_channel.setMessageHandler((Object? message) async {
           assert(message != null,
-          'Argument for dev.flutter.pigeon.openlist_flutter.Event.onServerLog was null.');
+          'Argument for dev.flutter.pigeon.openlist_mobile.Event.onServerLog was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final int? arg_level = (args[0] as int?);
           assert(arg_level != null,
-              'Argument for dev.flutter.pigeon.openlist_flutter.Event.onServerLog was null, expected non-null int.');
+              'Argument for dev.flutter.pigeon.openlist_mobile.Event.onServerLog was null, expected non-null int.');
           final String? arg_time = (args[1] as String?);
           assert(arg_time != null,
-              'Argument for dev.flutter.pigeon.openlist_flutter.Event.onServerLog was null, expected non-null String.');
+              'Argument for dev.flutter.pigeon.openlist_mobile.Event.onServerLog was null, expected non-null String.');
           final String? arg_log = (args[2] as String?);
           assert(arg_log != null,
-              'Argument for dev.flutter.pigeon.openlist_flutter.Event.onServerLog was null, expected non-null String.');
+              'Argument for dev.flutter.pigeon.openlist_mobile.Event.onServerLog was null, expected non-null String.');
           try {
             api.onServerLog(arg_level!, arg_time!, arg_log!);
             return wrapResponse(empty: true);

@@ -1,9 +1,9 @@
-import 'package:openlist_flutter/generated_api.dart';
-import 'package:openlist_flutter/pages/openlist/about_dialog.dart';
-import 'package:openlist_flutter/pages/openlist/pwd_edit_dialog.dart';
-import 'package:openlist_flutter/pages/app_update_dialog.dart';
-import 'package:openlist_flutter/widgets/switch_floating_action_button.dart';
-import 'package:openlist_flutter/utils/service_manager.dart';
+import 'package:openlist_mobile/generated_api.dart';
+import 'package:openlist_mobile/pages/openlist/about_dialog.dart';
+import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
+import 'package:openlist_mobile/pages/app_update_dialog.dart';
+import 'package:openlist_mobile/widgets/switch_floating_action_button.dart';
+import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

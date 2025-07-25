@@ -1,4 +1,4 @@
-name: openlist_flutter
+name: openlist_mobile
 description: "OpenList for Android and iOS"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
