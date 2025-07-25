@@ -53,6 +53,6 @@ jobs:
       - name: Run workflow release
         if: env.openlist_update == 1 && ( success() || failure() )
         run: |
-          gh workflow run release.yaml -R OpenListTeam/OpenListFlutter
+          gh workflow run release.yaml -R OpenListTeam/OpenList-Mobile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
