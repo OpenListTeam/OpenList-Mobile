@@ -67,7 +67,8 @@ class KeepAliveService : Service() {
         com.openlist.mobile.utils.ProcessGuardian.stopGuarding()
         
         // 取消定时器
-        keepAlivePendingIntent?.let { pendingIntent ->
+        val pendingIntent = keepAlivePendingIntent
+        if (pendingIntent != null) {
             alarmManager?.cancel(pendingIntent)
         }
         
@@ -93,7 +94,8 @@ class KeepAliveService : Service() {
                 PendingIntent.FLAG_UPDATE_CURRENT
             }
             
-            keepAlivePendingIntent = PendingIntent.getBroadcast(this, 0, intent, flags)
+            val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, flags)
+            keepAlivePendingIntent = pendingIntent
             
             val triggerTime = SystemClock.elapsedRealtime() + KEEP_ALIVE_INTERVAL
             
@@ -102,13 +104,13 @@ class KeepAliveService : Service() {
                 alarmManager?.setExactAndAllowWhileIdle(
                     AlarmManager.ELAPSED_REALTIME_WAKEUP,
                     triggerTime,
-                    keepAlivePendingIntent
+                    pendingIntent
                 )
             } else {
                 alarmManager?.setExact(
                     AlarmManager.ELAPSED_REALTIME_WAKEUP,
                     triggerTime,
-                    keepAlivePendingIntent
+                    pendingIntent
                 )
             }
             

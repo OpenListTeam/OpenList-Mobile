@@ -22,7 +22,7 @@ class BootReceiver : BroadcastReceiver() {
         try {
             when (action) {
                 Intent.ACTION_BOOT_COMPLETED,
-                Intent.ACTION_QUICKBOOT_POWERON,
+                "android.intent.action.QUICKBOOT_POWERON",
                 "com.htc.intent.action.QUICKBOOT_POWERON" -> {
                     Log.d(TAG, "Boot completed")
                     handleBootCompleted(context)
