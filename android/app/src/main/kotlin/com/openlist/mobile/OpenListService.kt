@@ -199,12 +199,21 @@ class OpenListService : Service(), OpenList.Listener {
     }
 
     /**
+     * 公共方法：停止OpenList服务
+     */
+    fun stopOpenListService() {
+        if (isRunning) {
+            startOrShutdown()
+        }
+    }
+
+    /**
      * 启动或关闭OpenList服务
      */
     private fun startOrShutdown() {
         if (isRunning) {
             Log.d(TAG, "Shutting down OpenList")
-            // 关闭操作���子线程中执行，避免阻塞主线程
+            // 关闭操作在子线程中执行，避免阻塞主线程
             mScope.launch(Dispatchers.IO) {
                 try {
                     OpenList.shutdown()

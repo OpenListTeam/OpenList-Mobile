@@ -125,9 +125,18 @@ class ServiceBridge(private val context: Context, private val channel: MethodCha
             // 设置手动停止标志，阻止保活机制重启服务
             AppConfig.isManuallyStoppedByUser = true
             
-            // 停止主服务
-            val intent = Intent(context, OpenListService::class.java)
-            context.stopService(intent)
+            // 首先尝试通过服务实例直接停止OpenList
+            val serviceInstance = OpenListService.serviceInstance
+            if (serviceInstance != null && OpenListService.isRunning) {
+                Log.d(TAG, "Calling service stopOpenListService method directly")
+                // 直接调用服务的停止方法
+                serviceInstance.stopOpenListService()
+            } else {
+                Log.w(TAG, "Service instance not available or not running, using stopService")
+                // 如果服务实例不可用，直接停止服务
+                val intent = Intent(context, OpenListService::class.java)
+                context.stopService(intent)
+            }
             
             // 停止保活服务
             val keepAliveIntent = Intent(context, KeepAliveService::class.java)

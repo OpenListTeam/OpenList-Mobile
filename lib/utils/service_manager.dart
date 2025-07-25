@@ -47,9 +47,11 @@ class ServiceManager {
   
   /// 处理来自原生端的方法调用
   Future<dynamic> _handleMethodCall(MethodCall call) async {
+    debugPrint('ServiceManager received method call: ${call.method}');
     switch (call.method) {
       case 'onServiceStatusChanged':
         final bool isRunning = call.arguments['isRunning'] ?? false;
+        debugPrint('ServiceManager status change notification: $isRunning');
         _updateServiceStatus(isRunning);
         break;
       default:
@@ -83,7 +85,12 @@ class ServiceManager {
       final bool result = await _channel.invokeMethod('stopService');
       debugPrint('Stop service result: $result');
       
-      // 延迟检查状态，给服务停止时间
+      // 立即更新状态为停止
+      if (result) {
+        _updateServiceStatus(false);
+      }
+      
+      // 延迟检查状态，确认服务已停止
       Timer(const Duration(seconds: 1), () => checkServiceStatus());
       
       return result;

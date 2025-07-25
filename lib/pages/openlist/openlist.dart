@@ -128,13 +128,24 @@ class OpenListController extends GetxController {
 
   @override
   void onInit() {
+    // 设置日志接收器，但状态变化只通过ServiceManager处理
     Event.setup(MyEventReceiver(
-        (isRunning) => isSwitch.value = isRunning, (log) => addLog(log)));
+        (isRunning) {
+          // 不在这里更新状态，避免冲突
+          print('Event receiver status: $isRunning');
+        }, 
+        (log) => addLog(log)));
+    
     Android().getOpenListVersion().then((value) => openlistVersion.value = value);
-    Android().isRunning().then((value) => isSwitch.value = value);
+    
+    // 获取初始状态
+    ServiceManager.instance.checkServiceStatus().then((isRunning) {
+      isSwitch.value = isRunning;
+    });
 
-    // 监听服务状态变化
+    // 只监听ServiceManager的状态变化
     ServiceManager.instance.serviceStatusStream.listen((isRunning) {
+      print('ServiceManager status changed: $isRunning');
       isSwitch.value = isRunning;
     });
 
