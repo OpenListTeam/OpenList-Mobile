@@ -136,14 +136,19 @@ class OpenListService : Service(), OpenList.Listener {
         // 添加OpenList监听器
         OpenList.addListener(this)
 
-        // 启动保活服务
-        startKeepAliveService()
+        // 检查是否被用户手动停止
+        if (!AppConfig.isManuallyStoppedByUser) {
+            // 启动保活服务
+            startKeepAliveService()
 
-        // 启动网络监听
-        startNetworkMonitoring()
+            // 启动网络监听
+            startNetworkMonitoring()
 
-        // 启动心跳检测
-        startHeartbeat()
+            // 启动心跳检测
+            startHeartbeat()
+        } else {
+            Log.d(TAG, "Service was manually stopped by user, skipping keep alive initialization")
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -270,6 +275,12 @@ class OpenListService : Service(), OpenList.Listener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand called")
+        
+        // 检查是否被用户手动停止
+        if (AppConfig.isManuallyStoppedByUser) {
+            Log.d(TAG, "Service was manually stopped by user, not auto-starting OpenList")
+            return START_STICKY
+        }
         
         // 如果还没有启动，则启动OpenList
         if (!isRunning) {
