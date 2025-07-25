@@ -10,6 +10,9 @@ on:
     paths:
       - "sync_openlist.yaml"  
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
