@@ -1,5 +1,3 @@
-
-
 <div align="center">
   <img src="https://raw.githubusercontent.com/OpenListTeam/Logo/main/logo.svg" height="100px" alt="OpenList Logo">
   <h1>OpenList-Mobile</h1>
@@ -17,25 +15,23 @@
 
 </div>
 
-
 <div align="center">
   <a href="README.md">🇨🇳 中文</a> | <a href="README_EN.md">🇺🇸 English</a>
 </div>
 
 
-**OpenList-Mobile** 是一个基于 [OpenList](https://github.com/OpenListTeam/OpenList) 的移动端文件服务器应用，使用 Flutter 框架开发。支持局域网文件共享、远程访问和在线管理。
+**OpenList-Mobile** is a mobile file server application based on [OpenList](https://github.com/OpenListTeam/OpenList), built with Flutter framework. Turn your phone into a powerful file server with LAN file sharing, remote access, and online management capabilities.
 
-### 下载安装
+### Download & Installation
 
-#### 稳定版本
-- [📱 发布版](https://github.com/OpenListTeam/OpenList-Mobile/releases/latest) - 推荐使用
+#### Stable Release
+- [📱 Latest Release](https://github.com/OpenListTeam/OpenList-Mobile/releases/latest) - Recommended
 
-#### 开发版本
-- [🔧 构建版](https://github.com/OpenListTeam/OpenList-Mobile/actions/workflows/build.yaml) - 最新功能
+#### Development Build
+- [🔧 Development Build](https://github.com/OpenListTeam/OpenList-Mobile/actions/workflows/build.yaml) - Latest Features
 
-> **自动更新**：[GitHub Actions](https://github.com/OpenListTeam/OpenList-Mobile/actions/workflows/sync_openlist.yaml) 每日早晚五点自动检查最新的 [OpenList](https://github.com/OpenListTeam/OpenList/releases) 版本并构建发布，确保始终使用最新版本。
+> **Auto-Update**: [GitHub Actions](https://github.com/OpenListTeam/OpenList-Mobile/actions/workflows/sync_openlist.yaml) automatically checks for the latest [OpenList](https://github.com/OpenListTeam/OpenList/releases) version twice daily (5 AM & 5 PM) and builds releases, ensuring always have access to the latest version.
 
-
-### 支持平台
+### Supported Platforms
 - Android
-- iOS (实验性，仍在开发)
+- iOS (Experimental, still in development)
