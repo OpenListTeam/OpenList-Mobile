@@ -1,4 +1,4 @@
-name: CheckOpenList
+name: Check OpenList Version
 
 on:
   schedule:
