@@ -11,7 +11,7 @@
 [![Sync OpenList](https://github.com/OpenListTeam/OpenList-Mobile/actions/workflows/sync_openlist.yaml/badge.svg)](https://github.com/OpenListTeam/OpenList-Mobile/actions/workflows/sync_openlist.yaml)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.32.7-blue.svg)](https://flutter.dev/)
-[![OpenList](https://img.shields.io/badge/OpenList-v4.0.9-green.svg)](https://github.com/OpenListTeam/OpenList)
+[![OpenList](https://img.shields.io/github/v/release/OpenListTeam/OpenList?label=OpenList)](https://github.com/OpenListTeam/OpenList)
 
 </div>
 
