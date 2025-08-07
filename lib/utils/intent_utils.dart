@@ -2,21 +2,24 @@ import 'package:android_intent_plus/android_intent.dart';
 
 class IntentUtils {
   static AndroidIntent getUrlIntent(String url) {
-    return AndroidIntent(action: "action_view", data: url);
+    return AndroidIntent(action: "android.intent.action.VIEW", data: url);
   }
 
-  /// Create an Intent to open file manager for a specific directory
+  /// Create an Intent to open file manager for a specific directory  
   static AndroidIntent getFileManagerIntent(String directoryPath) {
+    // Fallback: try to launch system file manager to Downloads
+    // This should work on most Android devices
     return AndroidIntent(
-      action: "action_main",
+      action: "android.intent.action.MAIN",
       category: "android.intent.category.APP_FILES",
+      flags: [268435456], // FLAG_ACTIVITY_NEW_TASK
     );
   }
 
   /// Create an Intent to show file in file manager
   static AndroidIntent getShowFileInManagerIntent(String filePath) {
     return AndroidIntent(
-      action: "action_view",
+      action: "android.intent.action.VIEW",
       data: "file://$filePath",
       type: _getMimeTypeFromPath(filePath),
     );
@@ -51,7 +54,7 @@ class IntentUtils {
   /// Get generic file manager Intent (let system choose)
   static AndroidIntent getGenericFileManagerIntent(String directoryPath) {
     return AndroidIntent(
-      action: "action_get_content",
+      action: "android.intent.action.GET_CONTENT",
       type: "*/*",
       arguments: {
         'android.intent.extra.LOCAL_ONLY': true,
