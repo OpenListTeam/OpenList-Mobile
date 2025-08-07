@@ -7,10 +7,10 @@ class IntentUtils {
 
   /// Create an Intent to open file manager for a specific directory  
   static AndroidIntent getFileManagerIntent(String directoryPath) {
-    // Use a simple intent that should work with most file managers
+    // Open Downloads folder using content URI (Android 7.0+ safe)
     return AndroidIntent(
       action: "action_view",
-      data: "file://$directoryPath",
+      data: "content://com.android.externalstorage.documents/document/primary%3ADownload",
     );
   }
 
