@@ -7,6 +7,7 @@ import 'package:openlist_mobile/pages/download_manager_page.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:openlist_mobile/utils/notification_manager.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
+import 'package:openlist_mobile/services/auth_manager.dart';
 import 'package:fade_indexed_stack/fade_indexed_stack.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,9 @@ void main() async {
   
   // 初始化服务管理器
   await ServiceManager.instance.initialize();
+  
+  // 初始化认证管理器
+  Get.put(AuthManager());
   
   // Android
   if (!kIsWeb &&
