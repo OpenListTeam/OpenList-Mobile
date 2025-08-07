@@ -1,6 +1,7 @@
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/settings/preference_widgets.dart';
+import 'package:openlist_mobile/pages/storage/storage_management_page.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -82,6 +83,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               )),
 
           DividerPreference(title: S.of(context).general),
+
+          BasicPreference(
+            title: '存储管理',
+            subtitle: '管理和配置存储驱动',
+            leading: const Icon(Icons.storage),
+            onTap: () {
+              Get.to(() => const StorageManagementPage());
+            },
+          ),
 
           SwitchPreference(
             title: S.of(context).autoCheckForUpdates,
