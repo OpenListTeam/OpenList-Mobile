@@ -408,6 +408,18 @@
       }
     }
   },
+  "selectFileManager": "Select File Manager",
+  "systemDefault": "System Default",
+  "huaweiFileManager": "Huawei File Manager",
+  "xiaomiFileManager": "Xiaomi File Manager", 
+  "oppoFileManager": "OPPO File Manager",
+  "vivoFileManager": "Vivo File Manager",
+  "samsungFileManager": "Samsung File Manager",
+  "useDefaultFileManager": "Use System Default",
+  "useVendorFileManager": "Use Vendor File Manager",
+  "openWithFileManager": "Open with File Manager",
+  "noSuitableFileManagerFound": "No suitable file manager found",
+  "tryAnotherFileManager": "Try another file manager",
   "downloadDirectoryOpened": "Download directory opened",
   "openDownloadDirectoryFailed": "Failed to open download directory: {error}",
   "@openDownloadDirectoryFailed": {

@@ -236,6 +236,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "grantStoragePermissionDesc": MessageLookupByLibrary.simpleMessage(
       "挂载本地存储时必须授予，否则无权限读写文件",
     ),
+    "huaweiFileManager": MessageLookupByLibrary.simpleMessage("华为文件管理"),
     "importantSettings": MessageLookupByLibrary.simpleMessage("重要"),
     "inProgress": MessageLookupByLibrary.simpleMessage("进行中"),
     "initializingNotificationManager": MessageLookupByLibrary.simpleMessage(
@@ -265,6 +266,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "没有权限安装 APK 文件，请在设置中开启安装权限",
     ),
     "noPermissionToOpenFile": MessageLookupByLibrary.simpleMessage("没有权限打开此文件"),
+    "noSuitableFileManagerFound": MessageLookupByLibrary.simpleMessage(
+      "未找到合适的文件管理器",
+    ),
     "notificationClicked": m25,
     "notificationManagerInitFailed": m26,
     "notificationManagerInitialized": MessageLookupByLibrary.simpleMessage(
@@ -282,13 +286,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "openFileManagerFailed": m30,
     "openFileResult": m31,
     "openListDownloadDirectory": m32,
+    "openWithFileManager": MessageLookupByLibrary.simpleMessage("用文件管理器打开"),
+    "oppoFileManager": MessageLookupByLibrary.simpleMessage("OPPO文件管理"),
     "parseFilenameFailed": m33,
     "pending": MessageLookupByLibrary.simpleMessage("等待中"),
     "preparingDownload": MessageLookupByLibrary.simpleMessage("准备下载..."),
     "preparingDownloadStatus": MessageLookupByLibrary.simpleMessage("准备下载..."),
     "refresh": MessageLookupByLibrary.simpleMessage("刷新"),
     "releasePage": MessageLookupByLibrary.simpleMessage("发布页面"),
+    "samsungFileManager": MessageLookupByLibrary.simpleMessage("三星文件管理"),
     "selectAppToOpen": MessageLookupByLibrary.simpleMessage("选择应用打开"),
+    "selectFileManager": MessageLookupByLibrary.simpleMessage("选择文件管理器"),
     "setAdminPassword": MessageLookupByLibrary.simpleMessage("设置admin密码"),
     "setDefaultDirectory": MessageLookupByLibrary.simpleMessage("是否设为初始目录？"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
@@ -306,18 +314,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "startDownload": m37,
     "startDownloadFile": m38,
     "startTime": MessageLookupByLibrary.simpleMessage("开始时间"),
+    "systemDefault": MessageLookupByLibrary.simpleMessage("系统默认"),
+    "tryAnotherFileManager": MessageLookupByLibrary.simpleMessage("尝试其他文件管理器"),
     "tryToOpenFile": m39,
     "uiSettings": MessageLookupByLibrary.simpleMessage("界面"),
+    "useDefaultFileManager": MessageLookupByLibrary.simpleMessage("使用系统默认"),
+    "useVendorFileManager": MessageLookupByLibrary.simpleMessage("使用厂商文件管理器"),
     "userCancelledDownload": MessageLookupByLibrary.simpleMessage("用户取消下载"),
     "userCancelledDownloadError": MessageLookupByLibrary.simpleMessage(
       "用户取消下载",
     ),
     "viewDownloads": MessageLookupByLibrary.simpleMessage("查看下载"),
     "viewLocation": MessageLookupByLibrary.simpleMessage("查看位置"),
+    "vivoFileManager": MessageLookupByLibrary.simpleMessage("Vivo文件管理"),
     "wakeLock": MessageLookupByLibrary.simpleMessage("唤醒锁"),
     "wakeLockDesc": MessageLookupByLibrary.simpleMessage(
       "开启防止锁屏后CPU休眠，保持进程在后台运行。（部分系统可能导致杀后台）",
     ),
     "webPage": MessageLookupByLibrary.simpleMessage("网页"),
+    "xiaomiFileManager": MessageLookupByLibrary.simpleMessage("小米文件管理"),
   };
 }

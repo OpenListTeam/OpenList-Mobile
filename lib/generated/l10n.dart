@@ -1249,6 +1249,121 @@ class S {
     );
   }
 
+  /// `选择文件管理器`
+  String get selectFileManager {
+    return Intl.message(
+      '选择文件管理器',
+      name: 'selectFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `系统默认`
+  String get systemDefault {
+    return Intl.message('系统默认', name: 'systemDefault', desc: '', args: []);
+  }
+
+  /// `华为文件管理`
+  String get huaweiFileManager {
+    return Intl.message(
+      '华为文件管理',
+      name: 'huaweiFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `小米文件管理`
+  String get xiaomiFileManager {
+    return Intl.message(
+      '小米文件管理',
+      name: 'xiaomiFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OPPO文件管理`
+  String get oppoFileManager {
+    return Intl.message(
+      'OPPO文件管理',
+      name: 'oppoFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vivo文件管理`
+  String get vivoFileManager {
+    return Intl.message(
+      'Vivo文件管理',
+      name: 'vivoFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `三星文件管理`
+  String get samsungFileManager {
+    return Intl.message(
+      '三星文件管理',
+      name: 'samsungFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `使用系统默认`
+  String get useDefaultFileManager {
+    return Intl.message(
+      '使用系统默认',
+      name: 'useDefaultFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `使用厂商文件管理器`
+  String get useVendorFileManager {
+    return Intl.message(
+      '使用厂商文件管理器',
+      name: 'useVendorFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `用文件管理器打开`
+  String get openWithFileManager {
+    return Intl.message(
+      '用文件管理器打开',
+      name: 'openWithFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `未找到合适的文件管理器`
+  String get noSuitableFileManagerFound {
+    return Intl.message(
+      '未找到合适的文件管理器',
+      name: 'noSuitableFileManagerFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `尝试其他文件管理器`
+  String get tryAnotherFileManager {
+    return Intl.message(
+      '尝试其他文件管理器',
+      name: 'tryAnotherFileManager',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `已打开下载目录`
   String get downloadDirectoryOpened {
     return Intl.message(

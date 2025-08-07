@@ -7,18 +7,19 @@ import 'package:get/get.dart' as getx;
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'notification_manager.dart';
+import 'intent_utils.dart';
 import '../generated/l10n.dart';
 
-/// 下载任务状态
+/// Download task status
 enum DownloadStatus {
-  pending,    // 等待中
-  downloading, // 下载中
-  completed,   // 已完成
-  failed,      // 失败
-  cancelled,   // 已取消
+  pending,    // Waiting
+  downloading, // Downloading
+  completed,   // Completed
+  failed,      // Failed
+  cancelled,   // Cancelled
 }
 
-/// 下载任务
+/// Download task
 class DownloadTask {
   final String id;
   final String url;
@@ -83,27 +84,27 @@ class DownloadManager {
   static final Map<String, DownloadTask> _activeTasks = {};
   static final List<DownloadTask> _completedTasks = [];
   
-  /// 获取所有活跃的下载任务
+  /// Get all active download tasks
   static List<DownloadTask> get activeTasks => _activeTasks.values.toList();
   
-  /// 获取所有已完成的下载任务
+  /// Get all completed download tasks
   static List<DownloadTask> get completedTasks => _completedTasks;
   
-  /// 获取所有下载任务
+  /// Get all download tasks
   static List<DownloadTask> get allTasks => [..._activeTasks.values, ..._completedTasks];
 
-  /// 带进度条的下载（后台下载，不阻塞UI）
+  /// Download with progress bar (background download, non-blocking UI)
   static Future<bool> downloadFileWithProgress({
     required String url,
     String? filename,
   }) async {
-    // 初始化通知管理器
+    // Initialize notification manager
     await NotificationManager.initialize();
     
-    // 生成任务ID
+    // Generate task ID
     String taskId = DateTime.now().millisecondsSinceEpoch.toString();
     
-    // 获取下载目录
+    // Get download directory
     Directory? downloadDir = await _getOpenListDownloadDirectory();
     if (downloadDir == null) {
       getx.Get.showSnackbar(const getx.GetSnackBar(
@@ -113,13 +114,13 @@ class DownloadManager {
       return false;
     }
 
-    // 确定文件名和路径
+    // Determine filename and path
     String finalFilename = filename ?? _getFilenameFromUrl(url);
     String filePath = '${downloadDir.path}/$finalFilename';
     filePath = _getUniqueFilePath(filePath);
     finalFilename = filePath.split('/').last;
 
-    // 创建下载任务
+    // Create download task
     CancelToken cancelToken = CancelToken();
     DownloadTask task = DownloadTask(
       id: taskId,
@@ -130,10 +131,10 @@ class DownloadManager {
       cancelToken: cancelToken,
     );
 
-    // 添加到活跃任务列表
+    // Add to active task list
     _activeTasks[taskId] = task;
 
-    // 显示开始下载提示（只显示一次）
+    // Show download start notification (only once)
     getx.Get.showSnackbar(getx.GetSnackBar(
       message: '开始下载: $finalFilename',
       duration: const Duration(seconds: 2),
@@ -141,13 +142,13 @@ class DownloadManager {
     ));
 
     try {
-      // 更新任务状态
+      // Update task status
       task.status = DownloadStatus.downloading;
       
-      // 显示初始通知
+      // Show initial notification
       await NotificationManager.showDownloadProgressNotification();
       
-      // 执行下载
+      // Execute download
       await _dio.download(
         url,
         filePath,
@@ -161,26 +162,26 @@ class DownloadManager {
             task.progress = received / total;
           }
           
-          // 更新通知进度
+          // Update notification progress
           NotificationManager.showDownloadProgressNotification();
           
           log('下载进度: ${(task.progress * 100).toStringAsFixed(1)}%');
         },
       );
 
-      // 下载完成
+      // Download completed
       task.status = DownloadStatus.completed;
       task.endTime = DateTime.now();
       task.progress = 1.0;
 
-      // 移动到已完成列表
+      // Move to completed list
       _activeTasks.remove(taskId);
-      _completedTasks.insert(0, task); // 插入到开头，最新的在前面
+      _completedTasks.insert(0, task); // Insert at beginning, latest first
 
-      // 显示单个文件完成通知
+      // Show single file completion notification
       await NotificationManager.showSingleFileCompleteNotification(task);
 
-      // 显示完成提示
+      // Show completion notification
       getx.Get.showSnackbar(getx.GetSnackBar(
         message: '下载完成: $finalFilename',
         duration: const Duration(seconds: 3),
@@ -198,12 +199,12 @@ class DownloadManager {
 
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) {
-        // 用户取消下载
+        // User cancelled download
         task.status = DownloadStatus.cancelled;
         task.endTime = DateTime.now();
         log('下载已取消: $url');
       } else {
-        // 下载失败
+        // Download failed
         task.status = DownloadStatus.failed;
         task.errorMessage = e.toString();
         task.endTime = DateTime.now();
@@ -216,11 +217,11 @@ class DownloadManager {
         ));
       }
 
-      // 移动到已完成列表
+      // Move to completed list
       _activeTasks.remove(taskId);
       _completedTasks.insert(0, task);
       
-      // 更新通知状态
+      // Update notification status
       if (_activeTasks.isEmpty) {
         await NotificationManager.cancelDownloadNotification();
       } else {
@@ -231,7 +232,7 @@ class DownloadManager {
     }
   }
 
-  /// 简单的后台下载（推荐使用）
+  /// Simple background download (recommended)
   static Future<bool> downloadFileInBackground({
     required String url,
     String? filename,
@@ -242,7 +243,7 @@ class DownloadManager {
     );
   }
 
-  /// 取消下载任务
+  /// Cancel download task
   static void cancelDownload(String taskId) {
     DownloadTask? task = _activeTasks[taskId];
     if (task != null && task.cancelToken != null) {
@@ -250,38 +251,38 @@ class DownloadManager {
     }
   }
 
-  /// 清除已完成的下载记录
+  /// Clear completed download records
   static void clearCompletedTasks() {
     _completedTasks.clear();
   }
 
-  /// 删除下载任务记录
+  /// Delete download task record
   static void removeTask(String taskId) {
     _activeTasks.remove(taskId);
     _completedTasks.removeWhere((task) => task.id == taskId);
   }
 
-  /// 获取OpenList专用下载目录
+  /// Get OpenList dedicated download directory
   static Future<Directory?> _getOpenListDownloadDirectory() async {
     try {
       Directory? baseDir;
       
       if (Platform.isAndroid) {
-        // Android: 优先使用公共下载目录
+        // Android: Prefer public download directory
         baseDir = Directory('/storage/emulated/0/Download');
         if (!await baseDir.exists()) {
-          // 如果公共下载目录不存在，使用外部存储目录
+          // If public download directory doesn't exist, use external storage directory
           baseDir = await getExternalStorageDirectory();
           if (baseDir != null) {
             baseDir = Directory('${baseDir.path}/Download');
           }
         }
       } else if (Platform.isIOS) {
-        // iOS: 使用应用文档目录下的Downloads文件夹
+        // iOS: Use Downloads folder under app documents directory
         baseDir = await getApplicationDocumentsDirectory();
         baseDir = Directory('${baseDir.path}/Downloads');
       } else {
-        // 其他平台（如Windows、macOS、Linux）
+        // Other platforms (Windows, macOS, Linux)
         baseDir = await getDownloadsDirectory();
       }
 
@@ -290,7 +291,7 @@ class DownloadManager {
         return null;
       }
 
-      // 创建OpenList专用文件夹
+      // Create OpenList dedicated folder
       Directory openListDir = Directory('${baseDir.path}/OpenList');
       
       if (!await openListDir.exists()) {
@@ -299,7 +300,7 @@ class DownloadManager {
           log('创建OpenList下载目录: ${openListDir.path}');
         } catch (e) {
           log('创建OpenList目录失败: $e');
-          // 如果创建失败，返回基础目录
+          // If creation fails, return base directory
           return baseDir;
         }
       }
@@ -313,7 +314,7 @@ class DownloadManager {
     }
   }
 
-  /// 从URL中提取文件名
+  /// Extract filename from URL
   static String _getFilenameFromUrl(String url) {
     try {
       Uri uri = Uri.parse(url);
@@ -328,11 +329,11 @@ class DownloadManager {
       log('解析文件名失败: $e');
     }
     
-    // 如果无法从URL提取文件名，使用时间戳
+    // If unable to extract filename from URL, use timestamp
     return 'download_${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  /// 获取唯一的文件路径（避免重名）
+  /// Get unique file path (avoid duplicate names)
   static String _getUniqueFilePath(String originalPath) {
     File file = File(originalPath);
     if (!file.existsSync()) {
@@ -355,27 +356,27 @@ class DownloadManager {
     return newPath;
   }
 
-  /// 检查是否为 APK 文件
+  /// Check if file is APK
   static bool _isApkFile(String filePath) {
     return filePath.toLowerCase().endsWith('.apk');
   }
 
-  /// 检查和请求安装权限
+  /// Check and request install permissions
   static Future<bool> _checkInstallPermission() async {
     if (!Platform.isAndroid) return true;
     
     try {
-      // 检查是否有安装权限
+      // Check for install permission
       bool hasPermission = await Permission.requestInstallPackages.isGranted;
       
       if (!hasPermission) {
-        // 请求安装权限
+        // Request install permission
         PermissionStatus status = await Permission.requestInstallPackages.request();
         
         if (status.isGranted) {
           return true;
         } else if (status.isPermanentlyDenied) {
-          // 权限被永久拒绝，引导用户到设置页面
+          // Permission permanently denied, guide user to settings page
           getx.Get.dialog(
             AlertDialog(
               title: const Text('需要安装权限'),
@@ -408,32 +409,32 @@ class DownloadManager {
       return true;
     } catch (e) {
       log('检查安装权限失败: $e');
-      return true; // 如果检查失败，继续尝试打开
+      return true; // If check fails, continue to try opening
     }
   }
 
-  /// 尝试打开文件
+  /// Try to open file
   static Future<void> _openFile(String filePath) async {
     try {
       log('尝试打开文件: $filePath');
       
-      // 如果是 APK 文件，先检查安装权限
+      // If it's an APK file, check install permission first
       if (_isApkFile(filePath)) {
         bool hasPermission = await _checkInstallPermission();
         if (!hasPermission) {
-          return; // 没有权限，不继续打开
+          return; // No permission, don't continue opening
         }
       }
       
-      // 使用 open_filex 插件打开文件
+      // Use open_filex plugin to open file
       final result = await OpenFilex.open(filePath);
       
       log('打开文件结果: ${result.type} - ${result.message}');
       
-      // 根据结果显示相应的提示
+      // Show appropriate message based on result
       switch (result.type) {
         case ResultType.done:
-          // 文件成功打开，不需要额外提示
+          // File opened successfully, no additional notification needed
           break;
         case ResultType.noAppToOpen:
           if (_isApkFile(filePath)) {
@@ -513,7 +514,7 @@ class DownloadManager {
     }
   }
 
-  /// 显示文件位置信息
+  /// Show file location information dialog
   static void _showFileLocation(String filePath) {
     getx.Get.dialog(
       AlertDialog(
@@ -540,18 +541,122 @@ class DownloadManager {
             onPressed: () => getx.Get.back(),
             child: const Text('确定'),
           ),
+          TextButton(
+            onPressed: () {
+              getx.Get.back();
+              _openFileManagerSelector(filePath);
+            },
+            child: const Text('打开文件管理器'),
+          ),
         ],
       ),
     );
   }
 
-  /// 获取OpenList下载目录路径（公共方法）
+  /// Show file manager selector dialog
+  static void _openFileManagerSelector(String filePath) {
+    // Get directory containing the file
+    String directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
+    final fileManagerOptions = IntentUtils.getAllFileManagerIntents(directoryPath);
+    
+    getx.Get.dialog(
+      AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.folder_open, size: 24),
+            SizedBox(width: 8),
+            Text('选择文件管理器'),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // System app chooser
+              ListTile(
+                leading: const Icon(Icons.open_in_new, size: 24, color: Colors.blue),
+                title: const Text('选择应用打开'),
+                subtitle: const Text('让Android系统显示所有可用的应用'),
+                onTap: () async {
+                  getx.Get.back();
+                  await _launchGenericFileManagerChooser(directoryPath);
+                },
+              ),
+              const Divider(),
+              // Vendor file manager options
+              ...fileManagerOptions.take(6).map((option) {
+                return ListTile(
+                  leading: Text(
+                    option['icon'],
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  title: Text(option['name']),
+                  subtitle: option['isDefault'] == true 
+                      ? const Text('推荐选项')
+                      : null,
+                  onTap: () async {
+                    getx.Get.back();
+                    await _launchFileManagerIntent(option['intent'], option['name']);
+                  },
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => getx.Get.back(),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Launch generic file manager chooser to let user select app
+  static Future<void> _launchGenericFileManagerChooser(String directoryPath) async {
+    try {
+      final intent = IntentUtils.getGenericFileManagerIntent(directoryPath);
+      await intent.launchChooser('选择应用打开');
+      getx.Get.showSnackbar(const getx.GetSnackBar(
+        message: '已打开应用选择器',
+        duration: Duration(seconds: 2),
+      ));
+    } catch (e) {
+      log('打开文件管理器选择器失败: $e');
+      getx.Get.showSnackbar(getx.GetSnackBar(
+        message: '打开选择器失败: $e',
+        duration: const Duration(seconds: 3),
+      ));
+    }
+  }
+
+  /// Launch specified file manager using Intent
+  static Future<void> _launchFileManagerIntent(dynamic intent, String managerName) async {
+    try {
+      await intent.launch();
+      getx.Get.showSnackbar(getx.GetSnackBar(
+        message: '已打开 $managerName',
+        duration: const Duration(seconds: 2),
+      ));
+    } catch (e) {
+      log('打开 $managerName 失败: $e');
+      getx.Get.showSnackbar(getx.GetSnackBar(
+        message: '打开 $managerName 失败: $e',
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.orange,
+      ));
+    }
+  }
+
+  /// Get OpenList download directory path (public method)
   static Future<String?> getDownloadDirectoryPath() async {
     Directory? dir = await _getOpenListDownloadDirectory();
     return dir?.path;
   }
 
-  /// 列出已下载的文件
+  /// List downloaded files
   static Future<List<FileSystemEntity>> getDownloadedFiles() async {
     try {
       Directory? downloadDir = await _getOpenListDownloadDirectory();
@@ -564,7 +669,7 @@ class DownloadManager {
     return [];
   }
 
-  /// 清理下载目录
+  /// Clean download directory
   static Future<bool> clearDownloadDirectory() async {
     try {
       Directory? downloadDir = await _getOpenListDownloadDirectory();
@@ -579,7 +684,7 @@ class DownloadManager {
     return false;
   }
 
-  /// 删除指定文件
+  /// Delete specified file
   static Future<bool> deleteFile(String filename) async {
     try {
       Directory? downloadDir = await _getOpenListDownloadDirectory();
@@ -598,7 +703,7 @@ class DownloadManager {
   }
 }
 
-/// 下载控制器（保持向后兼容）
+/// Download controller (maintaining backward compatibility)
 class DownloadController extends getx.GetxController {
   double _progress = 0.0;
   String _statusText = '准备下载...';

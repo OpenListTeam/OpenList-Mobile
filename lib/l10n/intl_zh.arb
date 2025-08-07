@@ -408,6 +408,18 @@
       }
     }
   },
+  "selectFileManager": "选择文件管理器",
+  "systemDefault": "系统默认",
+  "huaweiFileManager": "华为文件管理",
+  "xiaomiFileManager": "小米文件管理",
+  "oppoFileManager": "OPPO文件管理",
+  "vivoFileManager": "Vivo文件管理",
+  "samsungFileManager": "三星文件管理",
+  "useDefaultFileManager": "使用系统默认",
+  "useVendorFileManager": "使用厂商文件管理器",
+  "openWithFileManager": "用文件管理器打开",
+  "noSuitableFileManagerFound": "未找到合适的文件管理器",
+  "tryAnotherFileManager": "尝试其他文件管理器",
   "downloadDirectoryOpened": "已打开下载目录",
   "openDownloadDirectoryFailed": "打开下载目录失败: {error}",
   "@openDownloadDirectoryFailed": {

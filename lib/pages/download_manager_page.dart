@@ -4,9 +4,10 @@ import 'package:get/get.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:open_file_manager/open_file_manager.dart';
 import '../utils/download_manager.dart';
+import '../utils/intent_utils.dart';
 import '../generated/l10n.dart';
 
-/// 下载文件管理页面
+/// Download file management page
 class DownloadManagerPage extends StatefulWidget {
   const DownloadManagerPage({Key? key}) : super(key: key);
 
@@ -27,7 +28,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
     _tabController = TabController(length: 2, vsync: this);
     _loadDownloadedFiles();
     
-    // 定期刷新活跃任务状态
+    // Periodically refresh active task status
     _startPeriodicRefresh();
   }
 
@@ -38,7 +39,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
   }
 
   void _startPeriodicRefresh() {
-    // 每秒刷新一次活跃任务状态
+    // Refresh active task status every second
     Stream.periodic(const Duration(seconds: 1)).listen((_) {
       if (mounted && _tabController.index == 0) {
         setState(() {});
@@ -299,7 +300,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
       onRefresh: _loadDownloadedFiles,
       child: ListView(
         children: [
-          // 显示任务记录中的已完成下载
+          // Show completed downloads from task records
           ...completedTasks.map((task) => Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: ListTile(
@@ -398,10 +399,10 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
             ),
           )),
           
-          // 显示文件系统中的其他下载文件
+          // Show other download files from file system
           ..._downloadedFiles.where((file) {
             String filename = file.path.split('/').last;
-            // 过滤掉已经在任务记录的文件
+            // Filter out files already in task records
             return !completedTasks.any((task) => task.filename == filename);
           }).map((file) {
             String filename = file.path.split('/').last;
@@ -523,7 +524,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
               title: Text(S.of(context).shareFile),
               onTap: () {
                 Navigator.pop(context);
-                // 这里可以添加分享功能
+                // Share functionality can be added here
                 Get.showSnackbar(GetSnackBar(
                   message: S.of(context).shareFeatureNotImplemented,
                   duration: const Duration(seconds: 2),
@@ -603,7 +604,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
                   message: S.of(context).fileDeleted,
                   duration: const Duration(seconds: 2),
                 ));
-                _loadDownloadedFiles(); // 刷新列表
+                _loadDownloadedFiles(); // Refresh list
               } else {
                 Get.showSnackbar(GetSnackBar(
                   message: S.of(context).deleteFailed,
@@ -639,7 +640,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
                   message: S.of(context).cleared,
                   duration: const Duration(seconds: 2),
                 ));
-                _loadDownloadedFiles(); // 刷新列表
+                _loadDownloadedFiles(); // Refresh list
                 setState(() {});
               } else {
                 Get.showSnackbar(GetSnackBar(
@@ -655,14 +656,14 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
     );
   }
 
-  /// 打开文件
+  /// Open file
   Future<void> _openFile(String filePath) async {
     try {
       final result = await OpenFilex.open(filePath);
       
       switch (result.type) {
         case ResultType.done:
-          // 文件成功打开，不需要额外提示
+          // File opened successfully, no additional notification needed
           break;
         case ResultType.noAppToOpen:
           Get.showSnackbar(GetSnackBar(
@@ -690,7 +691,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
           break;
         case ResultType.error:
           Get.showSnackbar(GetSnackBar(
-            message: S.of(context).openFileFailed(result.message ?? ''),
+            message: S.of(context).openFileFailed(result.message),
             duration: const Duration(seconds: 3),
             mainButton: TextButton(
               onPressed: () {
@@ -715,13 +716,131 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
     }
   }
 
-  /// 打开文件管理器并跳转到指定文件位置
+  /// Open file manager and navigate to specified file location
   Future<void> _openFileManager(String filePath) async {
+    // Get the directory containing the file
+    String directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
+    
+    // Show file manager selector dialog
+    _showFileManagerSelector(directoryPath);
+  }
+
+  /// Show file manager selector dialog
+  void _showFileManagerSelector(String directoryPath) {
+    final fileManagerOptions = IntentUtils.getAllFileManagerIntents(directoryPath);
+    
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.folder_open, size: 24),
+            const SizedBox(width: 8),
+            Text(S.of(context).selectFileManager),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Add "Let system choose" option
+              ListTile(
+                leading: const Icon(Icons.open_in_new, size: 24, color: Colors.blue),
+                title: Text(S.of(context).selectAppToOpen),
+                subtitle: Text('让Android系统显示所有可用的应用'),
+                onTap: () async {
+                  Get.back();
+                  await _launchGenericFileManagerChooser(directoryPath);
+                },
+              ),
+              const Divider(),
+              // Show all vendor file manager options
+              ...fileManagerOptions.map((option) {
+                return ListTile(
+                  leading: Text(
+                    option['icon'],
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                  title: Text(option['name']),
+                  subtitle: option['isDefault'] == true 
+                      ? const Text('推荐选项')
+                      : null,
+                  onTap: () async {
+                    Get.back();
+                    if (option['isDefault'] == true) {
+                      _openFileManagerWithSystemDefault(directoryPath);
+                    } else {
+                      await _launchFileManagerIntent(option['intent'], option['name']);
+                    }
+                  },
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(S.of(context).cancel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Launch generic file manager chooser to let user select app
+  Future<void> _launchGenericFileManagerChooser(String directoryPath) async {
     try {
-      // 获取文件所在目录
-      String directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
-      
-      // 尝试打开文件管理器并定位到文件
+      final intent = IntentUtils.getGenericFileManagerIntent(directoryPath);
+      await intent.launchChooser(S.of(context).selectAppToOpen);
+      Get.showSnackbar(GetSnackBar(
+        message: S.of(context).fileManagerOpened,
+        duration: const Duration(seconds: 2),
+      ));
+    } catch (e) {
+      print('打开文件管理器选择器失败: $e');
+      Get.showSnackbar(GetSnackBar(
+        message: '${S.of(context).openFileManagerFailed(e.toString())}',
+        duration: const Duration(seconds: 3),
+        mainButton: TextButton(
+          onPressed: () {
+            Get.closeCurrentSnackbar();
+            _showFileManagerSelector(directoryPath);
+          },
+          child: Text(S.of(context).tryAnotherFileManager),
+        ),
+      ));
+    }
+  }
+
+  /// Launch specified file manager using Intent
+  Future<void> _launchFileManagerIntent(dynamic intent, String managerName) async {
+    try {
+      await intent.launch();
+      Get.showSnackbar(GetSnackBar(
+        message: '${S.of(context).fileManagerOpened} ($managerName)',
+        duration: const Duration(seconds: 2),
+      ));
+    } catch (e) {
+      print('打开 $managerName 失败: $e');
+      Get.showSnackbar(GetSnackBar(
+        message: '${S.of(context).openFileManagerFailed(managerName)}: ${e.toString()}',
+        duration: const Duration(seconds: 3),
+        mainButton: TextButton(
+          onPressed: () {
+            Get.closeCurrentSnackbar();
+            _showFileManagerSelector(intent.data.replaceFirst('file://', ''));
+          },
+          child: Text(S.of(context).tryAnotherFileManager),
+        ),
+      ));
+    }
+  }
+
+  /// Open file manager using system default method
+  Future<void> _openFileManagerWithSystemDefault(String directoryPath) async {
+    try {
+      // Try to open file manager and locate to file
       await openFileManager(
         androidConfig: AndroidConfig(
           folderType: AndroidFolderType.other,
@@ -745,30 +864,11 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
     }
   }
 
-  /// 打开下载目录
+  /// Open download directory
   Future<void> _openDownloadDirectory() async {
     if (_downloadPath != null) {
-      try {
-        await openFileManager(
-          androidConfig: AndroidConfig(
-            folderType: AndroidFolderType.other,
-            folderPath: _downloadPath!,
-          ),
-          iosConfig: IosConfig(
-            folderPath: _downloadPath!,
-          ),
-        );
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).downloadDirectoryOpened,
-          duration: const Duration(seconds: 2),
-        ));
-      } catch (e) {
-        print('打开下载目录失败: $e');
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).openDownloadDirectoryFailed(e.toString()),
-          duration: const Duration(seconds: 3),
-        ));
-      }
+      // Show file manager selection dialog
+      _showFileManagerSelector(_downloadPath!);
     } else {
       Get.showSnackbar(GetSnackBar(
         message: S.of(context).downloadDirectoryPathUnknown,
@@ -777,7 +877,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
     }
   }
 
-  /// 显示文件位置信息
+  /// Show file location information
   void _showFileLocation(String filePath) {
     Get.dialog(
       AlertDialog(

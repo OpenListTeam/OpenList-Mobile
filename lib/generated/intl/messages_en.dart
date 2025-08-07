@@ -288,6 +288,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "grantStoragePermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Mounting local storage is a must, otherwise no permission to read and write files",
     ),
+    "huaweiFileManager": MessageLookupByLibrary.simpleMessage(
+      "Huawei File Manager",
+    ),
     "importantSettings": MessageLookupByLibrary.simpleMessage(
       "Important settings",
     ),
@@ -337,6 +340,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "noPermissionToOpenFile": MessageLookupByLibrary.simpleMessage(
       "No permission to open this file",
     ),
+    "noSuitableFileManagerFound": MessageLookupByLibrary.simpleMessage(
+      "No suitable file manager found",
+    ),
     "notificationClicked": m25,
     "notificationManagerInitFailed": m26,
     "notificationManagerInitialized": MessageLookupByLibrary.simpleMessage(
@@ -358,6 +364,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "openFileManagerFailed": m30,
     "openFileResult": m31,
     "openListDownloadDirectory": m32,
+    "openWithFileManager": MessageLookupByLibrary.simpleMessage(
+      "Open with File Manager",
+    ),
+    "oppoFileManager": MessageLookupByLibrary.simpleMessage(
+      "OPPO File Manager",
+    ),
     "parseFilenameFailed": m33,
     "pending": MessageLookupByLibrary.simpleMessage("Pending"),
     "preparingDownload": MessageLookupByLibrary.simpleMessage(
@@ -368,8 +380,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "refresh": MessageLookupByLibrary.simpleMessage("Refresh"),
     "releasePage": MessageLookupByLibrary.simpleMessage("Release Page"),
+    "samsungFileManager": MessageLookupByLibrary.simpleMessage(
+      "Samsung File Manager",
+    ),
     "selectAppToOpen": MessageLookupByLibrary.simpleMessage(
       "Select app to open",
+    ),
+    "selectFileManager": MessageLookupByLibrary.simpleMessage(
+      "Select File Manager",
     ),
     "setAdminPassword": MessageLookupByLibrary.simpleMessage(
       "Set admin password",
@@ -396,8 +414,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "startDownload": m37,
     "startDownloadFile": m38,
     "startTime": MessageLookupByLibrary.simpleMessage("Start time"),
+    "systemDefault": MessageLookupByLibrary.simpleMessage("System Default"),
+    "tryAnotherFileManager": MessageLookupByLibrary.simpleMessage(
+      "Try another file manager",
+    ),
     "tryToOpenFile": m39,
     "uiSettings": MessageLookupByLibrary.simpleMessage("UI"),
+    "useDefaultFileManager": MessageLookupByLibrary.simpleMessage(
+      "Use System Default",
+    ),
+    "useVendorFileManager": MessageLookupByLibrary.simpleMessage(
+      "Use Vendor File Manager",
+    ),
     "userCancelledDownload": MessageLookupByLibrary.simpleMessage(
       "User cancelled download",
     ),
@@ -406,10 +434,16 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "viewDownloads": MessageLookupByLibrary.simpleMessage("View Downloads"),
     "viewLocation": MessageLookupByLibrary.simpleMessage("View Location"),
+    "vivoFileManager": MessageLookupByLibrary.simpleMessage(
+      "Vivo File Manager",
+    ),
     "wakeLock": MessageLookupByLibrary.simpleMessage("Wake lock"),
     "wakeLockDesc": MessageLookupByLibrary.simpleMessage(
       "Prevent CPU from sleeping when screen is off. (May cause app killed in background on some devices)",
     ),
     "webPage": MessageLookupByLibrary.simpleMessage("Web Page"),
+    "xiaomiFileManager": MessageLookupByLibrary.simpleMessage(
+      "Xiaomi File Manager",
+    ),
   };
 }

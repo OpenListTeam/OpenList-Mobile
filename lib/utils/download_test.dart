@@ -95,7 +95,8 @@ class DownloadTestPage extends StatelessWidget {
               '• 下载过程会显示进度通知\n'
               '• 下载完成后可以选择打开文件\n'
               '• 如果文件名重复会自动添加序号\n'
-              '• 请通过底部导航栏的"下载管理"查看下载文件',
+              '• 请通过底部导航栏的"下载管理"查看下载文件\n'
+              '• 新增：支持厂商定制文件管理器选择',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
