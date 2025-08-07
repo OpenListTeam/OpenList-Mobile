@@ -8,9 +8,8 @@ class IntentUtils {
   /// Create an Intent to open file manager for a specific directory
   static AndroidIntent getFileManagerIntent(String directoryPath) {
     return AndroidIntent(
-      action: "action_view",
-      data: directoryPath,
-      type: "resource/folder",
+      action: "action_main",
+      category: "android.intent.category.APP_FILES",
     );
   }
 
