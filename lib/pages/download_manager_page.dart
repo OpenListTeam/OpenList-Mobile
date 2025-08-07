@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:open_filex/open_filex.dart';
-import 'package:open_file_manager/open_file_manager.dart';
 import '../utils/download_manager.dart';
 import '../utils/intent_utils.dart';
 import '../generated/l10n.dart';
@@ -718,148 +717,23 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
 
   /// Open file manager and navigate to specified file location
   Future<void> _openFileManager(String filePath) async {
-    // Get the directory containing the file
-    String directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
-    
-    // Show file manager selector dialog
-    _showFileManagerSelector(directoryPath);
-  }
-
-  /// Show file manager selector dialog
-  void _showFileManagerSelector(String directoryPath) {
-    final fileManagerOptions = IntentUtils.getAllFileManagerIntents(directoryPath);
-    
-    Get.dialog(
-      AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.folder_open, size: 24),
-            const SizedBox(width: 8),
-            Text(S.of(context).selectFileManager),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Add "Let system choose" option
-              ListTile(
-                leading: const Icon(Icons.open_in_new, size: 24, color: Colors.blue),
-                title: Text(S.of(context).selectAppToOpen),
-                subtitle: Text('让Android系统显示所有可用的应用'),
-                onTap: () async {
-                  Get.back();
-                  await _launchGenericFileManagerChooser(directoryPath);
-                },
-              ),
-              const Divider(),
-              // Show all vendor file manager options
-              ...fileManagerOptions.map((option) {
-                return ListTile(
-                  leading: Text(
-                    option['icon'],
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                  title: Text(option['name']),
-                  subtitle: option['isDefault'] == true 
-                      ? const Text('推荐选项')
-                      : null,
-                  onTap: () async {
-                    Get.back();
-                    if (option['isDefault'] == true) {
-                      _openFileManagerWithSystemDefault(directoryPath);
-                    } else {
-                      await _launchFileManagerIntent(option['intent'], option['name']);
-                    }
-                  },
-                );
-              }).toList(),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(S.of(context).cancel),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Launch generic file manager chooser to let user select app
-  Future<void> _launchGenericFileManagerChooser(String directoryPath) async {
     try {
-      final intent = IntentUtils.getGenericFileManagerIntent(directoryPath);
-      await intent.launchChooser(S.of(context).selectAppToOpen);
-      Get.showSnackbar(GetSnackBar(
-        message: S.of(context).fileManagerOpened,
-        duration: const Duration(seconds: 2),
-      ));
-    } catch (e) {
-      print('打开文件管理器选择器失败: $e');
-      Get.showSnackbar(GetSnackBar(
-        message: '${S.of(context).openFileManagerFailed(e.toString())}',
-        duration: const Duration(seconds: 3),
-        mainButton: TextButton(
-          onPressed: () {
-            Get.closeCurrentSnackbar();
-            _showFileManagerSelector(directoryPath);
-          },
-          child: Text(S.of(context).tryAnotherFileManager),
-        ),
-      ));
-    }
-  }
-
-  /// Launch specified file manager using Intent
-  Future<void> _launchFileManagerIntent(dynamic intent, String managerName) async {
-    try {
-      await intent.launch();
-      Get.showSnackbar(GetSnackBar(
-        message: '${S.of(context).fileManagerOpened} ($managerName)',
-        duration: const Duration(seconds: 2),
-      ));
-    } catch (e) {
-      print('打开 $managerName 失败: $e');
-      Get.showSnackbar(GetSnackBar(
-        message: '${S.of(context).openFileManagerFailed(managerName)}: ${e.toString()}',
-        duration: const Duration(seconds: 3),
-        mainButton: TextButton(
-          onPressed: () {
-            Get.closeCurrentSnackbar();
-            _showFileManagerSelector(intent.data.replaceFirst('file://', ''));
-          },
-          child: Text(S.of(context).tryAnotherFileManager),
-        ),
-      ));
-    }
-  }
-
-  /// Open file manager using system default method
-  Future<void> _openFileManagerWithSystemDefault(String directoryPath) async {
-    try {
-      // Try to open file manager and locate to file
-      await openFileManager(
-        androidConfig: AndroidConfig(
-          folderType: AndroidFolderType.other,
-          folderPath: directoryPath,
-        ),
-        iosConfig: IosConfig(
-          folderPath: directoryPath,
-        ),
-      );
+      // Get the directory containing the file
+      String directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
+      
+      // Use system app chooser to open file manager
+      final intent = IntentUtils.getFileManagerIntent(directoryPath);
+      await intent.launchChooser('选择文件管理器');
       
       Get.showSnackbar(GetSnackBar(
-        message: S.of(context).fileManagerOpened,
+        message: '已打开文件管理器选择器',
         duration: const Duration(seconds: 2),
       ));
     } catch (e) {
-      print('打开文件管理器失败: $e');
       Get.showSnackbar(GetSnackBar(
-        message: S.of(context).openFileManagerFailed(e.toString()),
+        message: '打开文件管理器失败: $e',
         duration: const Duration(seconds: 3),
+        backgroundColor: Colors.orange,
       ));
     }
   }
@@ -868,7 +742,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
   Future<void> _openDownloadDirectory() async {
     if (_downloadPath != null) {
       // Show file manager selection dialog
-      _showFileManagerSelector(_downloadPath!);
+      _openFileManager(_downloadPath!);
     } else {
       Get.showSnackbar(GetSnackBar(
         message: S.of(context).downloadDirectoryPathUnknown,

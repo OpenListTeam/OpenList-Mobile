@@ -500,15 +500,15 @@ class DownloadManager {
           break;
       }
     } catch (e) {
-      log('打开文件异常: $e');
+      log(S.current.openFileFailed(e.toString()));
       getx.Get.showSnackbar(getx.GetSnackBar(
-        message: '打开文件失败: ${e.toString()}',
+        message: S.current.openFileFailed(e.toString()),
         duration: const Duration(seconds: 3),
         mainButton: TextButton(
           onPressed: () {
             _showFileLocation(filePath);
           },
-          child: const Text('查看位置'),
+          child: Text(S.current.viewLocation),
         ),
       ));
     }
@@ -518,35 +518,35 @@ class DownloadManager {
   static void _showFileLocation(String filePath) {
     getx.Get.dialog(
       AlertDialog(
-        title: const Text('文件位置'),
+        title: Text(S.current.fileLocation),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('文件已保存到:'),
+            Text(S.current.fileSavedTo),
             const SizedBox(height: 8),
             SelectableText(
               filePath,
               style: const TextStyle(fontSize: 12),
             ),
             const SizedBox(height: 16),
-            const Text(
-              '您可以使用文件管理器找到此文件，或者尝试安装相应的应用来打开它。',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            Text(
+              S.current.fileLocationTip,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => getx.Get.back(),
-            child: const Text('确定'),
+            child: Text(S.current.confirm),
           ),
           TextButton(
             onPressed: () {
               getx.Get.back();
               _openFileManagerSelector(filePath);
             },
-            child: const Text('打开文件管理器'),
+            child: Text(S.current.openFileManager),
           ),
         ],
       ),
@@ -554,96 +554,20 @@ class DownloadManager {
   }
 
   /// Show file manager selector dialog
-  static void _openFileManagerSelector(String filePath) {
-    // Get directory containing the file
-    String directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
-    final fileManagerOptions = IntentUtils.getAllFileManagerIntents(directoryPath);
-    
-    getx.Get.dialog(
-      AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.folder_open, size: 24),
-            SizedBox(width: 8),
-            Text('选择文件管理器'),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // System app chooser
-              ListTile(
-                leading: const Icon(Icons.open_in_new, size: 24, color: Colors.blue),
-                title: const Text('选择应用打开'),
-                subtitle: const Text('让Android系统显示所有可用的应用'),
-                onTap: () async {
-                  getx.Get.back();
-                  await _launchGenericFileManagerChooser(directoryPath);
-                },
-              ),
-              const Divider(),
-              // Vendor file manager options
-              ...fileManagerOptions.take(6).map((option) {
-                return ListTile(
-                  leading: Text(
-                    option['icon'],
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                  title: Text(option['name']),
-                  subtitle: option['isDefault'] == true 
-                      ? const Text('推荐选项')
-                      : null,
-                  onTap: () async {
-                    getx.Get.back();
-                    await _launchFileManagerIntent(option['intent'], option['name']);
-                  },
-                );
-              }).toList(),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => getx.Get.back(),
-            child: const Text('取消'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Launch generic file manager chooser to let user select app
-  static Future<void> _launchGenericFileManagerChooser(String directoryPath) async {
+  static void _openFileManagerSelector(String filePath) async {
     try {
-      final intent = IntentUtils.getGenericFileManagerIntent(directoryPath);
-      await intent.launchChooser('选择应用打开');
-      getx.Get.showSnackbar(const getx.GetSnackBar(
-        message: '已打开应用选择器',
-        duration: Duration(seconds: 2),
-      ));
-    } catch (e) {
-      log('打开文件管理器选择器失败: $e');
+      // Get directory containing the file
+      String directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
+      final intent = IntentUtils.getFileManagerIntent(directoryPath);
+      await intent.launchChooser(S.current.selectFileManager);
       getx.Get.showSnackbar(getx.GetSnackBar(
-        message: '打开选择器失败: $e',
-        duration: const Duration(seconds: 3),
-      ));
-    }
-  }
-
-  /// Launch specified file manager using Intent
-  static Future<void> _launchFileManagerIntent(dynamic intent, String managerName) async {
-    try {
-      await intent.launch();
-      getx.Get.showSnackbar(getx.GetSnackBar(
-        message: '已打开 $managerName',
+        message: S.current.fileManagerOpened,
         duration: const Duration(seconds: 2),
       ));
     } catch (e) {
-      log('打开 $managerName 失败: $e');
+      log(S.current.openFileManagerFailed('$e'));
       getx.Get.showSnackbar(getx.GetSnackBar(
-        message: '打开 $managerName 失败: $e',
+        message: S.current.openFileManagerFailed('$e'),
         duration: const Duration(seconds: 3),
         backgroundColor: Colors.orange,
       ));

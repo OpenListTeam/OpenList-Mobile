@@ -9,7 +9,7 @@ class IntentUtils {
   static AndroidIntent getFileManagerIntent(String directoryPath) {
     return AndroidIntent(
       action: "action_view",
-      data: "file://$directoryPath",
+      data: directoryPath,
       type: "resource/folder",
     );
   }
@@ -49,128 +49,15 @@ class IntentUtils {
     }
   }
 
-  /// Create Intent for Huawei file manager
-  static AndroidIntent getHuaweiFileManagerIntent(String directoryPath) {
-    return AndroidIntent(
-      package: 'com.huawei.hidisk',
-      action: 'action_view',
-      data: "file://$directoryPath",
-    );
-  }
-
-  /// Create Intent for Xiaomi file manager
-  static AndroidIntent getXiaomiFileManagerIntent(String directoryPath) {
-    return AndroidIntent(
-      package: 'com.mi.android.globalFileexplorer',
-      action: 'action_view', 
-      data: "file://$directoryPath",
-    );
-  }
-
-  /// Create Intent for OPPO file manager
-  static AndroidIntent getOppoFileManagerIntent(String directoryPath) {
-    return AndroidIntent(
-      package: 'com.coloros.filemanager',
-      action: 'action_view',
-      data: "file://$directoryPath",
-    );
-  }
-
-  /// Create Intent for Vivo file manager
-  static AndroidIntent getVivoFileManagerIntent(String directoryPath) {
-    return AndroidIntent(
-      package: 'com.vivo.filemanager',
-      action: 'action_view',
-      data: "file://$directoryPath",
-    );
-  }
-
-  /// Create Intent for Samsung file manager
-  static AndroidIntent getSamsungFileManagerIntent(String directoryPath) {
-    return AndroidIntent(
-      package: 'com.sec.android.app.myfiles',
-      action: 'action_view',
-      data: "file://$directoryPath",
-    );
-  }
-
-  /// Create Intent for ES File Explorer
-  static AndroidIntent getESFileExplorerIntent(String directoryPath) {
-    return AndroidIntent(
-      package: 'com.estrongs.android.pop',
-      action: 'action_view',
-      data: "file://$directoryPath",
-    );
-  }
-
-  /// Create Intent for Solid Explorer
-  static AndroidIntent getSolidExplorerIntent(String directoryPath) {
-    return AndroidIntent(
-      package: 'pl.solidexplorer2',
-      action: 'action_view',
-      data: "file://$directoryPath",
-    );
-  }
-
-  /// Get all supported vendor file manager Intent options
-  static List<Map<String, dynamic>> getAllFileManagerIntents(String directoryPath) {
-    return [
-      {
-        'name': '系统默认',
-        'icon': '📁',
-        'intent': getFileManagerIntent(directoryPath),
-        'isDefault': true,
-      },
-      {
-        'name': '华为文件管理',
-        'icon': '🇨🇳',
-        'intent': getHuaweiFileManagerIntent(directoryPath),
-        'isDefault': false,
-      },
-      {
-        'name': '小米文件管理',
-        'icon': '🇨🇳', 
-        'intent': getXiaomiFileManagerIntent(directoryPath),
-        'isDefault': false,
-      },
-      {
-        'name': 'OPPO文件管理',
-        'icon': '🇨🇳',
-        'intent': getOppoFileManagerIntent(directoryPath),
-        'isDefault': false,
-      },
-      {
-        'name': 'Vivo文件管理',
-        'icon': '🇨🇳',
-        'intent': getVivoFileManagerIntent(directoryPath),
-        'isDefault': false,
-      },
-      {
-        'name': '三星文件管理',
-        'icon': '🇰🇷',
-        'intent': getSamsungFileManagerIntent(directoryPath),
-        'isDefault': false,
-      },
-      {
-        'name': 'ES文件浏览器',
-        'icon': '📂',
-        'intent': getESFileExplorerIntent(directoryPath),
-        'isDefault': false,
-      },
-      {
-        'name': 'Solid Explorer',
-        'icon': '📱',
-        'intent': getSolidExplorerIntent(directoryPath),
-        'isDefault': false,
-      },
-    ];
-  }
-
   /// Get generic file manager Intent (let system choose)
   static AndroidIntent getGenericFileManagerIntent(String directoryPath) {
     return AndroidIntent(
-      action: "action_view",
-      data: "file://$directoryPath",
+      action: "action_get_content",
+      type: "*/*",
+      arguments: {
+        'android.intent.extra.LOCAL_ONLY': true,
+        'android.intent.extra.ALLOW_MULTIPLE': false,
+      },
     );
   }
 }
