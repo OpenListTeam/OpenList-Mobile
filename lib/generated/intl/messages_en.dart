@@ -57,7 +57,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m16(filename) => "Download failed: ${filename}";
 
-  static String m17(count) => "Download Manager (${count})";
+  static String m17(count) => "Download (${count})";
 
   static String m18(progress) => "Download progress: ${progress}%";
 
