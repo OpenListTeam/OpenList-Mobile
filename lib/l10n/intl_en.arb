@@ -42,7 +42,7 @@
   "newVersionFound": "New Version Found",
   "directDownloadApk": "Direct Download APK",
   "initializingNotificationManager": "Initializing notification manager",
-  "downloadManager": "Download Manager",
+  "downloadManager": "Download",
   "downloadManagerWithCount": "Download ({count})",
   "@downloadManagerWithCount": {
     "placeholders": {

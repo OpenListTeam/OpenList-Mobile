@@ -236,7 +236,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "downloadFailed": MessageLookupByLibrary.simpleMessage("Download failed"),
     "downloadFailedFile": m15,
     "downloadFailedWithError": m16,
-    "downloadManager": MessageLookupByLibrary.simpleMessage("Download Manager"),
+    "downloadManager": MessageLookupByLibrary.simpleMessage("Download"),
     "downloadManagerWithCount": m17,
     "downloadProgress": m18,
     "downloadProgressDesc": MessageLookupByLibrary.simpleMessage(
