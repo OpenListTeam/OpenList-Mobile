@@ -43,7 +43,7 @@
   "directDownloadApk": "Direct Download APK",
   "initializingNotificationManager": "Initializing notification manager",
   "downloadManager": "Download Manager",
-  "downloadManagerWithCount": "Download Manager ({count})",
+  "downloadManagerWithCount": "Download ({count})",
   "@downloadManagerWithCount": {
     "placeholders": {
       "count": {
