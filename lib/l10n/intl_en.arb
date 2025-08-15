@@ -447,5 +447,11 @@
   "cannotInstallApkNeedPermission": "Cannot install APK file, you may need to enable \\\"Install unknown apps\\\" in settings",
   "noPermissionToInstallApkFile": "No permission to install APK file, please enable install permission in settings",
   "preparingDownloadStatus": "Preparing download...",
-  "downloadCancelledText": "Download cancelled"
+  "downloadCancelledText": "Download cancelled",
+  "language": "Language",
+  "languageSettings": "Language Settings",
+  "languageSettingsDesc": "Select app display language",
+  "followSystem": "Follow System",
+  "simplifiedChinese": "简体中文",
+  "english": "English"
 }

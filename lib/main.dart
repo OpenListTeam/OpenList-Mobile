@@ -7,6 +7,7 @@ import 'package:openlist_mobile/pages/download_manager_page.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:openlist_mobile/utils/notification_manager.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
+import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:fade_indexed_stack/fade_indexed_stack.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,9 @@ import 'contant/native_bridge.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 初始化语言控制器
+  Get.put(LanguageController());
   
   // 初始化通知管理器
   await NotificationManager.initialize();
@@ -42,30 +46,40 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'OpenList',
-      themeMode: ThemeMode.system,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.blueGrey,
-        inputDecorationTheme: const InputDecorationTheme(
-          border: OutlineInputBorder(),
-        ),
-      ),
-      darkTheme:ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorSchemeSeed: Colors.blueGrey,
-        /* dark theme settings */
-      ),
-      supportedLocales: S.delegate.supportedLocales,
-      localizationsDelegates: const [
-        S.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      home: const MyHomePage(title: ""),
+    return GetBuilder<LanguageController>(
+      builder: (languageController) {
+        // 如果语言控制器设置为跟随系统，则使用null让系统自动选择
+        // 否则使用指定的locale
+        Locale? appLocale = languageController.locale;
+        
+        return GetMaterialApp(
+          title: 'OpenList',
+          themeMode: ThemeMode.system,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: Colors.blueGrey,
+            inputDecorationTheme: const InputDecorationTheme(
+              border: OutlineInputBorder(),
+            ),
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorSchemeSeed: Colors.blueGrey,
+            /* dark theme settings */
+          ),
+          locale: appLocale,
+          fallbackLocale: const Locale('en'),
+          supportedLocales: S.delegate.supportedLocales,
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: const MyHomePage(title: ""),
+        );
+      },
     );
   }
 }

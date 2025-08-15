@@ -447,5 +447,11 @@
   "cannotInstallApkNeedPermission": "无法安装 APK 文件，可能需要在设置中开启\"允许安装未知来源应用\"",
   "noPermissionToInstallApkFile": "没有权限安装 APK 文件，请在设置中开启安装权限",
   "preparingDownloadStatus": "准备下载...",
-  "downloadCancelledText": "下载已取消"
+  "downloadCancelledText": "下载已取消",
+  "language": "语言",
+  "languageSettings": "语言设置",
+  "languageSettingsDesc": "选择应用显示语言",
+  "followSystem": "跟随系统",
+  "simplifiedChinese": "简体中文",
+  "english": "English"
 }

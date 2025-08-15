@@ -1,6 +1,7 @@
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/settings/preference_widgets.dart';
+import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -83,6 +84,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           DividerPreference(title: S.of(context).general),
 
+          // Language Settings
+          BasicPreference(
+            title: S.of(context).language,
+            subtitle: _getLanguageDisplayName(),
+            leading: const Icon(Icons.language),
+            onTap: () {
+              _showLanguageSelectionDialog(context);
+            },
+          ),
+
           SwitchPreference(
             title: S.of(context).autoCheckForUpdates,
             subtitle: S.of(context).autoCheckForUpdatesDesc,
@@ -156,6 +167,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     ));
+  }
+
+  String _getLanguageDisplayName() {
+    final languageController = Get.find<LanguageController>();
+    final currentOption = languageController.currentLanguageOption;
+    
+    switch (currentOption.name) {
+      case 'followSystem':
+        return S.of(context).followSystem;
+      case 'simplifiedChinese':
+        return S.of(context).simplifiedChinese;
+      case 'english':
+        return S.of(context).english;
+      default:
+        return currentOption.name;
+    }
+  }
+
+  void _showLanguageSelectionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(S.of(context).languageSettings),
+          content: SingleChildScrollView(
+            child: LanguageSelector(
+              onLanguageChanged: () {
+                Navigator.of(context).pop();
+                setState(() {}); // 刷新界面以显示新的语言设置
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(S.of(context).cancel),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

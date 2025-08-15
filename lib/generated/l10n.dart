@@ -1368,6 +1368,41 @@ class S {
       args: [],
     );
   }
+
+  /// `语言`
+  String get language {
+    return Intl.message('语言', name: 'language', desc: '', args: []);
+  }
+
+  /// `语言设置`
+  String get languageSettings {
+    return Intl.message('语言设置', name: 'languageSettings', desc: '', args: []);
+  }
+
+  /// `选择应用显示语言`
+  String get languageSettingsDesc {
+    return Intl.message(
+      '选择应用显示语言',
+      name: 'languageSettingsDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `跟随系统`
+  String get followSystem {
+    return Intl.message('跟随系统', name: 'followSystem', desc: '', args: []);
+  }
+
+  /// `简体中文`
+  String get simplifiedChinese {
+    return Intl.message('简体中文', name: 'simplifiedChinese', desc: '', args: []);
+  }
+
+  /// `English`
+  String get english {
+    return Intl.message('English', name: 'english', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
