@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import com.openlist.mobile.KeepAliveService
 import com.openlist.mobile.OpenListService
 import com.openlist.mobile.config.AppConfig
 import com.openlist.mobile.utils.BatteryOptimizationUtils
@@ -105,10 +104,6 @@ class ServiceBridge(private val context: Context, private val channel: MethodCha
                 context.startService(intent)
             }
             
-            // 同时启动保活服务
-            val keepAliveIntent = Intent(context, KeepAliveService::class.java)
-            context.startService(keepAliveIntent)
-            
             Log.d(TAG, "OpenList service start command sent, manual stop flag cleared")
             true
         } catch (e: Exception) {
@@ -137,10 +132,6 @@ class ServiceBridge(private val context: Context, private val channel: MethodCha
                 val intent = Intent(context, OpenListService::class.java)
                 context.stopService(intent)
             }
-            
-            // 停止保活服务
-            val keepAliveIntent = Intent(context, KeepAliveService::class.java)
-            context.stopService(keepAliveIntent)
             
             Log.d(TAG, "OpenList service stop command sent, manual stop flag set")
             true
