@@ -55,6 +55,27 @@ class OpenListService : Service(), OpenList.Listener {
         @Volatile
         var serviceInstance: OpenListService? = null
             private set
+
+        // 添加启动状态锁，防止多个保活机制同时启动服务
+        @Volatile
+        private var isStarting: Boolean = false
+            
+        // 同步方法检查和设置启动状态
+        @Synchronized
+        fun tryStartOpenList(): Boolean {
+            if (isStarting) {
+                Log.d(TAG, "OpenList is already starting, skipping duplicate start request")
+                return false
+            }
+            isStarting = true
+            return true
+        }
+        
+        // 重置启动状态
+        @Synchronized
+        fun resetStartingState() {
+            isStarting = false
+        }
     }
 
     private val mScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -236,6 +257,13 @@ class OpenListService : Service(), OpenList.Listener {
         } else {
             Log.d(TAG, "Starting OpenList")
             toast(getString(R.string.starting))
+            
+            // 使用启动锁防止重复启动
+            if (!tryStartOpenList()) {
+                Log.w(TAG, "OpenList is already starting, ignoring start request")
+                return
+            }
+            
             isRunning = true
             
             // 在子线程中启动OpenList服务，避免阻塞主线程
@@ -245,6 +273,7 @@ class OpenListService : Service(), OpenList.Listener {
                     OpenList.init()
                     // 添加延迟确保初始化完成
                     delay(100)
+                    Log.d(TAG, "Manual starting OpenList...")
                     OpenList.startup()
                     
                     // 启动完成后在主线程中更新状态
@@ -252,8 +281,9 @@ class OpenListService : Service(), OpenList.Listener {
                         notifyStatusChanged()
                         toast("OpenList 启动成功")
                     }
+                    Log.d(TAG, "Manual start completed successfully")
                 } catch (e: Exception) {
-                    Log.e(TAG, "Startup error", e)
+                    Log.e(TAG, "Manual startup error", e)
                     // 启动失败时重置状态
                     isRunning = false
                     launch(Dispatchers.Main) {
@@ -261,14 +291,17 @@ class OpenListService : Service(), OpenList.Listener {
                         notifyStatusChanged()
                     }
                 } catch (t: Throwable) {
-                    Log.e(TAG, "Startup fatal error", t)
+                    Log.e(TAG, "Manual startup fatal error", t)
                     // 处理更严重的错误（如 JNI 崩溃）
                     isRunning = false
                     launch(Dispatchers.Main) {
                         toast("启动严重错误: ${t.message}")
                         notifyStatusChanged()
                     }
+                } finally {
+                    resetStartingState()
                 }
+            }
             }
         }
     }
@@ -347,16 +380,23 @@ class OpenListService : Service(), OpenList.Listener {
                     }
                     
                     if (isRunning && !OpenList.isRunning()) {
-                        Log.w(TAG, "OpenList stopped unexpectedly, restarting...")
-                        // 重新启动OpenList
-                        launch(Dispatchers.IO) {
-                            try {
-                                OpenList.startup()
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Failed to restart OpenList", e)
-                                isRunning = false
-                                launch(Dispatchers.Main) {
-                                    notifyStatusChanged()
+                        Log.w(TAG, "OpenList stopped unexpectedly, attempting restart...")
+                        
+                        // 使用启动锁防止重复启动
+                        if (tryStartOpenList()) {
+                            launch(Dispatchers.IO) {
+                                try {
+                                    Log.d(TAG, "Heartbeat starting OpenList...")
+                                    OpenList.startup()
+                                    Log.d(TAG, "Heartbeat restart completed successfully")
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Heartbeat failed to restart OpenList", e)
+                                    isRunning = false
+                                    launch(Dispatchers.Main) {
+                                        notifyStatusChanged()
+                                    }
+                                } finally {
+                                    resetStartingState()
                                 }
                             }
                         }

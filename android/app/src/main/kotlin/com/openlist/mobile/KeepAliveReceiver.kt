@@ -102,15 +102,25 @@ class KeepAliveReceiver : BroadcastReceiver() {
      */
     private fun startMainService(context: Context) {
         try {
-            val intent = Intent(context, OpenListService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
+            // 使用OpenListService的启动锁防止重复启动
+            if (OpenListService.tryStartOpenList()) {
+                try {
+                    Log.d(TAG, "KeepAliveReceiver starting main service...")
+                    val intent = Intent(context, OpenListService::class.java)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else {
+                        context.startService(intent)
+                    }
+                    Log.d(TAG, "KeepAliveReceiver main service start command sent")
+                } finally {
+                    OpenListService.resetStartingState()
+                }
             } else {
-                context.startService(intent)
+                Log.d(TAG, "Main service is already starting, skipping receiver start")
             }
-            Log.d(TAG, "Main service start command sent")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start main service", e)
+            Log.e(TAG, "KeepAliveReceiver failed to start main service", e)
         }
     }
 

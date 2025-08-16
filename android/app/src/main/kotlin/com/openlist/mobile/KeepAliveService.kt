@@ -157,7 +157,25 @@ class KeepAliveService : Service() {
             
             if (!isMainServiceRunning()) {
                 Log.w(TAG, "Main service not running, attempting to restart")
-                startMainService()
+                
+                // 使用OpenListService的启动锁防止重复启动
+                if (OpenListService.tryStartOpenList()) {
+                    serviceScope.launch {
+                        try {
+                            Log.d(TAG, "KeepAlive starting main service...")
+                            startMainService()
+                            // 等待服务启动
+                            delay(2000)
+                            Log.d(TAG, "KeepAlive service start command completed")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "KeepAlive failed to start main service", e)
+                        } finally {
+                            OpenListService.resetStartingState()
+                        }
+                    }
+                } else {
+                    Log.d(TAG, "Main service is already starting, skipping duplicate start")
+                }
             } else {
                 Log.d(TAG, "Main service is running normally")
             }

@@ -132,21 +132,37 @@ object ProcessGuardian {
                 return
             }
             
-            // 检查是否启用���开机启动（保活功能）
+            // 检查是否启用了开机启动（保活功能）
             if (!AppConfig.isStartAtBootEnabled) {
                 Log.d(TAG, "Auto start disabled, skipping main service restart")
                 return
             }
             
-            val intent = Intent(context, OpenListService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
+            // 使用OpenListService的启动锁防止重复启动
+            if (OpenListService.tryStartOpenList()) {
+                guardianScope?.launch {
+                    try {
+                        Log.d(TAG, "ProcessGuardian starting main service...")
+                        val intent = Intent(context, OpenListService::class.java)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            context.startForegroundService(intent)
+                        } else {
+                            context.startService(intent)
+                        }
+                        Log.d(TAG, "ProcessGuardian main service restart command sent")
+                        // 等待服务启动
+                        delay(2000)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "ProcessGuardian failed to restart main service", e)
+                    } finally {
+                        OpenListService.resetStartingState()
+                    }
+                }
             } else {
-                context.startService(intent)
+                Log.d(TAG, "Main service is already starting, skipping duplicate restart")
             }
-            Log.d(TAG, "Main service restart command sent")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to restart main service", e)
+            Log.e(TAG, "ProcessGuardian failed to restart main service", e)
         }
     }
     

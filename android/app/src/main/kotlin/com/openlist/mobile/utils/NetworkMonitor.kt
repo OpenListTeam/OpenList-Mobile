@@ -226,15 +226,31 @@ class NetworkMonitor(private val context: Context) {
      */
     private fun restartService() {
         try {
-            val intent = android.content.Intent(context, OpenListService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
+            // 使用OpenListService的启动锁防止重复启动
+            if (OpenListService.tryStartOpenList()) {
+                monitorScope?.launch {
+                    try {
+                        Log.d(TAG, "NetworkMonitor starting service...")
+                        val intent = android.content.Intent(context, OpenListService::class.java)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            context.startForegroundService(intent)
+                        } else {
+                            context.startService(intent)
+                        }
+                        Log.d(TAG, "NetworkMonitor service restart command sent")
+                        // 等待服务启动
+                        delay(2000)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "NetworkMonitor failed to restart service", e)
+                    } finally {
+                        OpenListService.resetStartingState()
+                    }
+                }
             } else {
-                context.startService(intent)
+                Log.d(TAG, "Service is already starting, skipping network restart")
             }
-            Log.d(TAG, "Service restart command sent")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to restart service", e)
+            Log.e(TAG, "NetworkMonitor failed to restart service", e)
         }
     }
 

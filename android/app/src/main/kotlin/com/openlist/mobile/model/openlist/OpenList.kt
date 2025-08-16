@@ -108,15 +108,29 @@ object OpenList : Event, LogCallback {
             // 重新初始化以确保配置正确
             init()
             
-            // 检查是否已经在运行
+            // 多重检查是否已经在运行，防止重复启动
             if (isRunning()) {
-                Log.w(TAG, "OpenList is already running")
+                Log.w(TAG, "OpenList is already running, skipping startup")
+                return
+            }
+            
+            // 再次检查以确保安全
+            Thread.sleep(100) // 短暂等待以避免竞态条件
+            if (isRunning()) {
+                Log.w(TAG, "OpenList started by another thread, skipping startup")
                 return
             }
             
             Log.d(TAG, "Starting OpenList...")
             Openlistlib.start()
-            Log.d(TAG, "OpenList started successfully")
+            
+            // 验证启动是否成功
+            Thread.sleep(1000) // 等待1秒让服务完全启动
+            if (isRunning()) {
+                Log.d(TAG, "OpenList started successfully and confirmed running")
+            } else {
+                Log.w(TAG, "OpenList startup command sent but status check failed")
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start OpenList", e)
             throw e

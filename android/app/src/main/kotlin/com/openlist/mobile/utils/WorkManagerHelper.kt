@@ -140,11 +140,23 @@ object WorkManagerHelper {
                 // 检查主服务状态
                 if (!OpenListService.isRunning) {
                     Log.w(TAG, "Main service not running, attempting to start")
-                    val mainServiceIntent = Intent(applicationContext, OpenListService::class.java)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        applicationContext.startForegroundService(mainServiceIntent)
+                    
+                    // 使用OpenListService的启动锁防止重复启动
+                    if (OpenListService.tryStartOpenList()) {
+                        try {
+                            Log.d(TAG, "KeepAliveWorker starting main service...")
+                            val mainServiceIntent = Intent(applicationContext, OpenListService::class.java)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                applicationContext.startForegroundService(mainServiceIntent)
+                            } else {
+                                applicationContext.startService(mainServiceIntent)
+                            }
+                            Log.d(TAG, "KeepAliveWorker service start command sent")
+                        } finally {
+                            OpenListService.resetStartingState()
+                        }
                     } else {
-                        applicationContext.startService(mainServiceIntent)
+                        Log.d(TAG, "Main service is already starting, skipping duplicate start")
                     }
                 }
 
@@ -196,11 +208,23 @@ object WorkManagerHelper {
                 // 检查主服务
                 if (!OpenListService.isRunning) {
                     Log.w(TAG, "Main service not running, restarting...")
-                    val intent = Intent(applicationContext, OpenListService::class.java)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        applicationContext.startForegroundService(intent)
+                    
+                    // 使用OpenListService的启动锁防止重复启动
+                    if (OpenListService.tryStartOpenList()) {
+                        try {
+                            Log.d(TAG, "ServiceCheckWorker starting main service...")
+                            val intent = Intent(applicationContext, OpenListService::class.java)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                applicationContext.startForegroundService(intent)
+                            } else {
+                                applicationContext.startService(intent)
+                            }
+                            Log.d(TAG, "ServiceCheckWorker service start command sent")
+                        } finally {
+                            OpenListService.resetStartingState()
+                        }
                     } else {
-                        applicationContext.startService(intent)
+                        Log.d(TAG, "Main service is already starting, skipping duplicate restart")
                     }
                 }
 
