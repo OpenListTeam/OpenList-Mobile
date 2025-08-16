@@ -255,6 +255,12 @@ class OpenListService : Service(), OpenList.Listener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand called")
 
+        // 如果OpenList后端未运行，则启动它
+        if (!isRunning && !OpenList.isRunning()) {
+            Log.d(TAG, "Starting OpenList backend from onStartCommand")
+            startOrShutdown()
+        }
+
         // 返回 START_STICKY 确保服务被杀死后会重启（仅保持前台服务）
         return START_STICKY
     }
