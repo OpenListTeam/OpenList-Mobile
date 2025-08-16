@@ -302,7 +302,6 @@ class OpenListService : Service(), OpenList.Listener {
                     resetStartingState()
                 }
             }
-            }
         }
     }
 
