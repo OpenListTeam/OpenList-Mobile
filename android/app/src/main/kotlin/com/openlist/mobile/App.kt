@@ -28,55 +28,9 @@ class App : FlutterApplication() {
                 android.util.Log.e("App", "Native/JNI related crash detected")
             }
             
-            // 尝试重启服务（保活机制）
-            try {
-                // 检查是否被用户手动停止
-                if (com.openlist.mobile.config.AppConfig.isManuallyStoppedByUser) {
-                    android.util.Log.d("App", "Service was manually stopped by user, skipping restart after crash")
-                } else if (com.openlist.mobile.config.AppConfig.isStartAtBootEnabled) {
-                    val intent = android.content.Intent(this, OpenListService::class.java)
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        startForegroundService(intent)
-                    } else {
-                        startService(intent)
-                    }
-                    android.util.Log.d("App", "Service restart attempted after crash")
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("App", "Failed to restart service after crash", e)
-            }
-            
             // 调用默认的异常处理器
             val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
             defaultHandler?.uncaughtException(thread, throwable)
-        }
-        
-        // 初始化保活机制
-        initKeepAlive()
-    }
-
-    /**
-     * 初始化保活机制
-     */
-    private fun initKeepAlive() {
-        try {
-            // 初始化WorkManager任务
-            com.openlist.mobile.utils.WorkManagerHelper.initialize(this)
-            
-            // 检查是否被用户手动停止
-            if (com.openlist.mobile.config.AppConfig.isManuallyStoppedByUser) {
-                android.util.Log.d("App", "Service was manually stopped by user, skipping keep alive initialization")
-                return
-            }
-            
-            // 如果启用了开机启动，则启动保活服务
-            if (com.openlist.mobile.config.AppConfig.isStartAtBootEnabled) {
-                val keepAliveIntent = android.content.Intent(this, KeepAliveService::class.java)
-                startService(keepAliveIntent)
-                android.util.Log.d("App", "Keep alive service started")
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("App", "Failed to initialize keep alive", e)
         }
     }
 }

@@ -87,11 +87,6 @@ class BootReceiver : BroadcastReceiver() {
             }
             Log.d(TAG, "Main service start command sent")
 
-            // 启动保活服务
-            val keepAliveIntent = Intent(context, KeepAliveService::class.java)
-            context.startService(keepAliveIntent)
-            Log.d(TAG, "Keep alive service start command sent")
-
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start services", e)
         }
