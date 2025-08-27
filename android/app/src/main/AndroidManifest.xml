@@ -105,5 +105,17 @@
             </intent-filter>
         </receiver>
 
+        <!-- OpenList Tile -->
+        <service
+            android:name=".OpenListTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="OpenList"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
     </application>
 </manifest>
