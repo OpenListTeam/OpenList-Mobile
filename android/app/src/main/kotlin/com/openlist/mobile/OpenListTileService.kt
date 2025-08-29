@@ -18,14 +18,22 @@ import com.openlist.mobile.config.AppConfig
 class OpenListTileService : TileService() {
     companion object {
         private const val TAG = "OpenListTileService"
+        private const val CLICK_DEBOUNCE_TIME = 2000L // 2秒防重复点击
     }
+
+    private var lastClickTime = 0L
 
     private val statusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 OpenListService.ACTION_STATUS_CHANGED -> {
                     Log.d(TAG, "Service status changed, updating tile")
-                    updateTileState()
+                    // 添加小延迟确保状态稳定
+                    qsTile?.let {
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            updateTileState()
+                        }, 100)
+                    }
                 }
             }
         }
@@ -52,14 +60,28 @@ class OpenListTileService : TileService() {
 
     override fun onClick() {
         super.onClick()
+        
+        // 防重复点击
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime < CLICK_DEBOUNCE_TIME) {
+            Log.d(TAG, "Click ignored due to debounce")
+            return
+        }
+        lastClickTime = currentTime
+        
         val isRunning = OpenListService.isRunning
         Log.d(TAG, "Tile clicked, service running: $isRunning")
+        
+        // 设置瓦片为过渡状态，显示操作进行中
+        setTileTransitionState(!isRunning)
+        
         if (isRunning) {
             stopOpenListService()
         } else {
             startOpenListService()
         }
-        updateTileState()
+        // 移除立即状态更新，依赖广播接收器异步更新
+        // updateTileState() - 现在由广播接收器处理
     }
 
     private fun startOpenListService() {
@@ -84,15 +106,36 @@ class OpenListTileService : TileService() {
             val serviceInstance = OpenListService.serviceInstance
             if (serviceInstance != null && OpenListService.isRunning) {
                 serviceInstance.stopOpenListService()
-            } else {
-                val intent = Intent(this, OpenListService::class.java)
-                stopService(intent)
             }
-
+            // 移除else分支的冗余stopService调用
             Log.d(TAG, "Service stop command sent from tile")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to stop service from tile", e)
+            // 出错时恢复瓦片状态
+            updateTileState()
         }
+    }
+
+    /**
+     * 设置瓦片过渡状态，显示操作正在进行中
+     */
+    private fun setTileTransitionState(targetActiveState: Boolean) {
+        val tile = qsTile ?: return
+        
+        // 设置过渡状态
+        tile.state = if (targetActiveState) Tile.STATE_UNAVAILABLE else Tile.STATE_UNAVAILABLE
+        tile.label = if (targetActiveState) "启动中..." else "停止中..."
+        tile.contentDescription = if (targetActiveState) "OpenList Starting" else "OpenList Stopping"
+        
+        try {
+            val icon = Icon.createWithResource(this, R.mipmap.ic_launcher)
+            tile.icon = icon
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to set tile icon during transition", e)
+        }
+        
+        tile.updateTile()
+        Log.d(TAG, "Tile set to transition state: ${if (targetActiveState) "starting" else "stopping"}")
     }
 
     private fun updateTileState() {
