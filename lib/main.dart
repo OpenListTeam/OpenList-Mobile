@@ -11,6 +11,7 @@ import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:fade_indexed_stack/fade_indexed_stack.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/svg.dart';
@@ -20,6 +21,9 @@ import 'contant/native_bridge.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+  );
   
   // 初始化语言控制器
   Get.put(LanguageController());
@@ -95,16 +99,20 @@ class MyHomePage extends StatelessWidget {
     final controller = Get.put(_MainController());
 
     return Scaffold(
-        body: Obx(
-          () => FadeIndexedStack(
-            lazy: true,
-            index: controller.selectedIndex.value,
-            children: [
-              WebScreen(key: webGlobalKey),
-              const OpenListScreen(),
-              const DownloadManagerPage(),
-              const SettingsScreen()
-            ],
+        extendBody: true,
+        extendBodyBehindAppBar: true,
+        body: SafeArea(
+          child: Obx(
+            () => FadeIndexedStack(
+              lazy: true,
+              index: controller.selectedIndex.value,
+              children: [
+                WebScreen(key: webGlobalKey),
+                const OpenListScreen(),
+                const DownloadManagerPage(),
+                const SettingsScreen()
+              ],
+            ),
           ),
         ),
         bottomNavigationBar: Obx(() => NavigationBar(

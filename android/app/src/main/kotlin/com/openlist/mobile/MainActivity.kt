@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
+import androidx.core.view.WindowCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.openlist.mobile.bridge.AndroidBridge
 import com.openlist.mobile.bridge.AppConfigBridge
@@ -39,6 +40,7 @@ class MainActivity : FlutterActivity() {
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         ShortCuts.buildShortCuts(this)
         LocalBroadcastManager.getInstance(this)
