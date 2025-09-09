@@ -18,7 +18,8 @@ jobs:
   android:
     runs-on: ubuntu-latest
     env:
-      output: "${{ github.workspace }}/build/app/outputs/apk/release"
+      release_output: "${{ github.workspace }}/build/app/outputs/apk/release"
+      debug_output: "${{ github.workspace }}/build/app/outputs/apk/debug"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -63,7 +64,8 @@ jobs:
           name: "OpenList"
           path: "${{ github.workspace }}/android/app/libs/*.aar"
 
-      - name: Init Signature
+      - name: Init Signature (Release only)
+        if: github.event_name != 'pull_request'
         run: |
           touch local.properties
           cd android
@@ -77,10 +79,17 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.7'
-      - run: flutter build apk --split-per-abi --release
+      
+      - name: Build Release APK
+        if: github.event_name != 'pull_request'
+        run: flutter build apk --split-per-abi --release
+      
+      - name: Build Debug APK
+        if: github.event_name == 'pull_request'
+        run: flutter build apk --split-per-abi --debug
 
       - name: Upload missing_rules.txt
-        if: failure() && steps.gradle.outcome != 'success'
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: "missing_rules"
@@ -88,28 +97,36 @@ jobs:
 
       - name: Init APP Version Name
         run: |
-          echo "ver_name=$(grep -m 1 'versionName' ${{ env.output }}/output-metadata.json | cut -d'"' -f4)" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "ver_name=$(grep -m 1 'versionName' ${{ env.debug_output }}/output-metadata.json | cut -d'"' -f4)-debug" >> $GITHUB_ENV
+            echo "output_path=${{ env.debug_output }}" >> $GITHUB_ENV
+            echo "build_type=debug" >> $GITHUB_ENV
+          else
+            echo "ver_name=$(grep -m 1 'versionName' ${{ env.release_output }}/output-metadata.json | cut -d'"' -f4)" >> $GITHUB_ENV
+            echo "output_path=${{ env.release_output }}" >> $GITHUB_ENV
+            echo "build_type=release" >> $GITHUB_ENV
+          fi
 
       - name: Upload App To Artifact arm64-v8a
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
           name: "OpenList-Mobile-v${{ env.ver_name }}_arm64-v8a"
-          path: "${{ env.output }}/*-v8a.apk"
+          path: "${{ env.output_path }}/*-v8a.apk"
 
       - name: Upload App To Artifact arm-v7a
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
           name: "OpenList-Mobile-v${{ env.ver_name }}_arm-v7a"
-          path: "${{ env.output }}/*-v7a.apk"
+          path: "${{ env.output_path }}/*-v7a.apk"
 
       - name: Upload App To Artifact x86
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
           name: "OpenList-Mobile-v${{ env.ver_name }}_x86_64"
-          path: "${{ env.output }}/*64.apk"
+          path: "${{ env.output_path }}/*64.apk"
 
   ios:
     runs-on: macos-latest
@@ -191,7 +208,11 @@ jobs:
           # Generate timestamp in format YYMMDDHH (精确到小时)
           TIMESTAMP=$(date +%y%m%d%H)
           # Combine version with timestamp for artifact naming
-          echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "ver_name=${BASE_VERSION}.${TIMESTAMP}-debug" >> $GITHUB_ENV
+          else
+            echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
+          fi
 
       - name: Upload iOS App To Artifact
         if: success() || failure()
