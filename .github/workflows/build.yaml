@@ -18,7 +18,8 @@ jobs:
   android:
     runs-on: ubuntu-latest
     env:
-      output: "${{ github.workspace }}/build/app/outputs/apk/release"
+      release_output: "${{ github.workspace }}/build/app/outputs/apk/release"
+      debug_output: "${{ github.workspace }}/build/app/outputs/flutter-apk"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -63,7 +64,21 @@ jobs:
           name: "OpenList"
           path: "${{ github.workspace }}/android/app/libs/*.aar"
 
-      - name: Init Signature
+      - name: Manual Disk Cleanup
+        run: |
+          echo "Before cleanup:"
+          df -h
+          # 清理一些安全的大文件夹
+          sudo rm -rf /opt/hostedtoolcache/CodeQL 2>/dev/null || true
+          sudo rm -rf /imagegeneration 2>/dev/null || true
+          sudo rm -rf /opt/az 2>/dev/null || true
+          # 清理Docker相关（但保留基础）
+          docker system prune -af 2>/dev/null || true
+          echo "After cleanup:"
+          df -h
+
+      - name: Init Signature (Release only)
+        if: github.event_name != 'pull_request'
         run: |
           touch local.properties
           cd android
@@ -77,10 +92,47 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.7'
-      - run: flutter build apk --split-per-abi --release
+      
+      - name: Verify Flutter and Android environment
+        run: |
+          echo "=== Flutter Environment ==="
+          flutter --version
+          flutter doctor -v
+          echo "=== Android Environment ==="
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT" 
+          echo "JAVA_HOME: $JAVA_HOME"
+          ls -la $ANDROID_HOME/build-tools/ || echo "build-tools not found"
+          echo "=== Disk Space ==="
+          df -h
+      
+      - name: Debug - Check build directory
+        run: |
+          echo "Checking build directory structure..."
+          ls -la build/ || echo "build directory not found"
+          ls -la build/app/ || echo "build/app directory not found"
+          ls -la build/app/outputs/ || echo "build/app/outputs directory not found"
+      
+      - name: Build Release APK
+        if: github.event_name != 'pull_request'
+        run: flutter build apk --split-per-abi --release --target-platform android-arm,android-arm64,android-x64
+      
+      - name: Build Debug APK
+        if: github.event_name == 'pull_request'
+        run: flutter build apk --split-per-abi --debug --target-platform android-arm,android-arm64,android-x64
+        
+      - name: Debug - Check APK files
+        run: |
+          echo "Checking for APK files..."
+          find build/ -name "*.apk" -type f || echo "No APK files found"
+          ls -la build/app/outputs/flutter-apk/ || echo "Flutter APK directory not found"
+          ls -la build/app/outputs/apk/release/ || echo "Release directory not found"
+          ls -la build/app/outputs/apk/debug/ || echo "Debug directory not found"
+          echo "Expected architectures: ARM64 (arm64-v8a), ARM (armeabi-v7a), and x86_64"
+          ls -la build/app/outputs/apk/debug/ || echo "Debug directory not found"
 
       - name: Upload missing_rules.txt
-        if: failure() && steps.gradle.outcome != 'success'
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: "missing_rules"
@@ -88,28 +140,59 @@ jobs:
 
       - name: Init APP Version Name
         run: |
-          echo "ver_name=$(grep -m 1 'versionName' ${{ env.output }}/output-metadata.json | cut -d'"' -f4)" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            OUTPUT_DIR="${{ env.debug_output }}"
+            BUILD_TYPE="debug"
+          else
+            OUTPUT_DIR="${{ env.release_output }}"
+            BUILD_TYPE="release"
+          fi
+          
+          echo "Looking for version in: $OUTPUT_DIR"
+          
+          if [ -f "$OUTPUT_DIR/output-metadata.json" ]; then
+            VER_NAME=$(grep -m 1 'versionName' "$OUTPUT_DIR/output-metadata.json" | cut -d'"' -f4)
+            echo "Found version: $VER_NAME"
+          else
+            echo "output-metadata.json not found, using fallback version"
+            VER_NAME=$(cat openlist_version || echo "unknown")
+          fi
+          
+          if [ "$BUILD_TYPE" == "debug" ]; then
+            echo "ver_name=${VER_NAME}-debug" >> $GITHUB_ENV
+          else
+            echo "ver_name=${VER_NAME}" >> $GITHUB_ENV
+          fi
+          
+          echo "output_path=$OUTPUT_DIR" >> $GITHUB_ENV
+          echo "build_type=$BUILD_TYPE" >> $GITHUB_ENV
 
       - name: Upload App To Artifact arm64-v8a
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenList-Mobile-v${{ env.ver_name }}_arm64-v8a"
-          path: "${{ env.output }}/*-v8a.apk"
+          name: "OpenList-Mobile-${{ env.ver_name }}_arm64-v8a"
+          path: |
+            ${{ env.output_path }}/*arm64-v8a*.apk
+            ${{ env.output_path }}/*v8a.apk
 
       - name: Upload App To Artifact arm-v7a
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenList-Mobile-v${{ env.ver_name }}_arm-v7a"
-          path: "${{ env.output }}/*-v7a.apk"
+          name: "OpenList-Mobile-${{ env.ver_name }}_arm-v7a"
+          path: |
+            ${{ env.output_path }}/*armeabi-v7a*.apk
+            ${{ env.output_path }}/*v7a.apk
 
-      - name: Upload App To Artifact x86
+      - name: Upload App To Artifact x86_64
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenList-Mobile-v${{ env.ver_name }}_x86_64"
-          path: "${{ env.output }}/*64.apk"
+          name: "OpenList-Mobile-${{ env.ver_name }}_x86_64"
+          path: |
+            ${{ env.output_path }}/*x86_64*.apk
+            ${{ env.output_path }}/*x64*.apk
 
   ios:
     runs-on: macos-latest
@@ -191,7 +274,11 @@ jobs:
           # Generate timestamp in format YYMMDDHH (精确到小时)
           TIMESTAMP=$(date +%y%m%d%H)
           # Combine version with timestamp for artifact naming
-          echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "ver_name=${BASE_VERSION}.${TIMESTAMP}-debug" >> $GITHUB_ENV
+          else
+            echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
+          fi
 
       - name: Upload iOS App To Artifact
         if: success() || failure()
