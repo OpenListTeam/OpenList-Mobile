@@ -115,11 +115,11 @@ jobs:
       
       - name: Build Release APK
         if: github.event_name != 'pull_request'
-        run: flutter build apk --split-per-abi --release --target-platform android-arm,android-arm64
+        run: flutter build apk --split-per-abi --release --target-platform android-arm,android-arm64,android-x64
       
       - name: Build Debug APK
         if: github.event_name == 'pull_request'
-        run: flutter build apk --split-per-abi --debug --target-platform android-arm,android-arm64
+        run: flutter build apk --split-per-abi --debug --target-platform android-arm,android-arm64,android-x64
         
       - name: Debug - Check APK files
         run: |
@@ -128,7 +128,7 @@ jobs:
           ls -la build/app/outputs/flutter-apk/ || echo "Flutter APK directory not found"
           ls -la build/app/outputs/apk/release/ || echo "Release directory not found"
           ls -la build/app/outputs/apk/debug/ || echo "Debug directory not found"
-          echo "Expected architectures: ARM64 (arm64-v8a) and ARM (armeabi-v7a)"
+          echo "Expected architectures: ARM64 (arm64-v8a), ARM (armeabi-v7a), and x86_64"
           ls -la build/app/outputs/apk/debug/ || echo "Debug directory not found"
 
       - name: Upload missing_rules.txt
@@ -184,6 +184,15 @@ jobs:
           path: |
             ${{ env.output_path }}/*armeabi-v7a*.apk
             ${{ env.output_path }}/*v7a.apk
+
+      - name: Upload App To Artifact x86_64
+        if: success () || failure ()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "OpenList-Mobile-${{ env.ver_name }}_x86_64"
+          path: |
+            ${{ env.output_path }}/*x86_64*.apk
+            ${{ env.output_path }}/*x64*.apk
 
   ios:
     runs-on: macos-latest
