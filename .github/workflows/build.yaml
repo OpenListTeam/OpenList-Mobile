@@ -171,7 +171,7 @@ jobs:
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenList-Mobile-v${{ env.ver_name }}_arm64-v8a"
+          name: "OpenList-Mobile-${{ env.ver_name }}_arm64-v8a"
           path: |
             ${{ env.output_path }}/*arm64-v8a*.apk
             ${{ env.output_path }}/*v8a.apk
@@ -180,7 +180,7 @@ jobs:
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
-          name: "OpenList-Mobile-v${{ env.ver_name }}_arm-v7a"
+          name: "OpenList-Mobile-${{ env.ver_name }}_arm-v7a"
           path: |
             ${{ env.output_path }}/*armeabi-v7a*.apk
             ${{ env.output_path }}/*v7a.apk
