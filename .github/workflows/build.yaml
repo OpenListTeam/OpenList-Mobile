@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       release_output: "${{ github.workspace }}/build/app/outputs/apk/release"
-      debug_output: "${{ github.workspace }}/build/app/outputs/apk/debug"
+      debug_output: "${{ github.workspace }}/build/app/outputs/flutter-apk"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -125,7 +125,9 @@ jobs:
         run: |
           echo "Checking for APK files..."
           find build/ -name "*.apk" -type f || echo "No APK files found"
+          ls -la build/app/outputs/flutter-apk/ || echo "Flutter APK directory not found"
           ls -la build/app/outputs/apk/release/ || echo "Release directory not found"
+          ls -la build/app/outputs/apk/debug/ || echo "Debug directory not found"
           ls -la build/app/outputs/apk/debug/ || echo "Debug directory not found"
 
       - name: Upload missing_rules.txt
@@ -169,21 +171,27 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: "OpenList-Mobile-v${{ env.ver_name }}_arm64-v8a"
-          path: "${{ env.output_path }}/*-v8a.apk"
+          path: |
+            ${{ env.output_path }}/*arm64-v8a*.apk
+            ${{ env.output_path }}/*v8a.apk
 
       - name: Upload App To Artifact arm-v7a
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
           name: "OpenList-Mobile-v${{ env.ver_name }}_arm-v7a"
-          path: "${{ env.output_path }}/*-v7a.apk"
+          path: |
+            ${{ env.output_path }}/*armeabi-v7a*.apk
+            ${{ env.output_path }}/*v7a.apk
 
       - name: Upload App To Artifact x86
         if: success () || failure ()
         uses: actions/upload-artifact@v4
         with:
           name: "OpenList-Mobile-v${{ env.ver_name }}_x86_64"
-          path: "${{ env.output_path }}/*64.apk"
+          path: |
+            ${{ env.output_path }}/*x86_64*.apk
+            ${{ env.output_path }}/*64.apk
 
   ios:
     runs-on: macos-latest
