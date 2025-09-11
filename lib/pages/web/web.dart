@@ -71,7 +71,6 @@ class WebScreenState extends State<WebScreen> {
         },
         child: Scaffold(
           body: Column(children: <Widget>[
-            SizedBox(height: MediaQuery.of(context).padding.top),
             LinearProgressIndicator(
               value: _progress,
               backgroundColor: Colors.grey[200],
@@ -208,4 +207,5 @@ class WebScreenState extends State<WebScreen> {
           ]),
         ));
   }
+}
 }
