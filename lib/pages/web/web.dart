@@ -208,4 +208,3 @@ class WebScreenState extends State<WebScreen> {
         ));
   }
 }
-}
