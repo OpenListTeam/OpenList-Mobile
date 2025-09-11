@@ -4,8 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.openlist.mobile.bridge.AndroidBridge
 import com.openlist.mobile.bridge.AppConfigBridge
@@ -40,6 +42,9 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 处理小窗模式和边缘到边缘显示
+        setupWindowFlags()
+
         ShortCuts.buildShortCuts(this)
         LocalBroadcastManager.getInstance(this)
             .registerReceiver(receiver, IntentFilter(OpenListService.ACTION_STATUS_CHANGED))
@@ -72,6 +77,32 @@ class MainActivity : FlutterActivity() {
             }
 
         })
+    }
+
+    private fun setupWindowFlags() {
+        try {
+            // 对于Android 15及以上版本，启用边缘到边缘显示
+            if (android.os.Build.VERSION.SDK_INT >= 35) { // Android 15 API level
+                window.setFlags(
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                )
+            }
+            
+            // 确保在小窗模式下正确处理布局
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to setup window flags: ${e.message}")
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.d(TAG, "Configuration changed - screenWidthDp: ${newConfig.screenWidthDp}, screenHeightDp: ${newConfig.screenHeightDp}")
+        
+        // 重新设置窗口标志以处理小窗模式变化
+        setupWindowFlags()
     }
 
     override fun onDestroy() {
