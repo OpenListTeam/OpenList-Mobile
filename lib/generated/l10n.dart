@@ -1403,6 +1403,311 @@ class S {
   String get english {
     return Intl.message('English', name: 'english', desc: '', args: []);
   }
+
+  /// `正在下载`
+  String get currentlyDownloading {
+    return Intl.message(
+      '正在下载',
+      name: 'currentlyDownloading',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `下载进度`
+  String get downloadProgressChannel {
+    return Intl.message(
+      '下载进度',
+      name: 'downloadProgressChannel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确认下载`
+  String get confirmDownload {
+    return Intl.message('确认下载', name: 'confirmDownload', desc: '', args: []);
+  }
+
+  /// `是否要下载这个文件？`
+  String get confirmDownloadMessage {
+    return Intl.message(
+      '是否要下载这个文件？',
+      name: 'confirmDownloadMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `正在下载图片...`
+  String get downloadingImage {
+    return Intl.message(
+      '正在下载图片...',
+      name: 'downloadingImage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `稍后安装`
+  String get laterInstall {
+    return Intl.message('稍后安装', name: 'laterInstall', desc: '', args: []);
+  }
+
+  /// `立即安装`
+  String get installNow {
+    return Intl.message('立即安装', name: 'installNow', desc: '', args: []);
+  }
+
+  /// `直接下载`
+  String get directDownloadMethod {
+    return Intl.message(
+      '直接下载',
+      name: 'directDownloadMethod',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `使用应用内下载器`
+  String get directDownloadMethodDesc {
+    return Intl.message(
+      '使用应用内下载器',
+      name: 'directDownloadMethodDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `浏览器下载`
+  String get browserDownloadMethod {
+    return Intl.message(
+      '浏览器下载',
+      name: 'browserDownloadMethod',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `使用系统浏览器`
+  String get browserDownloadMethodDesc {
+    return Intl.message(
+      '使用系统浏览器',
+      name: 'browserDownloadMethodDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `分享链接`
+  String get shareLink {
+    return Intl.message('分享链接', name: 'shareLink', desc: '', args: []);
+  }
+
+  /// `分享下载链接`
+  String get shareLinkDesc {
+    return Intl.message('分享下载链接', name: 'shareLinkDesc', desc: '', args: []);
+  }
+
+  /// `查看`
+  String get view {
+    return Intl.message('查看', name: 'view', desc: '', args: []);
+  }
+
+  /// `下载功能测试`
+  String get downloadFunctionTest {
+    return Intl.message(
+      '下载功能测试',
+      name: 'downloadFunctionTest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `测试直接下载功能`
+  String get testDirectDownloadFunction {
+    return Intl.message(
+      '测试直接下载功能',
+      name: 'testDirectDownloadFunction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `测试下载JSON文件`
+  String get testDownloadJsonFile {
+    return Intl.message(
+      '测试下载JSON文件',
+      name: 'testDownloadJsonFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `测试下载PNG图片`
+  String get testDownloadPngImage {
+    return Intl.message(
+      '测试下载PNG图片',
+      name: 'testDownloadPngImage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `测试下载大文件(1MB)`
+  String get testDownloadLargeFile {
+    return Intl.message(
+      '测试下载大文件(1MB)',
+      name: 'testDownloadLargeFile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `查看下载文件`
+  String get viewDownloadFiles {
+    return Intl.message(
+      '查看下载文件',
+      name: 'viewDownloadFiles',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `请通过底部导航栏的"下载管理"查看下载文件`
+  String get checkDownloadManagerForFiles {
+    return Intl.message(
+      '请通过底部导航栏的"下载管理"查看下载文件',
+      name: 'checkDownloadManagerForFiles',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `查看下载目录`
+  String get viewDownloadDirectory {
+    return Intl.message(
+      '查看下载目录',
+      name: 'viewDownloadDirectory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `获取失败`
+  String get getDownloadPathFailed {
+    return Intl.message(
+      '获取失败',
+      name: 'getDownloadPathFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `是否要打开下载测试页面？`
+  String get openDownloadTestPage {
+    return Intl.message(
+      '是否要打开下载测试页面？',
+      name: 'openDownloadTestPage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `说明：`
+  String get description {
+    return Intl.message('说明：', name: 'description', desc: '', args: []);
+  }
+
+  /// `• 文件将下载到系统下载目录\n• 下载过程会显示进度通知\n• 下载完成后可以选择打开文件\n• 如果文件名重复会自动添加序号\n• 请通过底部导航栏的\"下载管理\"查看下载文件`
+  String get downloadInstructions {
+    return Intl.message(
+      '• 文件将下载到系统下载目录\\n• 下载过程会显示进度通知\\n• 下载完成后可以选择打开文件\\n• 如果文件名重复会自动添加序号\\n• 请通过底部导航栏的\\"下载管理\\"查看下载文件',
+      name: 'downloadInstructions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `选择下载方式`
+  String get selectDownloadMethod {
+    return Intl.message(
+      '选择下载方式',
+      name: 'selectDownloadMethod',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `批量下载完成`
+  String get batchDownloadComplete {
+    return Intl.message(
+      '批量下载完成',
+      name: 'batchDownloadComplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `图片下载成功`
+  String get imageDownloadSuccess {
+    return Intl.message(
+      '图片下载成功',
+      name: 'imageDownloadSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `请在下载目录查看图片`
+  String get checkImageInDownloadFolder {
+    return Intl.message(
+      '请在下载目录查看图片',
+      name: 'checkImageInDownloadFolder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `请在下载目录找到APK文件进行安装`
+  String get findApkInDownloadFolder {
+    return Intl.message(
+      '请在下载目录找到APK文件进行安装',
+      name: 'findApkInDownloadFolder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `正在下载第 {current}/{total} 个文件`
+  String downloadingFileProgress(int current, int total) {
+    return Intl.message(
+      '正在下载第 $current/$total 个文件',
+      name: 'downloadingFileProgress',
+      desc: '',
+      args: [current, total],
+    );
+  }
+
+  /// `第 {index} 个文件下载失败`
+  String fileDownloadFailed(int index) {
+    return Intl.message(
+      '第 $index 个文件下载失败',
+      name: 'fileDownloadFailed',
+      desc: '',
+      args: [index],
+    );
+  }
+
+  /// `APK文件已下载完成，是否要安装？`
+  String get apkDownloadCompleteMessage {
+    return Intl.message(
+      'APK文件已下载完成，是否要安装？',
+      name: 'apkDownloadCompleteMessage',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

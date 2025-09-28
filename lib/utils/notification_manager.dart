@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart' as getx;
 import 'download_manager.dart';
 import '../pages/download_manager_page.dart';
+import '../generated/l10n.dart';
 
 class NotificationManager {
   static final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
@@ -95,13 +96,13 @@ class NotificationManager {
       if (activeTasks.length == 1) {
         // 单个文件下载
         DownloadTask task = activeTasks.first;
-        title = '正在下载';
+        title = S.current.currentlyDownloading;
         body = task.filename;
         progress = (task.progress * 100).round();
       } else {
         // 多个文件下载
-        title = '正在下载';
-        body = '当前有 ${activeTasks.length} 个文件在下载';
+        title = S.current.currentlyDownloading;
+        body = S.current.currentDownloadingFiles(activeTasks.length);
         
         // 计算总进度 - 所有文件下载进度的总和
         double totalProgress = 0;
@@ -118,8 +119,8 @@ class NotificationManager {
       // Android 通知详情
       AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         'download_channel',
-        '下载进度',
-        channelDescription: '显示文件下载进度',
+        S.current.downloadProgressChannel,
+        channelDescription: S.current.downloadProgressDesc,
         importance: Importance.low,
         priority: Priority.low,
         showProgress: true,
@@ -131,9 +132,9 @@ class NotificationManager {
         enableVibration: false,
         icon: '@mipmap/ic_launcher',
         actions: [
-          const AndroidNotificationAction(
+          AndroidNotificationAction(
             'view_downloads',
-            '查看下载',
+            S.current.viewDownloads,
             showsUserInterface: true,
           ),
         ],
@@ -196,19 +197,19 @@ class NotificationManager {
       if (completedTasks.length == 1) {
         // 单个文件完成
         DownloadTask task = completedTasks.first;
-        title = '${task.filename} 下载完毕';
-        body = '点击跳转到下载管理';
+        title = S.current.downloadCompleteNotificationTitle(task.filename);
+        body = S.current.clickToJumpToDownloadManager;
       } else {
         // 多个文件完成
-        title = '下载完成';
-        body = '${completedTasks.length} 个文件已完成，点击跳转到下载管理';
+        title = S.current.downloadCompleteTitle;
+        body = S.current.multipleFilesCompleted(completedTasks.length);
       }
 
       // Android 通知详情
-      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         'download_complete_channel',
-        '下载完成',
-        channelDescription: '文件下载完成通知',
+        S.current.downloadCompleteChannel,
+        channelDescription: S.current.downloadCompleteChannelDesc,
         importance: Importance.high,
         priority: Priority.high,
         autoCancel: true,
@@ -218,7 +219,7 @@ class NotificationManager {
         actions: [
           AndroidNotificationAction(
             'open_downloads',
-            '打开下载管理',
+            S.current.openDownloadManager,
             showsUserInterface: true,
           ),
         ],
@@ -231,7 +232,7 @@ class NotificationManager {
         presentSound: true,
       );
 
-      NotificationDetails notificationDetails = const NotificationDetails(
+      NotificationDetails notificationDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
@@ -268,14 +269,14 @@ class NotificationManager {
       // 先取消进度通知
       await _notifications.cancel(_downloadNotificationId);
 
-      String title = '${task.filename} 下载完毕';
-      String body = '点击跳转到下载管理';
+      String title = S.current.downloadCompleteNotificationTitle(task.filename);
+      String body = S.current.clickToJumpToDownloadManager;
 
       // Android 通知详情
-      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         'download_complete_channel',
-        '下载完成',
-        channelDescription: '文件下载完成通知',
+        S.current.downloadCompleteChannel,
+        channelDescription: S.current.downloadCompleteChannelDesc,
         importance: Importance.high,
         priority: Priority.high,
         autoCancel: true,
@@ -285,7 +286,7 @@ class NotificationManager {
         actions: [
           AndroidNotificationAction(
             'open_downloads',
-            '打开下载管理',
+            S.current.openDownloadManager,
             showsUserInterface: true,
           ),
         ],
@@ -298,7 +299,7 @@ class NotificationManager {
         presentSound: true,
       );
 
-      NotificationDetails notificationDetails = const NotificationDetails(
+      NotificationDetails notificationDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );

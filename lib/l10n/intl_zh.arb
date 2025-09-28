@@ -453,5 +453,56 @@
   "languageSettingsDesc": "选择应用显示语言",
   "followSystem": "跟随系统",
   "simplifiedChinese": "简体中文",
-  "english": "English"
+  "english": "English",
+  "currentlyDownloading": "正在下载",
+  "downloadProgressChannel": "下载进度",
+  "confirmDownload": "确认下载",
+  "confirmDownloadMessage": "是否要下载这个文件？",
+  "downloadingImage": "正在下载图片...",
+  "laterInstall": "稍后安装",
+  "installNow": "立即安装",
+  "directDownloadMethod": "直接下载",
+  "directDownloadMethodDesc": "使用应用内下载器",
+  "browserDownloadMethod": "浏览器下载",
+  "browserDownloadMethodDesc": "使用系统浏览器",
+  "shareLink": "分享链接",
+  "shareLinkDesc": "分享下载链接",
+  "view": "查看",
+  "downloadFunctionTest": "下载功能测试",
+  "testDirectDownloadFunction": "测试直接下载功能",
+  "testDownloadJsonFile": "测试下载JSON文件",
+  "testDownloadPngImage": "测试下载PNG图片",
+  "testDownloadLargeFile": "测试下载大文件(1MB)",
+  "viewDownloadFiles": "查看下载文件",
+  "checkDownloadManagerForFiles": "请通过底部导航栏的\"下载管理\"查看下载文件",
+  "viewDownloadDirectory": "查看下载目录",
+  "getDownloadPathFailed": "获取失败",
+  "openDownloadTestPage": "是否要打开下载测试页面？",
+  "description": "说明：",
+  "downloadInstructions": "• 文件将下载到系统下载目录\\n• 下载过程会显示进度通知\\n• 下载完成后可以选择打开文件\\n• 如果文件名重复会自动添加序号\\n• 请通过底部导航栏的\\\"下载管理\\\"查看下载文件",
+  "selectDownloadMethod": "选择下载方式",
+  "batchDownloadComplete": "批量下载完成",
+  "imageDownloadSuccess": "图片下载成功",
+  "checkImageInDownloadFolder": "请在下载目录查看图片",
+  "findApkInDownloadFolder": "请在下载目录找到APK文件进行安装",
+  "downloadingFileProgress": "正在下载第 {current}/{total} 个文件",
+  "@downloadingFileProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fileDownloadFailed": "第 {index} 个文件下载失败",
+  "@fileDownloadFailed": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "apkDownloadCompleteMessage": "APK文件已下载完成，是否要安装？"
 }

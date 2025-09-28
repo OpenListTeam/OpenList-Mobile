@@ -106,9 +106,9 @@ class DownloadManager {
     // 获取下载目录
     Directory? downloadDir = await _getOpenListDownloadDirectory();
     if (downloadDir == null) {
-      getx.Get.showSnackbar(const getx.GetSnackBar(
-        message: '无法获取下载目录',
-        duration: Duration(seconds: 3),
+      getx.Get.showSnackbar(getx.GetSnackBar(
+        message: S.current.cannotGetDownloadDirectory,
+        duration: const Duration(seconds: 3),
       ));
       return false;
     }
@@ -135,7 +135,7 @@ class DownloadManager {
 
     // 显示开始下载提示（只显示一次）
     getx.Get.showSnackbar(getx.GetSnackBar(
-      message: '开始下载: $finalFilename',
+      message: S.current.startDownloadFile(finalFilename),
       duration: const Duration(seconds: 2),
       backgroundColor: Colors.green,
     ));
@@ -182,14 +182,14 @@ class DownloadManager {
 
       // 显示完成提示
       getx.Get.showSnackbar(getx.GetSnackBar(
-        message: '下载完成: $finalFilename',
+        message: S.current.downloadCompleteFile(finalFilename),
         duration: const Duration(seconds: 3),
         backgroundColor: Colors.blue,
         mainButton: TextButton(
           onPressed: () {
             _openFile(filePath);
           },
-          child: const Text('打开'),
+          child: Text(S.current.open),
         ),
       ));
 
@@ -210,7 +210,7 @@ class DownloadManager {
         log('下载失败: $e');
         
         getx.Get.showSnackbar(getx.GetSnackBar(
-          message: '下载失败: $finalFilename',
+          message: S.current.downloadFailedFile(finalFilename),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.red,
         ));
@@ -246,7 +246,7 @@ class DownloadManager {
   static void cancelDownload(String taskId) {
     DownloadTask? task = _activeTasks[taskId];
     if (task != null && task.cancelToken != null) {
-      task.cancelToken!.cancel('用户取消下载');
+      task.cancelToken!.cancel(S.current.userCancelledDownloadError);
     }
   }
 
@@ -378,28 +378,28 @@ class DownloadManager {
           // 权限被永久拒绝，引导用户到设置页面
           getx.Get.dialog(
             AlertDialog(
-              title: const Text('需要安装权限'),
-              content: const Text('为了安装 APK 文件，需要授予安装权限。请在设置中手动开���。'),
+              title: Text(S.current.needInstallPermission),
+              content: Text(S.current.needInstallPermissionDesc),
               actions: [
                 TextButton(
                   onPressed: () => getx.Get.back(),
-                  child: const Text('取消'),
+                  child: Text(S.current.cancel),
                 ),
                 TextButton(
                   onPressed: () {
                     getx.Get.back();
                     openAppSettings();
                   },
-                  child: const Text('去设置'),
+                  child: Text(S.current.goToSettings),
                 ),
               ],
             ),
           );
           return false;
         } else {
-          getx.Get.showSnackbar(const getx.GetSnackBar(
-            message: '需要安装权限才能安装 APK 文件',
-            duration: Duration(seconds: 3),
+          getx.Get.showSnackbar(getx.GetSnackBar(
+            message: S.current.needInstallPermissionToInstallApk,
+            duration: const Duration(seconds: 3),
           ));
           return false;
         }
@@ -438,62 +438,62 @@ class DownloadManager {
         case ResultType.noAppToOpen:
           if (_isApkFile(filePath)) {
             getx.Get.showSnackbar(getx.GetSnackBar(
-              message: '无法安装 APK 文件，可能需要在设置中开启"允许安装未知来源应用"',
+              message: S.current.cannotInstallApkNeedPermission,
               duration: const Duration(seconds: 5),
               mainButton: TextButton(
                 onPressed: () {
                   openAppSettings();
                 },
-                child: const Text('去设置'),
+                child: Text(S.current.goToSettings),
               ),
             ));
           } else {
             getx.Get.showSnackbar(getx.GetSnackBar(
-              message: '没有找到可以打开此文件的应用',
+              message: S.current.noAppToOpenFile,
               duration: const Duration(seconds: 3),
               mainButton: TextButton(
                 onPressed: () {
                   _showFileLocation(filePath);
                 },
-                child: const Text('查看位置'),
+                child: Text(S.current.viewLocation),
               ),
             ));
           }
           break;
         case ResultType.fileNotFound:
-          getx.Get.showSnackbar(const getx.GetSnackBar(
-            message: '文件不存在或已被删除',
-            duration: Duration(seconds: 3),
+          getx.Get.showSnackbar(getx.GetSnackBar(
+            message: S.current.fileNotFound,
+            duration: const Duration(seconds: 3),
           ));
           break;
         case ResultType.permissionDenied:
           if (_isApkFile(filePath)) {
             getx.Get.showSnackbar(getx.GetSnackBar(
-              message: '没有权限安装 APK 文件，请在设置中开启安装权限',
+              message: S.current.noPermissionToInstallApkFile,
               duration: const Duration(seconds: 5),
               mainButton: TextButton(
                 onPressed: () {
                   openAppSettings();
                 },
-                child: const Text('去设置'),
+                child: Text(S.current.goToSettings),
               ),
             ));
           } else {
-            getx.Get.showSnackbar(const getx.GetSnackBar(
-              message: '没有权限打开此文件',
-              duration: Duration(seconds: 3),
+            getx.Get.showSnackbar(getx.GetSnackBar(
+              message: S.current.noPermissionToOpenFile,
+              duration: const Duration(seconds: 3),
             ));
           }
           break;
         case ResultType.error:
           getx.Get.showSnackbar(getx.GetSnackBar(
-            message: '打开文件失败: ${result.message}',
+            message: S.current.openFileFailed(result.message),
             duration: const Duration(seconds: 3),
             mainButton: TextButton(
               onPressed: () {
                 _showFileLocation(filePath);
               },
-              child: const Text('查看位置'),
+              child: Text(S.current.viewLocation),
             ),
           ));
           break;
@@ -501,13 +501,13 @@ class DownloadManager {
     } catch (e) {
       log('打开文件异常: $e');
       getx.Get.showSnackbar(getx.GetSnackBar(
-        message: '打开文件失败: ${e.toString()}',
+        message: S.current.openFileException(e.toString()),
         duration: const Duration(seconds: 3),
         mainButton: TextButton(
           onPressed: () {
             _showFileLocation(filePath);
           },
-          child: const Text('查看位置'),
+          child: Text(S.current.viewLocation),
         ),
       ));
     }
@@ -517,28 +517,28 @@ class DownloadManager {
   static void _showFileLocation(String filePath) {
     getx.Get.dialog(
       AlertDialog(
-        title: const Text('文件位置'),
+        title: Text(S.current.fileLocation),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('文件已保存到:'),
+            Text(S.current.fileSavedTo),
             const SizedBox(height: 8),
             SelectableText(
               filePath,
               style: const TextStyle(fontSize: 12),
             ),
             const SizedBox(height: 16),
-            const Text(
-              '您可以使用文件管理器找到此文件，或者尝试安装相应的应用来打开它。',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            Text(
+              S.current.fileLocationTip,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => getx.Get.back(),
-            child: const Text('确定'),
+            child: Text(S.current.ok),
           ),
         ],
       ),
@@ -601,7 +601,7 @@ class DownloadManager {
 /// 下载控制器（保持向后兼容）
 class DownloadController extends getx.GetxController {
   double _progress = 0.0;
-  String _statusText = '准备下载...';
+  String _statusText = S.current.preparingDownloadStatus;
   bool _isCancelled = false;
 
   double get progress => _progress;
@@ -618,7 +618,7 @@ class DownloadController extends getx.GetxController {
 
   void cancelDownload() {
     _isCancelled = true;
-    _statusText = '下载已取消';
+    _statusText = S.current.downloadCancelledText;
     update();
   }
 

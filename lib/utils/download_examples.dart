@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'download_manager.dart';
+import '../generated/l10n.dart';
 
 /// 下载功能使用示例
 class DownloadExamples {
@@ -36,7 +37,7 @@ class DownloadExamples {
       String filename = 'file_${i + 1}_${DateTime.now().millisecondsSinceEpoch}';
       
       Get.showSnackbar(GetSnackBar(
-        message: '正在下载第 ${i + 1}/${urls.length} 个文件',
+        message: S.current.downloadingFileProgress(i + 1, urls.length),
         duration: Duration(seconds: 2),
       ));
       
@@ -47,7 +48,7 @@ class DownloadExamples {
       
       if (!success) {
         Get.showSnackbar(GetSnackBar(
-          message: '第 ${i + 1} 个文件下载失败',
+          message: S.current.fileDownloadFailed(i + 1),
           duration: Duration(seconds: 3),
         ));
         break;
@@ -55,7 +56,7 @@ class DownloadExamples {
     }
     
     Get.showSnackbar(GetSnackBar(
-      message: '批量下载完成',
+      message: S.current.batchDownloadComplete,
       duration: Duration(seconds: 3),
     ));
   }
@@ -66,16 +67,16 @@ class DownloadExamples {
     bool? shouldDownload = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('确认下载'),
-        content: Text('是否要下载这个文件？'),
+        title: Text(S.current.confirmDownload),
+        content: Text(S.current.confirmDownloadMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('取消'),
+            child: Text(S.current.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text('下载'),
+            child: Text(S.current.download),
           ),
         ],
       ),
@@ -99,7 +100,7 @@ class DownloadExamples {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text('正在下载图片...'),
+            Text(S.current.downloadingImage),
           ],
         ),
       ),
@@ -115,17 +116,17 @@ class DownloadExamples {
 
     if (success) {
       Get.showSnackbar(GetSnackBar(
-        message: '图片下载成功',
+        message: S.current.imageDownloadSuccess,
         duration: Duration(seconds: 3),
         mainButton: TextButton(
           onPressed: () {
             // 可以在这里添加打开图片的逻辑
             Get.showSnackbar(GetSnackBar(
-              message: '请在下载目录查看图片',
+              message: S.current.checkImageInDownloadFolder,
               duration: Duration(seconds: 2),
             ));
           },
-          child: Text('查看'),
+          child: Text(S.current.view),
         ),
       ));
     }
@@ -141,23 +142,23 @@ class DownloadExamples {
     if (success) {
       Get.dialog(
         AlertDialog(
-          title: Text('下载完成'),
-          content: Text('APK文件已下载完成，是否要安装？'),
+          title: Text(S.current.downloadCompleteTitle),
+          content: Text(S.current.apkDownloadCompleteMessage),
           actions: [
             TextButton(
               onPressed: () => Get.back(),
-              child: Text('稍后安装'),
+              child: Text(S.current.laterInstall),
             ),
             TextButton(
               onPressed: () {
                 Get.back();
                 // 这里可以添加安装APK的逻辑
                 Get.showSnackbar(GetSnackBar(
-                  message: '请在下载目录找到APK文件进行安装',
+                  message: S.current.findApkInDownloadFolder,
                   duration: Duration(seconds: 5),
                 ));
               },
-              child: Text('立即安装'),
+              child: Text(S.current.installNow),
             ),
           ],
         ),
@@ -215,14 +216,14 @@ class DownloadUtils {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '选择下载方式',
+              S.current.selectDownloadMethod,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             SizedBox(height: 16),
             ListTile(
               leading: Icon(Icons.download),
-              title: Text('直接下载'),
-              subtitle: Text('使用应用内下载器'),
+              title: Text(S.current.directDownloadMethod),
+              subtitle: Text(S.current.directDownloadMethodDesc),
               onTap: () {
                 Navigator.pop(context);
                 DownloadManager.downloadFileWithProgress(
@@ -233,8 +234,8 @@ class DownloadUtils {
             ),
             ListTile(
               leading: Icon(Icons.open_in_browser),
-              title: Text('浏览器下载'),
-              subtitle: Text('使用系统浏览器'),
+              title: Text(S.current.browserDownloadMethod),
+              subtitle: Text(S.current.browserDownloadMethodDesc),
               onTap: () {
                 Navigator.pop(context);
                 // 这里可以调用原有的Intent方式
@@ -242,8 +243,8 @@ class DownloadUtils {
             ),
             ListTile(
               leading: Icon(Icons.share),
-              title: Text('分享链接'),
-              subtitle: Text('分享下载链接'),
+              title: Text(S.current.shareLink),
+              subtitle: Text(S.current.shareLinkDesc),
               onTap: () {
                 Navigator.pop(context);
                 // 这里可以添加分享功能

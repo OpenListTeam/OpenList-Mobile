@@ -453,5 +453,56 @@
   "languageSettingsDesc": "Select app display language",
   "followSystem": "Follow System",
   "simplifiedChinese": "简体中文",
-  "english": "English"
+  "english": "English",
+  "currentlyDownloading": "Downloading",
+  "downloadProgressChannel": "Download Progress",
+  "confirmDownload": "Confirm Download",
+  "confirmDownloadMessage": "Do you want to download this file?",
+  "downloadingImage": "Downloading image...",
+  "laterInstall": "Install Later",
+  "installNow": "Install Now",
+  "directDownloadMethod": "Direct Download",
+  "directDownloadMethodDesc": "Use in-app downloader",
+  "browserDownloadMethod": "Browser Download",
+  "browserDownloadMethodDesc": "Use system browser",
+  "shareLink": "Share Link",
+  "shareLinkDesc": "Share download link",
+  "view": "View",
+  "downloadFunctionTest": "Download Function Test",
+  "testDirectDownloadFunction": "Test direct download function",
+  "testDownloadJsonFile": "Test download JSON file",
+  "testDownloadPngImage": "Test download PNG image",
+  "testDownloadLargeFile": "Test download large file (1MB)",
+  "viewDownloadFiles": "View download files",
+  "checkDownloadManagerForFiles": "Please check download manager via bottom navigation bar to view download files",
+  "viewDownloadDirectory": "View download directory",
+  "getDownloadPathFailed": "Failed to get",
+  "openDownloadTestPage": "Do you want to open download test page?",
+  "description": "Description:",
+  "downloadInstructions": "• Files will be downloaded to system download directory\\n• Download progress will show notifications\\n• You can choose to open file after download completes\\n• If filename exists, a number will be added automatically\\n• Please check download manager via bottom navigation bar to view files",
+  "selectDownloadMethod": "Select download method",
+  "batchDownloadComplete": "Batch download complete",
+  "imageDownloadSuccess": "Image download success",
+  "checkImageInDownloadFolder": "Please check image in download folder",
+  "findApkInDownloadFolder": "Please find APK file in download folder to install",
+  "downloadingFileProgress": "Downloading file {current}/{total}",
+  "@downloadingFileProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fileDownloadFailed": "File {index} download failed",
+  "@fileDownloadFailed": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "apkDownloadCompleteMessage": "APK file download completed, do you want to install?"
 }
