@@ -223,7 +223,7 @@ class OpenListService : Service(), OpenList.Listener {
     /**
      * Force immediate database synchronization
      */
-    private fun forceImmediateDbSync() {
+    fun forceImmediateDbSync() {
         mScope.launch(Dispatchers.IO) {
             try {
                 if (isRunning && OpenList.isRunning()) {
