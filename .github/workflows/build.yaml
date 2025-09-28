@@ -64,19 +64,6 @@ jobs:
           name: "OpenList"
           path: "${{ github.workspace }}/android/app/libs/*.aar"
 
-      - name: Manual Disk Cleanup
-        run: |
-          echo "Before cleanup:"
-          df -h
-          # 清理一些安全的大文件夹
-          sudo rm -rf /opt/hostedtoolcache/CodeQL 2>/dev/null || true
-          sudo rm -rf /imagegeneration 2>/dev/null || true
-          sudo rm -rf /opt/az 2>/dev/null || true
-          # 清理Docker相关（但保留基础）
-          docker system prune -af 2>/dev/null || true
-          echo "After cleanup:"
-          df -h
-
       - name: Init Signature (Release only)
         if: github.event_name != 'pull_request'
         run: |
@@ -92,6 +79,41 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.7'
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # Keep tool cache to preserve Java, Go, Flutter installations
+          tool-cache: false
+          # Keep Android SDK as we need it for building
+          android: false
+          # Remove .NET runtime to save space
+          dotnet: true
+          # Remove Haskell runtime to save space
+          haskell: true  
+          # Remove large packages like Chrome, Firefox, etc.
+          large-packages: true
+          # Remove Docker images to save space
+          docker-images: true
+          # Remove swap storage to save space
+          swap-storage: true
+
+      - name: Additional Cleanup (Preserve Java)
+        run: |
+          echo "Before additional cleanup:"
+          df -h
+          # Remove specific large directories while preserving Java
+          sudo rm -rf /opt/hostedtoolcache/Python* 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/node* 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/Ruby* 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/PyPy* 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/CodeQL* 2>/dev/null || true
+          sudo rm -rf /imagegeneration 2>/dev/null || true
+          sudo rm -rf /opt/az 2>/dev/null || true
+          # Clean APT cache
+          sudo apt-get clean || true
+          echo "After additional cleanup:"
+          df -h
       
       - name: Verify Flutter and Android environment
         run: |
