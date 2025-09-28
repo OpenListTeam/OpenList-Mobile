@@ -34,7 +34,7 @@ echo "Current directory: $(pwd)"
 echo "Building OpenList for Android..."
 
 # Check if this directory has Go files suitable for binding
-if [ ! -f *.go ]; then
+if ! ls *.go >/dev/null 2>&1; then
     echo "Warning: No Go files found in current directory"
     echo "Directory contents:"
     ls -la
