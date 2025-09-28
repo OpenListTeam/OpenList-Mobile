@@ -64,18 +64,16 @@ jobs:
           name: "OpenList"
           path: "${{ github.workspace }}/android/app/libs/*.aar"
 
-      - name: Manual Disk Cleanup
-        run: |
-          echo "Before cleanup:"
-          df -h
-          # 清理一些安全的大文件夹
-          sudo rm -rf /opt/hostedtoolcache/CodeQL 2>/dev/null || true
-          sudo rm -rf /imagegeneration 2>/dev/null || true
-          sudo rm -rf /opt/az 2>/dev/null || true
-          # 清理Docker相关（但保留基础）
-          docker system prune -af 2>/dev/null || true
-          echo "After cleanup:"
-          df -h
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: false
+          dotnet: true
+          haskell: true  
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Init Signature (Release only)
         if: github.event_name != 'pull_request'
