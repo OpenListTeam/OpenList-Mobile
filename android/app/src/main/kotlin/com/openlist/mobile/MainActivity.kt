@@ -86,6 +86,19 @@ class MainActivity : FlutterActivity() {
         triggerDatabaseSync("onStop")
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        // Trigger database sync on memory pressure
+        when (level) {
+            TRIM_MEMORY_UI_HIDDEN,
+            TRIM_MEMORY_BACKGROUND,
+            TRIM_MEMORY_MODERATE,
+            TRIM_MEMORY_COMPLETE -> {
+                triggerDatabaseSync("onTrimMemory:$level")
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         // Trigger database sync before activity is destroyed
