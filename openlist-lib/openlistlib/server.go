@@ -193,8 +193,9 @@ func ForceDBSync() error {
 	log.Info("Forcing database sync (WAL checkpoint)...")
 	
 	// Get the database instance and execute WAL checkpoint
-	if db.DB != nil {
-		sqlDB, err := db.DB.DB()
+	gormDB := db.GetDb()
+	if gormDB != nil {
+		sqlDB, err := gormDB.DB()
 		if err != nil {
 			log.Errorf("Failed to get database connection: %v", err)
 			return err
