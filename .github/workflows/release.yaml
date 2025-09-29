@@ -16,10 +16,22 @@ jobs:
     runs-on: ubuntu-latest
     env:
       output: "${{ github.workspace }}/build/app/outputs/apk/release"
+    outputs:
+      version_name: ${{ steps.version.outputs.version_name }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Generate Version Name
+        id: version
+        run: |
+          # Generate unified version with timestamp for entire workflow
+          BASE_VERSION=$(cat openlist_version)
+          TIMESTAMP=$(date +%y%m%d%H)
+          VERSION_NAME="${BASE_VERSION}.${TIMESTAMP}"
+          echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "Generated version: ${VERSION_NAME}"
 
       - name: Download OpenList Source Code
         run: |
@@ -110,18 +122,30 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.7'
-      - run: flutter build apk --split-per-abi --release
+          
+      - name: Build APK with Version
+        env:
+          BUILD_VERSION_NAME: ${{ steps.version.outputs.version_name }}
+        run: flutter build apk --split-per-abi --release
 
       - name: Upload missing_rules.txt
-        if: failure() && steps.gradle.outcome != 'success'
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: "missing_rules"
           path: "${{ github.workspace }}/build/app/outputs/mapping/release/missing_rules.txt"
 
-      - name: Init APP Version Name
+      - name: Verify Version Consistency
         run: |
-          echo "ver_name=$(grep -m 1 'versionName' ${{ env.output }}/output-metadata.json | cut -d\" -f4)" >> $GITHUB_ENV
+          # Verify the built APK version matches our generated version
+          BUILT_VERSION=$(grep -m 1 'versionName' ${{ env.output }}/output-metadata.json | cut -d\" -f4)
+          echo "Expected version: ${{ steps.version.outputs.version_name }}"
+          echo "Built version: ${BUILT_VERSION}"
+          if [ "${{ steps.version.outputs.version_name }}" != "${BUILT_VERSION}" ]; then
+            echo "Warning: Version mismatch detected!"
+            echo "Expected: ${{ steps.version.outputs.version_name }}"
+            echo "Got: ${BUILT_VERSION}"
+          fi
 
       - name: Upload Android APKs for Release
         uses: actions/upload-artifact@v4
@@ -237,21 +261,10 @@ jobs:
       #     name: ios-release-files
       #     path: release_files/
 
-      - name: Get Version Name
-        run: |
-          # Use the same version logic as Android build
-          if [ -f "openlist_version" ]; then
-            BASE_VERSION=$(cat openlist_version)
-            TIMESTAMP=$(date +%y%m%d%H)
-            echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
-          else
-            echo "ver_name=v1.0.0" >> $GITHUB_ENV
-          fi
-
       - uses: softprops/action-gh-release@v1
         with:
-          name: ${{ env.ver_name }}
-          tag_name: ${{ env.ver_name }}
+          name: ${{ needs.android.outputs.version_name }}
+          tag_name: ${{ needs.android.outputs.version_name }}
           body_path: ${{ github.workspace }}/CHANGELOG.md
           draft: false
           prerelease: false
