@@ -157,10 +157,22 @@ jobs:
   #   runs-on: macos-latest
   #   env:
   #     output: "${{ github.workspace }}/build/ios/ipa"
+  #   outputs:
+  #     version_name: ${{ steps.version.outputs.version_name }}
   #   steps:
   #     - uses: actions/checkout@v3
   #       with:
   #         fetch-depth: 0
+
+  #     - name: Generate Version Name
+  #       id: version
+  #       run: |
+  #         # Generate same version as Android for consistency
+  #         BASE_VERSION=$(cat openlist_version)
+  #         TIMESTAMP=$(date +%y%m%d%H)
+  #         VERSION_NAME="${BASE_VERSION}.${TIMESTAMP}"
+  #         echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+  #         echo "Generated iOS version: ${VERSION_NAME}"
 
   #     - uses: actions/setup-go@v5
   #       with:
@@ -215,6 +227,8 @@ jobs:
   #         flutter-version: '3.32.7'
 
   #     - name: Build iOS App
+  #       env:
+  #         BUILD_VERSION_NAME: ${{ steps.version.outputs.version_name }}
   #       run: |
   #         flutter build ios --release --no-codesign
 
@@ -226,14 +240,10 @@ jobs:
   #         cp -r Runner.app Payload/
   #         zip -r ${{ env.output }}/OpenList-Mobile.ipa Payload/
 
-  #     - name: Get App Version
+  #     - name: Verify iOS Version Consistency
   #       run: |
-  #         # Get base version from openlist_version file and add timestamp
-  #         BASE_VERSION=$(cat openlist_version)
-  #         # Generate timestamp in format YYMMDDHH (精确到小时)
-  #         TIMESTAMP=$(date +%y%m%d%H)
-  #         # Combine version with timestamp for artifact naming
-  #         echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
+  #         # Verify the iOS version consistency (when iOS build is enabled)
+  #         echo "iOS version: ${{ steps.version.outputs.version_name }}"
 
   #     - name: Upload iOS IPA for Release
   #       uses: actions/upload-artifact@v4
