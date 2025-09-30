@@ -19,6 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version_name: ${{ steps.generate.outputs.version_name }}
+      openlist_version: ${{ steps.openlist_version.outputs.openlist_version }}
+      openlist_git_commit: ${{ steps.openlist_version.outputs.openlist_git_commit }}
+      openlist_web_version: ${{ steps.openlist_version.outputs.openlist_web_version }}
+      openlist_built_at: ${{ steps.openlist_version.outputs.openlist_built_at }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -34,28 +38,19 @@ jobs:
           echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
           echo "Generated version: ${VERSION_NAME}"
 
-  android:
-    needs: [version]
-    runs-on: ubuntu-latest
-    env:
-      release_output: "${{ github.workspace }}/build/app/outputs/apk/release"
-      debug_output: "${{ github.workspace }}/build/app/outputs/flutter-apk"
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
       - name: Download OpenList Source Code
         run: |
-          cd $GITHUB_WORKSPACE/openlist-lib/scripts
-          chmod +x *.sh
+          mkdir -p openlist-lib/scripts
+          cd openlist-lib/scripts
+          # Download init scripts
+          curl -fsSL -o init_openlist.sh https://raw.githubusercontent.com/OpenListTeam/OpenList-Mobile/main/openlist-lib/scripts/init_openlist.sh
+          chmod +x init_openlist.sh
           ./init_openlist.sh
-          ./init_web.sh
 
       - name: Extract OpenList Version Info
         id: openlist_version
         run: |
-          cd $GITHUB_WORKSPACE/openlist-lib
+          cd openlist-lib
           
           # Extract version from downloaded OpenList backend source (matches build.sh logic)
           OPENLIST_VERSION=$(git describe --abbrev=0 --tags 2>/dev/null || echo "v0.0.0")
@@ -78,6 +73,24 @@ jobs:
           echo "OpenList Git Commit: ${OPENLIST_GIT_COMMIT}"
           echo "OpenList Web Version: ${OPENLIST_WEB_VERSION}"
           echo "Built At: ${OPENLIST_BUILT_AT}"
+
+  android:
+    needs: [version]
+    runs-on: ubuntu-latest
+    env:
+      release_output: "${{ github.workspace }}/build/app/outputs/apk/release"
+      debug_output: "${{ github.workspace }}/build/app/outputs/flutter-apk"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download OpenList Source Code
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_openlist.sh
+          ./init_web.sh
 
       - uses: actions/setup-go@v4
         with:
@@ -104,10 +117,10 @@ jobs:
           ./gobind.sh
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-          OPENLIST_VERSION: ${{ steps.openlist_version.outputs.openlist_version }}
-          OPENLIST_WEB_VERSION: ${{ steps.openlist_version.outputs.openlist_web_version }}
-          OPENLIST_BUILT_AT: ${{ steps.openlist_version.outputs.openlist_built_at }}
-          OPENLIST_GIT_COMMIT: ${{ steps.openlist_version.outputs.openlist_git_commit }}
+          OPENLIST_VERSION: ${{ needs.version.outputs.openlist_version }}
+          OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
+          OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
+          OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
           OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
 
       - name: Upload AAR
@@ -282,33 +295,6 @@ jobs:
           echo "Initializing Web assets for iOS..."
           ./init_web_ios.sh
 
-      - name: Extract OpenList Version Info
-        id: openlist_version
-        run: |
-          cd $GITHUB_WORKSPACE/openlist-lib
-          
-          # Extract version from downloaded OpenList backend source (matches build.sh logic)
-          OPENLIST_VERSION=$(git describe --abbrev=0 --tags 2>/dev/null || echo "v0.0.0")
-          
-          # Extract git commit from downloaded OpenList backend source
-          OPENLIST_GIT_COMMIT=$(git log --pretty=format:"%h" -1 2>/dev/null || echo "unknown")
-          
-          # Get frontend version from OpenList-Frontend latest release
-          OPENLIST_WEB_VERSION=$(curl -fsSL --max-time 10 "https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/"//g;s/,//g;s/ //g' || echo "rolling")
-          
-          # Build timestamp
-          OPENLIST_BUILT_AT=$(date +'%F %T %z')
-          
-          echo "openlist_version=${OPENLIST_VERSION}" >> $GITHUB_OUTPUT
-          echo "openlist_git_commit=${OPENLIST_GIT_COMMIT}" >> $GITHUB_OUTPUT
-          echo "openlist_web_version=${OPENLIST_WEB_VERSION}" >> $GITHUB_OUTPUT
-          echo "openlist_built_at=${OPENLIST_BUILT_AT}" >> $GITHUB_OUTPUT
-          
-          echo "OpenList Backend Version: ${OPENLIST_VERSION}"
-          echo "OpenList Git Commit: ${OPENLIST_GIT_COMMIT}"
-          echo "OpenList Web Version: ${OPENLIST_WEB_VERSION}"
-          echo "Built At: ${OPENLIST_BUILT_AT}"
-
       - name: Verify Go Installation
         run: |
           which go
@@ -338,10 +324,10 @@ jobs:
           echo "Building iOS framework..."
           ./gobind_ios.sh
         env:
-          OPENLIST_VERSION: ${{ steps.openlist_version.outputs.openlist_version }}
-          OPENLIST_WEB_VERSION: ${{ steps.openlist_version.outputs.openlist_web_version }}
-          OPENLIST_BUILT_AT: ${{ steps.openlist_version.outputs.openlist_built_at }}
-          OPENLIST_GIT_COMMIT: ${{ steps.openlist_version.outputs.openlist_git_commit }}
+          OPENLIST_VERSION: ${{ needs.version.outputs.openlist_version }}
+          OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
+          OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
+          OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
           OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
 
       - name: Upload iOS Framework
