@@ -1404,6 +1404,41 @@ class S {
     return Intl.message('English', name: 'english', desc: '', args: []);
   }
 
+  /// `疑难解答`
+  String get troubleshooting {
+    return Intl.message('疑难解答', name: 'troubleshooting', desc: '', args: []);
+  }
+
+  /// `常见问题与解决方案`
+  String get troubleshootingDesc {
+    return Intl.message(
+      '常见问题与解决方案',
+      name: 'troubleshootingDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `数据库未保存问题`
+  String get databaseNotSavedIssue {
+    return Intl.message(
+      '数据库未保存问题',
+      name: 'databaseNotSavedIssue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `如不手动关闭OpenList，则数据库可能不会被保存到对应的db文件中，如遇到此问题，请手动关闭以解决此问题。（开关位于主程序菜单OpenList界面，以及通知栏的通知上）`
+  String get databaseNotSavedIssueDesc {
+    return Intl.message(
+      '如不手动关闭OpenList，则数据库可能不会被保存到对应的db文件中，如遇到此问题，请手动关闭以解决此问题。（开关位于主程序菜单OpenList界面，以及通知栏的通知上）',
+      name: 'databaseNotSavedIssueDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `正在下载`
   String get currentlyDownloading {
     return Intl.message(

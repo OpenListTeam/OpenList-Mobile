@@ -93,6 +93,20 @@ object OpenList : Event, LogCallback {
         }
     }
 
+    /**
+     * Force database synchronization (WAL checkpoint)
+     * This ensures SQLite WAL files are merged into the main database file
+     */
+    fun forceDatabaseSync() {
+        Log.d(TAG, "forceDatabaseSync")
+        runCatching {
+            Openlistlib.forceDBSync()
+            Log.d(TAG, "Database sync completed successfully")
+        }.onFailure { e ->
+            Log.e(TAG, "Failed to sync database", e)
+        }
+    }
+
     @SuppressLint("SdCardPath")
     @Synchronized
     fun startup() {

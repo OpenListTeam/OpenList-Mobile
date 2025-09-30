@@ -217,6 +217,12 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "currentlyDownloading": MessageLookupByLibrary.simpleMessage("Downloading"),
     "dataDirectory": MessageLookupByLibrary.simpleMessage("data Directory"),
+    "databaseNotSavedIssue": MessageLookupByLibrary.simpleMessage(
+      "Database Not Saved Issue",
+    ),
+    "databaseNotSavedIssueDesc": MessageLookupByLibrary.simpleMessage(
+      "If you don\'t manually close OpenList, the database may not be saved to the corresponding db file. If you encounter this issue, please manually close the app to resolve it. (The switch is located in the main program menu on the OpenList interface, as well as in the notification bar)",
+    ),
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
     "deleteFailed": MessageLookupByLibrary.simpleMessage("Delete failed"),
     "deleteFile": MessageLookupByLibrary.simpleMessage("Delete file"),
@@ -486,6 +492,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "testDownloadPngImage": MessageLookupByLibrary.simpleMessage(
       "Test download PNG image",
+    ),
+    "troubleshooting": MessageLookupByLibrary.simpleMessage("Troubleshooting"),
+    "troubleshootingDesc": MessageLookupByLibrary.simpleMessage(
+      "Common issues and solutions",
     ),
     "tryToOpenFile": m41,
     "uiSettings": MessageLookupByLibrary.simpleMessage("UI"),

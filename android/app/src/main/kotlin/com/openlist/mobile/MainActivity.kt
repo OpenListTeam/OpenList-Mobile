@@ -74,10 +74,54 @@ class MainActivity : FlutterActivity() {
         })
     }
 
+    override fun onPause() {
+        super.onPause()
+        // Trigger database sync when app goes to background
+        triggerDatabaseSync("onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Trigger database sync when app is stopped
+        triggerDatabaseSync("onStop")
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        // Trigger database sync on memory pressure
+        when (level) {
+            TRIM_MEMORY_UI_HIDDEN,
+            TRIM_MEMORY_BACKGROUND,
+            TRIM_MEMORY_MODERATE,
+            TRIM_MEMORY_COMPLETE -> {
+                triggerDatabaseSync("onTrimMemory:$level")
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-
+        // Trigger database sync before activity is destroyed
+        triggerDatabaseSync("onDestroy")
+        
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
+    }
+
+    /**
+     * Trigger database synchronization through the service
+     */
+    private fun triggerDatabaseSync(reason: String) {
+        try {
+            val serviceInstance = OpenListService.serviceInstance
+            if (serviceInstance != null && OpenListService.isRunning) {
+                Log.d(TAG, "Triggering database sync due to: $reason")
+                serviceInstance.forceImmediateDbSync()
+            } else {
+                Log.d(TAG, "Service not running, skipping database sync for: $reason")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to trigger database sync for $reason", e)
+        }
     }
 
 
