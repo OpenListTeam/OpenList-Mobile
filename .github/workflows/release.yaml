@@ -37,20 +37,23 @@ jobs:
 
       - name: Download OpenList Source Code
         run: |
-          cd openlist-lib/scripts
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
           chmod +x *.sh
           ./init_openlist.sh
 
       - name: Extract OpenList Version Info
         id: openlist_version
         run: |
-          cd openlist-lib
+          # After init_openlist.sh, OpenList backend source is in openlist-lib/ with .git directory removed
+          # We need to get version info from the latest remote tag that was cloned
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
           
-          # Extract version from downloaded OpenList backend source (matches build.sh logic)
-          OPENLIST_VERSION=$(git describe --abbrev=0 --tags 2>/dev/null || echo "v0.0.0")
+          # Re-fetch the tag information from remote (since .git was removed by init_openlist.sh)
+          GIT_REPO="https://github.com/OpenListTeam/OpenList.git"
+          OPENLIST_VERSION=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags $GIT_REPO | tail -n 1 | cut -d'/' -f3)
           
-          # Extract git commit from downloaded OpenList backend source
-          OPENLIST_GIT_COMMIT=$(git log --pretty=format:"%h" -1 2>/dev/null || echo "unknown")
+          # Get the commit hash for this tag from remote
+          OPENLIST_GIT_COMMIT=$(git ls-remote $GIT_REPO "refs/tags/${OPENLIST_VERSION}" | cut -f1 | cut -c1-7)
           
           # Get frontend version from OpenList-Frontend latest release
           OPENLIST_WEB_VERSION=$(curl -fsSL --max-time 10 "https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/"//g;s/,//g;s/ //g' || echo "rolling")
