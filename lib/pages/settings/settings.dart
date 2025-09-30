@@ -1,6 +1,7 @@
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/settings/preference_widgets.dart';
+import 'package:openlist_mobile/pages/settings/troubleshooting_page.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -163,7 +164,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: controller._silentJumpApp.value,
               onChanged: (value) {
                 controller.silentJumpApp = value;
-              })
+              }),
+          
+          BasicPreference(
+            title: S.of(context).troubleshooting,
+            subtitle: S.of(context).troubleshootingDesc,
+            leading: const Icon(Icons.help_outline),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TroubleshootingPage(),
+                ),
+              );
+            },
+          ),
         ],
       ),
     ));
