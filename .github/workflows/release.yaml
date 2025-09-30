@@ -12,7 +12,27 @@ permissions:
   contents: write
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.generate.outputs.version_name }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Generate Version Name
+        id: generate
+        run: |
+          # Generate unified version with timestamp for entire workflow
+          BASE_VERSION=$(cat openlist_version)
+          TIMESTAMP=$(date +%y%m%d%H)
+          VERSION_NAME="${BASE_VERSION}.${TIMESTAMP}"
+          echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "Generated version: ${VERSION_NAME}"
+
   android:
+    needs: [version]
     runs-on: ubuntu-latest
     env:
       output: "${{ github.workspace }}/build/app/outputs/apk/release"
@@ -72,21 +92,68 @@ jobs:
           # 从Secrets读取无换行符Base64解码, 然后保存到到app/key.jks
           echo ${{ secrets.KEY_STORE }} | base64 --decode > $GITHUB_WORKSPACE/android/app/key.jks
 
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # Keep tool cache to preserve Java, Go, Flutter installations
+          tool-cache: false
+          # Keep Android SDK as we need it for building
+          android: false
+          # Remove .NET runtime to save space
+          dotnet: true
+          # Remove Haskell runtime to save space
+          haskell: true  
+          # Remove large packages like Chrome, Firefox, etc.
+          large-packages: true
+          # Remove Docker images to save space
+          docker-images: true
+          # Remove swap storage to save space
+          swap-storage: true
+
+      - name: Additional Cleanup (Preserve Java)
+        run: |
+          echo "Before additional cleanup:"
+          df -h
+          # Remove specific large directories while preserving Java
+          sudo rm -rf /opt/hostedtoolcache/Python* 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/node* 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/Ruby* 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/PyPy* 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/CodeQL* 2>/dev/null || true
+          sudo rm -rf /imagegeneration 2>/dev/null || true
+          sudo rm -rf /opt/az 2>/dev/null || true
+          # Clean APT cache
+          sudo apt-get clean || true
+          echo "After additional cleanup:"
+          df -h
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.7'
-      - run: flutter build apk --split-per-abi --release
+          
+      - name: Build APK with Version
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
+        run: flutter build apk --split-per-abi --release
 
       - name: Upload missing_rules.txt
-        if: failure() && steps.gradle.outcome != 'success'
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: "missing_rules"
           path: "${{ github.workspace }}/build/app/outputs/mapping/release/missing_rules.txt"
 
-      - name: Init APP Version Name
+      - name: Verify Version Consistency
         run: |
-          echo "ver_name=$(grep -m 1 'versionName' ${{ env.output }}/output-metadata.json | cut -d\" -f4)" >> $GITHUB_ENV
+          # Verify the built APK version matches our generated version
+          BUILT_VERSION=$(grep -m 1 'versionName' ${{ env.output }}/output-metadata.json | cut -d\" -f4)
+          echo "Expected version: ${{ needs.version.outputs.version_name }}"
+          echo "Built version: ${BUILT_VERSION}"
+          if [ "${{ needs.version.outputs.version_name }}" != "${BUILT_VERSION}" ]; then
+            echo "Warning: Version mismatch detected!"
+            echo "Expected: ${{ needs.version.outputs.version_name }}"
+            echo "Got: ${BUILT_VERSION}"
+          fi
 
       - name: Upload Android APKs for Release
         uses: actions/upload-artifact@v4
@@ -95,6 +162,7 @@ jobs:
           path: "${{ env.output }}/*.apk"
 
   # ios:
+  #   needs: [version]
   #   runs-on: macos-latest
   #   env:
   #     output: "${{ github.workspace }}/build/ios/ipa"
@@ -156,6 +224,8 @@ jobs:
   #         flutter-version: '3.32.7'
 
   #     - name: Build iOS App
+  #       env:
+  #         BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
   #       run: |
   #         flutter build ios --release --no-codesign
 
@@ -167,14 +237,10 @@ jobs:
   #         cp -r Runner.app Payload/
   #         zip -r ${{ env.output }}/OpenList-Mobile.ipa Payload/
 
-  #     - name: Get App Version
+  #     - name: Verify iOS Version Consistency
   #       run: |
-  #         # Get base version from openlist_version file and add timestamp
-  #         BASE_VERSION=$(cat openlist_version)
-  #         # Generate timestamp in format YYMMDDHH (精确到小时)
-  #         TIMESTAMP=$(date +%y%m%d%H)
-  #         # Combine version with timestamp for artifact naming
-  #         echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
+  #         # Use same version generated by version job
+  #         echo "iOS using version: ${{ needs.version.outputs.version_name }}"
 
   #     - name: Upload iOS IPA for Release
   #       uses: actions/upload-artifact@v4
@@ -183,7 +249,7 @@ jobs:
   #         path: "${{ env.output }}/OpenList-Mobile.ipa"
 
   release:
-    needs: [android]
+    needs: [version, android] # Add ios when iOS build is enabled: [version, android, ios]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -202,21 +268,10 @@ jobs:
       #     name: ios-release-files
       #     path: release_files/
 
-      - name: Get Version Name
-        run: |
-          # Use the same version logic as Android build
-          if [ -f "openlist_version" ]; then
-            BASE_VERSION=$(cat openlist_version)
-            TIMESTAMP=$(date +%y%m%d%H)
-            echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
-          else
-            echo "ver_name=v1.0.0" >> $GITHUB_ENV
-          fi
-
       - uses: softprops/action-gh-release@v1
         with:
-          name: ${{ env.ver_name }}
-          tag_name: ${{ env.ver_name }}
+          name: ${{ needs.version.outputs.version_name }}
+          tag_name: ${{ needs.version.outputs.version_name }}
           body_path: ${{ github.workspace }}/CHANGELOG.md
           draft: false
           prerelease: false

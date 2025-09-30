@@ -22,9 +22,12 @@ static def releaseTime() {
 def openlistVersionFile = rootProject.file("../openlist_version")
 def openlistVersion = openlistVersionFile.exists() ? openlistVersionFile.readLines()[0] : "1.0.0"
 
-// 使用OpenList主程序版本号，去掉前缀'v'，然后加上时间戳
+// Check if version is provided via environment variable (from CI/CD)
+def providedVersion = System.getenv('BUILD_VERSION_NAME')
 def baseVersion = openlistVersion.startsWith('v') ? openlistVersion.substring(1) : openlistVersion
-def version = baseVersion + "." + releaseTime()
+
+// Use provided version if available, otherwise generate with timestamp
+def version = providedVersion ?: (baseVersion + "." + releaseTime())
 def gitCommits = Integer.parseInt('git rev-list HEAD --count'.execute().text.trim())
 
 android {

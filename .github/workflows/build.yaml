@@ -15,7 +15,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.generate.outputs.version_name }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Generate Version Name
+        id: generate
+        run: |
+          # Generate unified version with timestamp for entire workflow
+          BASE_VERSION=$(cat openlist_version)
+          TIMESTAMP=$(date +%y%m%d%H)
+          VERSION_NAME="${BASE_VERSION}.${TIMESTAMP}"
+          echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "Generated version: ${VERSION_NAME}"
+
   android:
+    needs: [version]
     runs-on: ubuntu-latest
     env:
       release_output: "${{ github.workspace }}/build/app/outputs/apk/release"
@@ -137,10 +157,14 @@ jobs:
       
       - name: Build Release APK
         if: github.event_name != 'pull_request'
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
         run: flutter build apk --split-per-abi --release --target-platform android-arm,android-arm64,android-x64
       
       - name: Build Debug APK
         if: github.event_name == 'pull_request'
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
         run: flutter build apk --split-per-abi --debug --target-platform android-arm,android-arm64,android-x64
         
       - name: Debug - Check APK files
@@ -160,34 +184,21 @@ jobs:
           name: "missing_rules"
           path: "${{ github.workspace }}/build/app/outputs/mapping/release/missing_rules.txt"
 
-      - name: Init APP Version Name
+      - name: Set Build Paths and Version
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             OUTPUT_DIR="${{ env.debug_output }}"
             BUILD_TYPE="debug"
+            echo "ver_name=${{ needs.version.outputs.version_name }}-debug" >> $GITHUB_ENV
           else
             OUTPUT_DIR="${{ env.release_output }}"
             BUILD_TYPE="release"
-          fi
-          
-          echo "Looking for version in: $OUTPUT_DIR"
-          
-          if [ -f "$OUTPUT_DIR/output-metadata.json" ]; then
-            VER_NAME=$(grep -m 1 'versionName' "$OUTPUT_DIR/output-metadata.json" | cut -d'"' -f4)
-            echo "Found version: $VER_NAME"
-          else
-            echo "output-metadata.json not found, using fallback version"
-            VER_NAME=$(cat openlist_version || echo "unknown")
-          fi
-          
-          if [ "$BUILD_TYPE" == "debug" ]; then
-            echo "ver_name=${VER_NAME}-debug" >> $GITHUB_ENV
-          else
-            echo "ver_name=${VER_NAME}" >> $GITHUB_ENV
+            echo "ver_name=${{ needs.version.outputs.version_name }}" >> $GITHUB_ENV
           fi
           
           echo "output_path=$OUTPUT_DIR" >> $GITHUB_ENV
           echo "build_type=$BUILD_TYPE" >> $GITHUB_ENV
+          echo "Using version: ${{ needs.version.outputs.version_name }}"
 
       - name: Upload App To Artifact arm64-v8a
         if: success () || failure ()
@@ -217,6 +228,7 @@ jobs:
             ${{ env.output_path }}/*x64*.apk
 
   ios:
+    needs: [version]
     runs-on: macos-latest
     env:
       output: "${{ github.workspace }}/build/ios/ipa"
@@ -278,6 +290,8 @@ jobs:
           flutter-version: '3.32.7'
 
       - name: Build iOS App
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
         run: |
           flutter build ios --release --no-codesign
 
@@ -289,18 +303,15 @@ jobs:
           cp -r Runner.app Payload/
           zip -r ${{ env.output }}/OpenList-Mobile.ipa Payload/
 
-      - name: Get App Version
+      - name: Set iOS Version
         run: |
-          # Get base version from openlist_version file and add timestamp
-          BASE_VERSION=$(cat openlist_version)
-          # Generate timestamp in format YYMMDDHH (精确到小时)
-          TIMESTAMP=$(date +%y%m%d%H)
-          # Combine version with timestamp for artifact naming
+          # Use unified version from version job
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "ver_name=${BASE_VERSION}.${TIMESTAMP}-debug" >> $GITHUB_ENV
+            echo "ver_name=${{ needs.version.outputs.version_name }}-debug" >> $GITHUB_ENV
           else
-            echo "ver_name=${BASE_VERSION}.${TIMESTAMP}" >> $GITHUB_ENV
+            echo "ver_name=${{ needs.version.outputs.version_name }}" >> $GITHUB_ENV
           fi
+          echo "Using iOS version: ${{ needs.version.outputs.version_name }}"
 
       - name: Upload iOS App To Artifact
         if: success() || failure()
