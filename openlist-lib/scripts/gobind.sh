@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# Build version information
+builtAt="${OPENLIST_BUILT_AT:-$(date +'%F %T %z')}"
+gitAuthor="${OPENLIST_GIT_AUTHOR:-The OpenList Projects Contributors <noreply@openlist.team>}"
+gitCommit="${OPENLIST_GIT_COMMIT:-$(git log --pretty=format:'%h' -1 2>/dev/null || echo 'unknown')}"
+version="${OPENLIST_VERSION:-dev}"
+webVersion="${OPENLIST_WEB_VERSION:-rolling}"
+
+echo "Building with version info:"
+echo "  Version: $version"
+echo "  WebVersion: $webVersion"
+echo "  GitCommit: $gitCommit"
+echo "  BuiltAt: $builtAt"
+
+# Construct ldflags
+ldflags="-s -w"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.BuiltAt=$builtAt'"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.GitAuthor=$gitAuthor'"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.GitCommit=$gitCommit'"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.Version=$version'"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.WebVersion=$webVersion'"
+
 # First check if we're in the right place
 echo "Starting Android build from: $(pwd)"
 
@@ -41,9 +62,9 @@ if ! ls *.go >/dev/null 2>&1; then
 fi
 
 if [ "$1" == "debug" ]; then
-  gomobile bind -ldflags "-s -w" -v -androidapi 19 -target="android/arm64"
+  gomobile bind -ldflags "$ldflags" -v -androidapi 19 -target="android/arm64"
 else
-  gomobile bind -ldflags "-s -w" -v -androidapi 19
+  gomobile bind -ldflags "$ldflags" -v -androidapi 19
 fi
 
 echo "Moving aar and jar files to android/app/libs"

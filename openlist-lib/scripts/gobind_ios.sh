@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# Build version information
+builtAt="${OPENLIST_BUILT_AT:-$(date +'%F %T %z')}"
+gitAuthor="${OPENLIST_GIT_AUTHOR:-The OpenList Projects Contributors <noreply@openlist.team>}"
+gitCommit="${OPENLIST_GIT_COMMIT:-$(git log --pretty=format:'%h' -1 2>/dev/null || echo 'unknown')}"
+version="${OPENLIST_VERSION:-dev}"
+webVersion="${OPENLIST_WEB_VERSION:-rolling}"
+
+echo "Building with version info:"
+echo "  Version: $version"
+echo "  WebVersion: $webVersion"
+echo "  GitCommit: $gitCommit"
+echo "  BuiltAt: $builtAt"
+
+# Construct ldflags
+ldflags="-s -w"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.BuiltAt=$builtAt'"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.GitAuthor=$gitAuthor'"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.GitCommit=$gitCommit'"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.Version=$version'"
+ldflags="$ldflags -X 'github.com/OpenListTeam/OpenList/v4/internal/conf.WebVersion=$webVersion'"
+
 echo "Starting iOS build from: $(pwd)"
 
 # Find openlistlib directory
@@ -73,7 +94,7 @@ if [ -f ../go.mod ]; then
     
     # Use build tags to exclude problematic packages on iOS
     echo "Attempting gomobile bind with iOS tags..."
-    gomobile bind -ldflags "-s -w" -v -target="ios" -tags="ios,mobile" ./openlistlib 2>&1 | tee ios_build.log
+    gomobile bind -ldflags "$ldflags" -v -target="ios" -tags="ios,mobile" ./openlistlib 2>&1 | tee ios_build.log
     
     # Check the exit status
     if [ $? -ne 0 ]; then
@@ -91,7 +112,7 @@ if [ -f ../go.mod ]; then
             
             # Try with minimal tags
             echo "Retrying with minimal build tags..."
-            gomobile bind -ldflags "-s -w" -v -target="ios" ./openlistlib 2>&1 | tee ios_build_minimal.log
+            gomobile bind -ldflags "$ldflags" -v -target="ios" ./openlistlib 2>&1 | tee ios_build_minimal.log
             
             if [ $? -ne 0 ]; then
                 echo "Minimal build also failed:"
