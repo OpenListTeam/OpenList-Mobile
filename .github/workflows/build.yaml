@@ -40,11 +40,8 @@ jobs:
 
       - name: Download OpenList Source Code
         run: |
-          mkdir -p openlist-lib/scripts
           cd openlist-lib/scripts
-          # Download init scripts
-          curl -fsSL -o init_openlist.sh https://raw.githubusercontent.com/OpenListTeam/OpenList-Mobile/main/openlist-lib/scripts/init_openlist.sh
-          chmod +x init_openlist.sh
+          chmod +x *.sh
           ./init_openlist.sh
 
       - name: Extract OpenList Version Info
