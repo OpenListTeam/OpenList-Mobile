@@ -340,6 +340,36 @@ jobs:
         with:
           flutter-version: '3.32.7'
 
+      - name: Verify Framework Location
+        run: |
+          echo "Checking framework location..."
+          ls -la ${{ github.workspace }}/ios/Frameworks/ || echo "Frameworks directory not found"
+          find ${{ github.workspace }}/ios/Frameworks -name "*.xcframework" -type d || echo "No xcframework found"
+
+      - name: Install Flutter Dependencies
+        run: |
+          echo "Installing Flutter dependencies..."
+          flutter pub get
+          echo "Verifying Generated.xcconfig..."
+          ls -la ${{ github.workspace }}/ios/Flutter/Generated.xcconfig
+
+      - name: Link Frameworks to Xcode Project
+        run: |
+          echo "Linking OpenList frameworks to Xcode project..."
+          cd ${{ github.workspace }}/ios/scripts
+          chmod +x add_framework_to_project.py
+          python3 add_framework_to_project.py || echo "Framework linking script completed with warnings"
+
+      - name: Setup CocoaPods
+        run: |
+          cd ${{ github.workspace }}/ios
+          pod install --verbose
+
+      - name: Verify Xcode Workspace
+        run: |
+          echo "Checking Xcode workspace..."
+          ls -la ${{ github.workspace }}/ios/Runner.xcworkspace/ || echo "Workspace not found"
+          
       - name: Build iOS App
         env:
           BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
