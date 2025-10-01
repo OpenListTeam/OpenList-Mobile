@@ -237,10 +237,13 @@ class OpenListService : Service(), OpenList.Listener {
     }
 
     /**
-     * 公共方法：停止OpenList服务
+     * Public method: Stop OpenList service manually
      */
     fun stopOpenListService() {
         if (isRunning) {
+            Log.d(TAG, "User manually stopping service")
+            // Set flag to indicate user manually stopped the service
+            AppConfig.isManuallyStoppedByUser = true
             startOrShutdown()
         }
     }
@@ -274,6 +277,8 @@ class OpenListService : Service(), OpenList.Listener {
             }
         } else {
             Log.d(TAG, "Starting OpenList from user action")
+            // Clear manual stop flag when user manually starts the service
+            AppConfig.isManuallyStoppedByUser = false
             startOpenListBackend(fromBoot = false)
         }
     }
