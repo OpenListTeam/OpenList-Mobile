@@ -43,9 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final controller = Get.put(_SettingsController());
     return Scaffold(
-        // Use SafeArea to handle small window mode properly
-        body: SafeArea(
-          child: Obx(
+        body: Obx(
       () => ListView(
         children: [
           Visibility(
@@ -182,7 +180,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    ),
     ));
   }
 
