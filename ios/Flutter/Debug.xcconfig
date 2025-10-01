@@ -1,1 +1,4 @@
 #include "Generated.xcconfig"
+
+// OpenList Framework Search Path
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(PROJECT_DIR)/Frameworks

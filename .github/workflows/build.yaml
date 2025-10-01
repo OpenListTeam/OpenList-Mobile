@@ -346,13 +346,16 @@ jobs:
           ls -la ${{ github.workspace }}/ios/Frameworks/ || echo "Frameworks directory not found"
           find ${{ github.workspace }}/ios/Frameworks -name "*.xcframework" -type d || echo "No xcframework found"
 
-      - name: Link Framework to Xcode Project
+      - name: Setup CocoaPods
         run: |
-          echo "Linking OpenList framework to Xcode project..."
-          cd ${{ github.workspace }}/ios/scripts
-          chmod +x add_framework_to_project.py
-          python3 add_framework_to_project.py
+          cd ${{ github.workspace }}/ios
+          pod install --verbose
 
+      - name: Verify Xcode Workspace
+        run: |
+          echo "Checking Xcode workspace..."
+          ls -la ${{ github.workspace }}/ios/Runner.xcworkspace/ || echo "Workspace not found"
+          
       - name: Build iOS App
         env:
           BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
