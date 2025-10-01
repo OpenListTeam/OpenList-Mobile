@@ -125,6 +125,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoCheckForUpdatesDesc": MessageLookupByLibrary.simpleMessage(
       "Check for updates when app starts",
     ),
+    "autoStartIssue": MessageLookupByLibrary.simpleMessage(
+      "Auto-Start Information",
+    ),
+    "autoStartIssueDesc": MessageLookupByLibrary.simpleMessage(
+      "In the current version, when auto-start is enabled, the service will automatically start in the background after system reboot without showing a notification. Rest assured, the service is running normally. You can check the service status through the quick settings tile in the notification shade, or return to the main interface to confirm if the service has started.",
+    ),
     "autoStartWebPage": MessageLookupByLibrary.simpleMessage(
       "Set web page as startup page",
     ),
