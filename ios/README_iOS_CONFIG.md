@@ -1,7 +1,23 @@
 # iOS特定配置指南
 
 ## 1. 应用图标配置
-在 `ios/Runner/Assets.xcassets/AppIcon.appiconset/` 目录中替换以下图标文件：
+
+### 自动生成图标（推荐）
+使用提供的Python脚本自动从Logo文件夹生成所有所需尺寸的iOS图标：
+
+```bash
+# 在项目根目录运行
+python ios/scripts/generate_ios_icons.py
+```
+
+该脚本会自动：
+- 从 `../Logo/logo/` 目录读取源图标
+- 生成所有iOS所需尺寸的PNG图标
+- 使用高质量的LANCZOS重采样算法
+- 自动优化输出的PNG文件
+
+### 手动替换图标
+如需手动替换，在 `ios/Runner/Assets.xcassets/AppIcon.appiconset/` 目录中替换以下图标文件：
 
 ### iPhone图标尺寸：
 - Icon-App-20x20@2x.png (40x40)
