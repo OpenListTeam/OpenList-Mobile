@@ -43,10 +43,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final controller = Get.put(_SettingsController());
     return Scaffold(
-        body: Obx(
+        // Use SafeArea to handle small window mode properly
+        body: SafeArea(
+          child: Obx(
       () => ListView(
         children: [
-          // SizedBox(height: MediaQuery.of(context).padding.top),
           Visibility(
             visible: !controller._managerStorageGranted.value ||
                 !controller._notificationGranted.value ||
@@ -181,6 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    ),
     ));
   }
 
