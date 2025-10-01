@@ -246,12 +246,12 @@ class OpenListService : Service(), OpenList.Listener {
     }
 
     /**
-     * 启动或关闭OpenList服务
+     * Start or shutdown OpenList service
      */
     private fun startOrShutdown() {
         if (isRunning) {
             Log.d(TAG, "Shutting down OpenList")
-            // 关闭操作在子线程中执行，避免阻塞主线程
+            // Shutdown operation runs in background thread to avoid blocking main thread
             mScope.launch(Dispatchers.IO) {
                 try {
                     // Force database sync before shutdown
@@ -273,60 +273,86 @@ class OpenListService : Service(), OpenList.Listener {
                 }
             }
         } else {
-            Log.d(TAG, "Starting OpenList")
-            toast(getString(R.string.starting))
-            isRunning = true
-            
-            // 在子线程中启动OpenList服务，避免阻塞主线程
-            mScope.launch(Dispatchers.IO) {
-                try {
-                    // 确保在启动前进行初始化
-                    OpenList.init()
-                    // 添加延迟确保初始化完成
-                    delay(100)
-                    Log.d(TAG, "Manual starting OpenList...")
-                    OpenList.startup()
-                    
-                    // 启动完成后在主线程中更新状态
-                    launch(Dispatchers.Main) {
-                        notifyStatusChanged()
-                        toast("OpenList 启动成功")
-                        // Start periodic database sync after successful startup
-                        startDatabaseSyncTask()
-                    }
-                    Log.d(TAG, "Manual start completed successfully")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Manual startup error", e)
-                    // 启动失败时重置状态
-                    isRunning = false
-                    launch(Dispatchers.Main) {
-                        toast("启动失败: ${e.message}")
-                        notifyStatusChanged()
-                    }
-                } catch (t: Throwable) {
-                    Log.e(TAG, "Manual startup fatal error", t)
-                    // 处理更严重的错误（如 JNI 崩溃）
-                    isRunning = false
-                    launch(Dispatchers.Main) {
-                        toast("启动严重错误: ${t.message}")
-                        notifyStatusChanged()
-                    }
-                }
-            }
+            Log.d(TAG, "Starting OpenList from user action")
+            startOpenListBackend(fromBoot = false)
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand called")
+        val startedFromBoot = intent?.getBooleanExtra("started_from_boot", false) ?: false
+        Log.d(TAG, "onStartCommand called (from boot: $startedFromBoot)")
 
-        // 如果OpenList后端未运行，则启动它
-        if (!isRunning && !OpenList.isRunning()) {
-            Log.d(TAG, "Starting OpenList backend from onStartCommand")
-            startOrShutdown()
+        // Check if manually stopped by user
+        if (AppConfig.isManuallyStoppedByUser && startedFromBoot) {
+            Log.d(TAG, "Service was manually stopped by user before boot, not starting")
+            return START_NOT_STICKY
         }
 
-        // 返回 START_STICKY 确保服务被杀死后会重启（仅保持前台服务）
+        // If OpenList backend is not running, start it
+        if (!isRunning && !OpenList.isRunning()) {
+            Log.d(TAG, "Starting OpenList backend from onStartCommand")
+            startOpenListBackend(fromBoot = startedFromBoot)
+        } else {
+            Log.d(TAG, "OpenList backend already running (isRunning: $isRunning, OpenList.isRunning: ${OpenList.isRunning()})")
+        }
+
+        // Return START_STICKY to ensure service restarts if killed (keep foreground service alive)
         return START_STICKY
+    }
+
+    /**
+     * Start OpenList backend service
+     */
+    private fun startOpenListBackend(fromBoot: Boolean = false) {
+        Log.d(TAG, "Starting OpenList backend (fromBoot: $fromBoot)")
+        
+        if (fromBoot) {
+            toast(getString(R.string.starting))
+        }
+        
+        isRunning = true
+        
+        // Start OpenList service in background thread to avoid blocking
+        mScope.launch(Dispatchers.IO) {
+            try {
+                // Ensure initialization before startup
+                Log.d(TAG, "Initializing OpenList...")
+                OpenList.init()
+                
+                // Add delay to ensure initialization completes
+                delay(200)
+                
+                Log.d(TAG, "Starting OpenList service...")
+                OpenList.startup()
+                
+                // Update status on main thread after successful startup
+                launch(Dispatchers.Main) {
+                    notifyStatusChanged()
+                    if (fromBoot) {
+                        toast("OpenList 启动成功")
+                    }
+                    // Start periodic database sync after successful startup
+                    startDatabaseSyncTask()
+                }
+                Log.d(TAG, "OpenList backend started successfully")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to start OpenList backend", e)
+                // Reset state on failure
+                isRunning = false
+                launch(Dispatchers.Main) {
+                    toast("启动失败: ${e.message}")
+                    notifyStatusChanged()
+                }
+            } catch (t: Throwable) {
+                Log.e(TAG, "Fatal error starting OpenList backend", t)
+                // Handle severe errors (e.g., JNI crashes)
+                isRunning = false
+                launch(Dispatchers.Main) {
+                    toast("启动严重错误: ${t.message}")
+                    notifyStatusChanged()
+                }
+            }
+        }
     }
 
     inner class MyReceiver : BroadcastReceiver() {

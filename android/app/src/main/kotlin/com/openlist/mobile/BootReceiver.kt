@@ -44,49 +44,63 @@ class BootReceiver : BroadcastReceiver() {
     }
 
     /**
-     * 处理开机完成事件
+     * Handle boot completed event
      */
     private fun handleBootCompleted(context: Context) {
+        Log.d(TAG, "Processing boot completed event")
+        
         if (!AppConfig.isStartAtBootEnabled) {
-            Log.d(TAG, "Auto start is disabled")
+            Log.d(TAG, "Auto start is disabled, skipping service start")
             return
         }
 
-        // 开机时清除手动停止标志，因为设备重启了
+        // Clear manual stop flag on boot since device was restarted
         AppConfig.isManuallyStoppedByUser = false
         Log.d(TAG, "Manual stop flag cleared on boot")
 
-        Log.d(TAG, "Starting services after boot")
+        Log.d(TAG, "Auto start is enabled, starting services")
         startServices(context)
     }
 
     /**
-     * 处理包更新事件
+     * Handle package replaced event
      */
     private fun handlePackageReplaced(context: Context, intent: Intent) {
         val packageName = intent.dataString
+        Log.d(TAG, "Package replaced: $packageName")
+        
         if (packageName?.contains(context.packageName) == true) {
-            Log.d(TAG, "Our package was replaced, restarting services")
+            Log.d(TAG, "Our package was replaced, checking auto-start setting")
             if (AppConfig.isStartAtBootEnabled) {
+                Log.d(TAG, "Auto-start enabled, restarting services after package update")
                 startServices(context)
+            } else {
+                Log.d(TAG, "Auto-start disabled, not restarting services")
             }
         }
     }
 
     /**
-     * 启动所有必要的服务
+     * Start all necessary services
      */
     private fun startServices(context: Context) {
         try {
-            // 启动主服务
-            val mainServiceIntent = Intent(context, OpenListService::class.java)
+            Log.d(TAG, "Preparing to start OpenListService")
+            
+            // Create service intent with boot flag
+            val mainServiceIntent = Intent(context, OpenListService::class.java).apply {
+                putExtra("started_from_boot", true)
+            }
+            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Log.d(TAG, "Starting service as foreground service (Android O+)")
                 context.startForegroundService(mainServiceIntent)
             } else {
+                Log.d(TAG, "Starting service as normal service")
                 context.startService(mainServiceIntent)
             }
-            Log.d(TAG, "Main service start command sent")
-
+            
+            Log.d(TAG, "Service start command sent successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start services", e)
         }
