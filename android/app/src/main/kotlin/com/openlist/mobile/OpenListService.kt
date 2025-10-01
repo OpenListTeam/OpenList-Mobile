@@ -314,6 +314,9 @@ class OpenListService : Service(), OpenList.Listener {
                 // Start OpenList
                 OpenList.startup()
                 
+                // Clear cached address to force refresh
+                mLocalAddress = ""
+                
                 // Update UI on success
                 launch(Dispatchers.Main) {
                     notifyStatusChanged()
