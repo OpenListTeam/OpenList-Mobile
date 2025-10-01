@@ -102,9 +102,70 @@ def add_framework_to_project(project_path, framework_name):
             print(f"    ✓ Added to Frameworks group")
     else:
         # Create Frameworks group if it doesn't exist
-        print("    ! Frameworks group not found, may need manual intervention")
+        print("    Creating new Frameworks group...")
+        group_uuid = generate_uuid()
+        
+        # Add Frameworks group to PBXGroup section
+        pbxgroup_section = re.search(r'/\* Begin PBXGroup section \*/', content)
+        if pbxgroup_section:
+            insert_pos = pbxgroup_section.end()
+            group_entry = f"\n\t\t{group_uuid} /* Frameworks */ = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t{fileref_uuid} /* {framework_name} */,\n\t\t\t);\n\t\t\tname = Frameworks;\n\t\t\tsourceTree = \"<group>\";\n\t\t}};"
+            content = content[:insert_pos] + group_entry + content[insert_pos:]
+            print(f"    ✓ Created Frameworks group: {group_uuid}")
+            
+            # Add Frameworks group to main group's children
+            main_group_pattern = r'(97C146E51CF9000F007C117D = \{[^}]*children = \([^)]*)\);'
+            main_group_match = re.search(main_group_pattern, content, re.DOTALL)
+            if main_group_match:
+                children_end = main_group_match.end(1)
+                group_ref = f",\n\t\t\t\t{group_uuid} /* Frameworks */"
+                content = content[:children_end] + group_ref + content[children_end:]
+                print(f"    ✓ Added Frameworks group to main group")
+
     
-    # 7. Update FRAMEWORK_SEARCH_PATHS in build settings
+    # 7. Add Run Script Build Phase to embed frameworks (if not exists)
+    # Check if our custom script phase already exists
+    if 'Embed OpenList Framework' not in content:
+        print("\n  Adding Run Script build phase for framework embedding...")
+        
+        script_uuid = generate_uuid()
+        
+        # Find the PBXShellScriptBuildPhase section
+        script_section = re.search(r'/\* Begin PBXShellScriptBuildPhase section \*/', content)
+        if script_section:
+            insert_pos = script_section.end()
+            script_entry = f'''
+\t\t{script_uuid} /* Embed OpenList Framework */ = {{
+\t\t\tisa = PBXShellScriptBuildPhase;
+\t\t\talwaysOutOfDate = 1;
+\t\t\tbuildActionMask = 2147483647;
+\t\t\tfiles = (
+\t\t\t);
+\t\t\tinputPaths = (
+\t\t\t);
+\t\t\tname = "Embed OpenList Framework";
+\t\t\toutputPaths = (
+\t\t\t);
+\t\t\trunOnlyForDeploymentPostprocessing = 0;
+\t\t\tshellPath = /bin/sh;
+\t\t\tshellScript = "/bin/sh \\"$SRCROOT/scripts/embed_openlist_framework.sh\\"";
+\t\t}};'''
+            content = content[:insert_pos] + script_entry + content[insert_pos:]
+            print(f"    ✓ Added Run Script phase: {script_uuid}")
+            
+            # Add the script phase to Runner target's buildPhases
+            # Find Runner target build phases
+            runner_target = re.search(r'97C146ED1CF9000F007C117D /\* Runner \*/ = \{[^}]*isa = PBXNativeTarget;[^}]*buildPhases = \([^)]*\)', content, re.DOTALL)
+            if runner_target:
+                phases_match = re.search(r'buildPhases = \(([^)]*)\)', runner_target.group(), re.DOTALL)
+                if phases_match:
+                    # Insert before the last build phase (typically "Thin Binary")
+                    phases_end = runner_target.start() + phases_match.end(1)
+                    phase_ref = f",\n\t\t\t\t{script_uuid} /* Embed OpenList Framework */"
+                    content = content[:phases_end] + phase_ref + content[phases_end:]
+                    print(f"    ✓ Added script phase to Runner target")
+    
+    # 8. Update FRAMEWORK_SEARCH_PATHS in build settings
     # This is more complex as there are multiple build configurations
     for config_name in ['Debug', 'Release', 'Profile']:
         config_pattern = rf'97C147[0-9A-F]{{2}}1CF9000F007C117D /\* {config_name} \*/ = \{{[^}}]*buildSettings = \{{[^}}]*\}};'
