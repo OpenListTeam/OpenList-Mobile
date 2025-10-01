@@ -69,15 +69,15 @@ class WebScreenState extends State<WebScreen> {
           if (didPop) return;
           _webViewController?.goBack();
         },
-        // Remove nested Scaffold to fix small window mode rendering issue
-        child: Column(children: <Widget>[
-          LinearProgressIndicator(
-            value: _progress,
-            backgroundColor: Colors.grey[200],
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-          ),
-          Expanded(
-            child: InAppWebView(
+        child: Scaffold(
+          body: Column(children: <Widget>[
+            LinearProgressIndicator(
+              value: _progress,
+              backgroundColor: Colors.grey[200],
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
+            Expanded(
+              child: InAppWebView(
                 initialSettings: settings,
                 initialUrlRequest: URLRequest(url: WebUri(_url)),
                 onWebViewCreated: (InAppWebViewController controller) {
@@ -204,6 +204,7 @@ class WebScreenState extends State<WebScreen> {
                 },
               ),
             ),
-          ]));
+          ]),
+        ));
   }
 }

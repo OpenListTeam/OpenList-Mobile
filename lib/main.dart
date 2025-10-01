@@ -95,7 +95,9 @@ class MyHomePage extends StatelessWidget {
     final controller = Get.put(_MainController());
 
     return Scaffold(
-        body: Obx(
+        // Wrap body with SafeArea to handle small window mode properly
+        body: SafeArea(
+          child: Obx(
           () => FadeIndexedStack(
             lazy: true,
             index: controller.selectedIndex.value,
@@ -106,6 +108,7 @@ class MyHomePage extends StatelessWidget {
               const SettingsScreen()
             ],
           ),
+        ),
         ),
         bottomNavigationBar: Obx(() => NavigationBar(
                 destinations: [
