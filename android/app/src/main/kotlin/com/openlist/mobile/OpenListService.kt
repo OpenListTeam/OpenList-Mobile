@@ -71,10 +71,12 @@ class OpenListService : Service(), OpenList.Listener {
 
     @Suppress("DEPRECATION")
     private fun notifyStatusChanged() {
+        Log.d(TAG, "notifyStatusChanged: isRunning=$isRunning")
+        
         LocalBroadcastManager.getInstance(this)
             .sendBroadcast(Intent(ACTION_STATUS_CHANGED))
 
-        // 通知ServiceBridge状态变化
+        // Notify ServiceBridge of status change
         try {
             MainActivity.serviceBridge?.notifyServiceStatusChanged(isRunning)
         } catch (e: Exception) {
@@ -82,13 +84,13 @@ class OpenListService : Service(), OpenList.Listener {
         }
 
         if (!isRunning) {
-            // 如果服务停止，则停止前台服务并移除通知
+            // Stop foreground service and remove notification
             stopForeground(true)
-            // 确保通知被完全移除
             cancelNotification()
             stopSelf()
         } else {
-            // 如果服务运行，更新通知
+            // Update notification with current status
+            Log.d(TAG, "Updating notification after status change")
             updateNotification()
         }
     }
@@ -351,12 +353,13 @@ class OpenListService : Service(), OpenList.Listener {
     private fun localAddress(): String {
         return try {
             if (mLocalAddress.isEmpty()) {
+                Log.d(TAG, "Fetching local address...")
                 mLocalAddress = Openlistlib.getOutboundIPString()
+                Log.d(TAG, "Local address: $mLocalAddress")
             }
             mLocalAddress
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get local address", e)
-            // Return placeholder if OpenList is not yet initialized
             "Initializing..."
         }
     }
@@ -367,6 +370,8 @@ class OpenListService : Service(), OpenList.Listener {
     @Suppress("DEPRECATION")
     private fun initOrUpdateNotification() {
         try {
+            Log.d(TAG, "Creating/updating notification with address: ${localAddress()}")
+            
             val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 PendingIntent.FLAG_IMMUTABLE
             } else {
