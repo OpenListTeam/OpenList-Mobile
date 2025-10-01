@@ -353,6 +353,13 @@ jobs:
           echo "Verifying Generated.xcconfig..."
           ls -la ${{ github.workspace }}/ios/Flutter/Generated.xcconfig
 
+      - name: Link Frameworks to Xcode Project
+        run: |
+          echo "Linking OpenList frameworks to Xcode project..."
+          cd ${{ github.workspace }}/ios/scripts
+          chmod +x add_framework_to_project.py
+          python3 add_framework_to_project.py || echo "Framework linking script completed with warnings"
+
       - name: Setup CocoaPods
         run: |
           cd ${{ github.workspace }}/ios

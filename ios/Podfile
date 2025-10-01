@@ -50,65 +50,27 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
   
-  # Configure framework embedding
+  # Configure framework search paths for all targets
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       # Ensure framework search paths include our Frameworks directory
       config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= ['$(inherited)']
       config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '$(PROJECT_DIR)/Frameworks'
-      
-      # Ensure proper code signing
-      config.build_settings['CODE_SIGN_IDENTITY'] = ''
-      config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
-      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
     end
   end
   
-  # Add framework embedding to Runner target
-  runner_project = installer.aggregate_targets[0].user_project
-  runner_target = runner_project.targets.find { |t| t.name == 'Runner' }
-  
-  if runner_target
-    frameworks_dir = File.expand_path('Frameworks', __dir__)
-    
-    if Dir.exist?(frameworks_dir)
-      frameworks_build_phase = runner_target.frameworks_build_phases.first
-      embed_frameworks_phase = runner_target.copy_files_build_phases.find { |phase| phase.name == 'Embed Frameworks' }
-      
-      # Create Embed Frameworks phase if it doesn't exist
-      unless embed_frameworks_phase
-        embed_frameworks_phase = runner_target.new_copy_files_build_phase('Embed Frameworks')
-        embed_frameworks_phase.dst_subfolder_spec = :frameworks
-      end
-      
-      # Get or create Frameworks group
-      frameworks_group = runner_project.main_group.find_subpath('Frameworks', true)
-      frameworks_group.set_source_tree('SOURCE_ROOT')
-      
-      Dir.glob(File.join(frameworks_dir, '*.xcframework')).each do |framework_path|
-        framework_name = File.basename(framework_path)
-        relative_path = "Frameworks/#{framework_name}"
-        
-        # Check if already added
-        existing_ref = frameworks_group.files.find { |f| f.path == relative_path }
-        
-        unless existing_ref
-          puts "Adding framework to Xcode project: #{framework_name}"
-          
-          # Add file reference
-          file_ref = frameworks_group.new_file(relative_path)
-          
-          # Add to Frameworks build phase
-          frameworks_build_phase.add_file_reference(file_ref)
-          
-          # Add to Embed Frameworks phase
-          build_file = embed_frameworks_phase.add_file_reference(file_ref)
-          build_file.settings = { 'ATTRIBUTES' => ['CodeSignOnCopy', 'RemoveHeadersOnCopy'] }
-        end
-      end
-      
-      runner_project.save
-      puts "✅ OpenList frameworks integrated successfully"
+  # Log framework detection for debugging
+  frameworks_dir = File.expand_path('Frameworks', __dir__)
+  if Dir.exist?(frameworks_dir)
+    frameworks = Dir.glob(File.join(frameworks_dir, '*.xcframework'))
+    if frameworks.any?
+      puts "✅ Found #{frameworks.size} OpenList framework(s) in Frameworks directory"
+      frameworks.each { |f| puts "  - #{File.basename(f)}" }
+      puts "Note: Frameworks will be linked via build settings and manual Xcode configuration"
+    else
+      puts "⚠️  No xcframework files found in Frameworks directory"
     end
+  else
+    puts "⚠️  Frameworks directory does not exist"
   end
 end
