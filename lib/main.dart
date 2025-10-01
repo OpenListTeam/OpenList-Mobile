@@ -98,17 +98,19 @@ class MyHomePage extends StatelessWidget {
         // Wrap body with SafeArea to handle small window mode properly
         body: SafeArea(
           child: Obx(
-          () => FadeIndexedStack(
-            lazy: true,
-            index: controller.selectedIndex.value,
-            children: [
-              WebScreen(key: webGlobalKey),
-              const OpenListScreen(),
-              const DownloadManagerPage(),
-              const SettingsScreen()
-            ],
+            () => SizedBox.expand(
+              child: FadeIndexedStack(
+                lazy: true,
+                index: controller.selectedIndex.value,
+                children: [
+                  WebScreen(key: webGlobalKey),
+                  const OpenListScreen(),
+                  const DownloadManagerPage(),
+                  const SettingsScreen()
+                ],
+              ),
+            ),
           ),
-        ),
         ),
         bottomNavigationBar: Obx(() => NavigationBar(
                 destinations: [
