@@ -15,6 +15,12 @@ class TroubleshootingPage extends StatelessWidget {
         children: [
           _buildIssueCard(
             context,
+            icon: Icons.power_settings_new,
+            title: S.of(context).autoStartIssue,
+            description: S.of(context).autoStartIssueDesc,
+          ),
+          _buildIssueCard(
+            context,
             icon: Icons.storage,
             title: S.of(context).databaseNotSavedIssue,
             description: S.of(context).databaseNotSavedIssueDesc,

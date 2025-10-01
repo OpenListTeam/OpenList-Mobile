@@ -458,6 +458,8 @@
   "troubleshootingDesc": "常见问题与解决方案",
   "databaseNotSavedIssue": "数据库未保存问题",
   "databaseNotSavedIssueDesc": "如不手动关闭OpenList，则数据库可能不会被保存到对应的db文件中，如遇到此问题，请手动关闭以解决此问题。（开关位于主程序菜单OpenList界面，以及通知栏的通知上）",
+  "autoStartIssue": "自启动相关说明",
+  "autoStartIssueDesc": "设置自启动时建议把app的电池优化一并关闭，当前在开启自启动后，系统重启时服务会自动在后台启动，但可能不会在通知栏弹出通知。请放心，服务已正常运行，您可以在通知栏快捷开关查看服务状态，或回到主界面查看服务开关确认服务是否已启动。",
   "currentlyDownloading": "正在下载",
   "downloadProgressChannel": "下载进度",
   "confirmDownload": "确认下载",
