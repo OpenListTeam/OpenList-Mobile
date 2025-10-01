@@ -70,15 +70,16 @@ class WebScreenState extends State<WebScreen> {
           _webViewController?.goBack();
         },
         child: Scaffold(
-          body: Column(children: <Widget>[
-            SizedBox(height: MediaQuery.of(context).padding.top),
-            LinearProgressIndicator(
-              value: _progress,
-              backgroundColor: Colors.grey[200],
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
-            Expanded(
-              child: InAppWebView(
+          // Use SafeArea to handle small window mode properly
+          body: SafeArea(
+            child: Column(children: <Widget>[
+              LinearProgressIndicator(
+                value: _progress,
+                backgroundColor: Colors.grey[200],
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+              Expanded(
+                child: InAppWebView(
                 initialSettings: settings,
                 initialUrlRequest: URLRequest(url: WebUri(_url)),
                 onWebViewCreated: (InAppWebViewController controller) {
@@ -206,6 +207,7 @@ class WebScreenState extends State<WebScreen> {
               ),
             ),
           ]),
+          ),
         ));
   }
 }
