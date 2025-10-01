@@ -82,26 +82,21 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- OpenList后台服务 -->
+        <!-- OpenList background service -->
         <service
             android:name=".OpenListService"
-            android:exported="true"
+            android:exported="false"
             android:enabled="true"
-            android:foregroundServiceType="dataSync"
-            tools:ignore="ExportedService" />
+            android:foregroundServiceType="dataSync" />
 
-        <!-- 开机启动接收器 -->
+        <!-- Boot receiver -->
         <receiver
             android:name=".BootReceiver"
             android:exported="true"
             android:enabled="true">
-            <intent-filter android:priority="1000">
+            <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" />
             </intent-filter>
         </receiver>
 

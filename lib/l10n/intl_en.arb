@@ -458,6 +458,8 @@
   "troubleshootingDesc": "Common issues and solutions",
   "databaseNotSavedIssue": "Database Not Saved Issue",
   "databaseNotSavedIssueDesc": "If you don't manually close OpenList, the database may not be saved to the corresponding db file. If you encounter this issue, please manually close the app to resolve it. (The switch is located in the main program menu on the OpenList interface, as well as in the notification bar)",
+  "autoStartIssue": "Auto-Start Information",
+  "autoStartIssueDesc": "When enabling auto-start, it's recommended to disable battery optimization for the app. Currently, after enabling auto-start, the service will automatically start in the background after system reboot, but may not show a notification in the notification bar. Rest assured, the service is running normally. You can check the service status through the quick settings tile in the notification shade, or return to the main interface to check the service toggle to confirm if the service has started.",
   "currentlyDownloading": "Downloading",
   "downloadProgressChannel": "Download Progress",
   "confirmDownload": "Confirm Download",
