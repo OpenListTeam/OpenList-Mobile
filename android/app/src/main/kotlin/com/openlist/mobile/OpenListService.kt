@@ -100,13 +100,24 @@ class OpenListService : Service(), OpenList.Listener {
 
         serviceInstance = this
 
-        // Android 8.0+ must start foreground service immediately to avoid ANR
+        // Android 8.0+ must start foreground notification immediately
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.d(TAG, "Starting foreground notification (Android O+)")
             initOrUpdateNotification()
         }
 
-        // Enable wake lock to keep CPU running if configured
+        // Register broadcast receivers
+        try {
+            LocalBroadcastManager.getInstance(this)
+                .registerReceiver(mReceiver, IntentFilter(ACTION_STATUS_CHANGED))
+            registerReceiverCompat(mNotificationReceiver, ACTION_SHUTDOWN, ACTION_COPY_ADDRESS)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to register receivers", e)
+        }
+
+        // Add OpenList listener
+        OpenList.addListener(this)
+
+        // Acquire wake lock if enabled
         if (AppConfig.isWakeLockEnabled) {
             try {
                 mWakeLock = powerManager.newWakeLock(
@@ -114,33 +125,12 @@ class OpenListService : Service(), OpenList.Listener {
                     "openlist::service"
                 )
                 mWakeLock?.acquire()
-                Log.d(TAG, "Wake lock acquired")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to acquire wake lock", e)
             }
         }
 
-        // Register broadcast receivers
-        try {
-            LocalBroadcastManager.getInstance(this)
-                .registerReceiver(
-                    mReceiver,
-                    IntentFilter(ACTION_STATUS_CHANGED)
-                )
-            registerReceiverCompat(
-                mNotificationReceiver,
-                ACTION_SHUTDOWN,
-                ACTION_COPY_ADDRESS
-            )
-            Log.d(TAG, "Broadcast receivers registered")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to register receivers", e)
-        }
-
-        // Add OpenList listener
-        OpenList.addListener(this)
-        
-        Log.d(TAG, "OpenListService onCreate completed")
+        Log.d(TAG, "Service onCreate completed")
     }
 
     @Suppress("DEPRECATION")
@@ -374,60 +364,49 @@ class OpenListService : Service(), OpenList.Listener {
     @Suppress("DEPRECATION")
     private fun initOrUpdateNotification() {
         try {
-            Log.d(TAG, "Creating/updating foreground notification")
-            
-            // Android 12(S)+ requires PendingIntent.FLAG_IMMUTABLE
-            val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 PendingIntent.FLAG_IMMUTABLE
-            else
+            } else {
                 0
+            }
 
-            // Click notification to jump to main activity
             val pendingIntent = PendingIntent.getActivity(
-                this, 0, Intent(this, MainActivity::class.java),
-                pendingIntentFlags
+                this, 0, Intent(this, MainActivity::class.java), pendingIntentFlags
             )
 
-            // Shutdown button
             val shutdownAction = PendingIntent.getBroadcast(
                 this, 0, Intent(ACTION_SHUTDOWN), pendingIntentFlags
             )
 
-            // Copy address button
             val copyAddressPendingIntent = PendingIntent.getBroadcast(
                 this, 0, Intent(ACTION_COPY_ADDRESS), pendingIntentFlags
             )
 
-            val smallIconRes: Int
             val builder = Notification.Builder(applicationContext)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // Android 8.0+ requires notification channel
                 val chan = NotificationChannel(
                     NOTIFICATION_CHAN_ID,
                     getString(R.string.openlist_server),
-                    NotificationManager.IMPORTANCE_LOW // Use low importance to avoid disturbing user
+                    NotificationManager.IMPORTANCE_LOW
                 )
                 chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-                chan.setShowBadge(false) // Don't show badge
+                chan.setShowBadge(false)
                 
-                // Set notification channel as persistent
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    chan.setBlockable(false) // Android 10+ set as non-blockable
+                    chan.setBlockable(false)
                 }
                 
                 val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.createNotificationChannel(chan)
                 
-                smallIconRes = when ((0..1).random()) {
-                    0 -> R.drawable.server
-                    1 -> R.drawable.server2
-                    else -> R.drawable.server2
-                }
-
                 builder.setChannelId(NOTIFICATION_CHAN_ID)
+            }
+
+            val smallIconRes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                R.drawable.server
             } else {
-                smallIconRes = R.mipmap.ic_launcher_round
+                R.mipmap.ic_launcher_round
             }
 
             val notification = builder
@@ -437,31 +416,28 @@ class OpenListService : Service(), OpenList.Listener {
                 .setContentIntent(pendingIntent)
                 .addAction(0, getString(R.string.shutdown), shutdownAction)
                 .addAction(0, getString(R.string.copy_address), copyAddressPendingIntent)
-                .setOngoing(true) // Set as persistent notification, cannot be swiped away
-                .setAutoCancel(false) // Don't auto-cancel on click
+                .setOngoing(true)
+                .setAutoCancel(false)
                 .build()
 
-            // Set notification flags to ensure it's persistent
             notification.flags = notification.flags or 
-                Notification.FLAG_NO_CLEAR or // Cannot be cleared by clear button
-                Notification.FLAG_ONGOING_EVENT // Mark as ongoing event
+                Notification.FLAG_NO_CLEAR or
+                Notification.FLAG_ONGOING_EVENT
 
             startForeground(FOREGROUND_ID, notification)
-            Log.d(TAG, "Foreground notification started successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create notification", e)
-            // Create a minimal notification as fallback
+            // Minimal fallback
             try {
-                val minimalNotification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val minimal = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     Notification.Builder(applicationContext, NOTIFICATION_CHAN_ID)
                 } else {
                     Notification.Builder(applicationContext)
                 }.setContentTitle("OpenList")
-                    .setContentText("Service starting...")
+                    .setContentText("Starting...")
                     .setSmallIcon(R.mipmap.ic_launcher_round)
                     .build()
-                startForeground(FOREGROUND_ID, minimalNotification)
-                Log.d(TAG, "Started with minimal notification")
+                startForeground(FOREGROUND_ID, minimal)
             } catch (fallbackError: Exception) {
                 Log.e(TAG, "Failed to create minimal notification", fallbackError)
             }
