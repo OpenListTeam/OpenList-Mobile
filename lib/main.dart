@@ -95,16 +95,21 @@ class MyHomePage extends StatelessWidget {
     final controller = Get.put(_MainController());
 
     return Scaffold(
-        body: Obx(
-          () => FadeIndexedStack(
-            lazy: true,
-            index: controller.selectedIndex.value,
-            children: [
-              WebScreen(key: webGlobalKey),
-              const OpenListScreen(),
-              const DownloadManagerPage(),
-              const SettingsScreen()
-            ],
+        // Wrap body with SafeArea to handle small window mode properly
+        body: SafeArea(
+          child: Obx(
+            () => SizedBox.expand(
+              child: FadeIndexedStack(
+                lazy: true,
+                index: controller.selectedIndex.value,
+                children: [
+                  WebScreen(key: webGlobalKey),
+                  const OpenListScreen(),
+                  const DownloadManagerPage(),
+                  const SettingsScreen()
+                ],
+              ),
+            ),
           ),
         ),
         bottomNavigationBar: Obx(() => NavigationBar(
