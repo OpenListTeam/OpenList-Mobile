@@ -122,6 +122,8 @@ androidComponents {
     onVariants(selector().all()) { variant ->
         variant.outputs.forEach { output ->
             def versionName = output.versionName.orNull ?: "1.0.0"
+            // Remove 'v' prefix if present to avoid duplication
+            def cleanVersion = versionName.startsWith('v') ? versionName.substring(1) : versionName
             def abi = ""
             // 简化ABI过滤器检查逻辑
             if (output.filters != null && !output.filters.isEmpty()) {
@@ -132,7 +134,7 @@ androidComponents {
                     }
                 }
             }
-            output.outputFileName.set("OpenList-Mobile-v${versionName}${abi}.apk")
+            output.outputFileName.set("OpenList-Mobile-v${cleanVersion}${abi}.apk")
         }
     }
 }
