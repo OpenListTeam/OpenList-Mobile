@@ -132,7 +132,7 @@ androidComponents {
                     }
                 }
             }
-            output.outputFileName.set("OpenList-Mobile-v${versionName}${abi}.apk")
+            output.outputFileName.set("OpenList-Mobile-${versionName}${abi}.apk")
         }
     }
 }

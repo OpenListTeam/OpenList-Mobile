@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 4.1.3+1 # 与OpenList主程序版本同步，Android版本号自动添加时间戳
+version: 4.1.4+1 # 与OpenList主程序版本同步，Android版本号自动添加时间戳
 
 environment:
   sdk: '>=3.2.4 <4.0.0'

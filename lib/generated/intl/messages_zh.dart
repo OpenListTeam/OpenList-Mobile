@@ -115,6 +115,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoCheckForUpdatesDesc": MessageLookupByLibrary.simpleMessage(
       "启动时自动检查更新",
     ),
+    "autoStartIssue": MessageLookupByLibrary.simpleMessage("自启动相关说明"),
+    "autoStartIssueDesc": MessageLookupByLibrary.simpleMessage(
+      "设置自启动时建议把app的电池优化一并关闭，当前在开启自启动后，系统重启时服务会自动在后台启动，但可能不会在通知栏弹出通知。请放心，服务已正常运行，您可以在通知栏快捷开关查看服务状态，或回到主界面查看服务开关确认服务是否已启动。",
+    ),
     "autoStartWebPage": MessageLookupByLibrary.simpleMessage("将网页设置为打开首页"),
     "autoStartWebPageDesc": MessageLookupByLibrary.simpleMessage("打开主界面时的首页"),
     "batchDownloadComplete": MessageLookupByLibrary.simpleMessage("批量下载完成"),

@@ -1,6 +1,8 @@
 package com.openlist.mobile
 
 import android.app.Application
+import android.util.Log
+import com.openlist.mobile.model.openlist.OpenList
 import com.openlist.mobile.utils.ToastUtils.longToast
 import io.flutter.app.FlutterApplication
 
@@ -8,6 +10,7 @@ val app by lazy { App.app }
 
 class App : FlutterApplication() {
     companion object {
+        private const val TAG = "App"
         lateinit var app: Application
     }
 
@@ -17,18 +20,27 @@ class App : FlutterApplication() {
 
         app = this
         
-        // 设置全局异常处理器来捕获未处理的异常
+        // Early initialization of OpenList to prepare for boot startup
+        try {
+            Log.d(TAG, "Performing early OpenList initialization")
+            OpenList.init()
+            Log.d(TAG, "OpenList early initialization completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize OpenList early", e)
+        }
+        
+        // Set global exception handler to catch uncaught exceptions
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            android.util.Log.e("App", "Uncaught exception in thread ${thread.name}", throwable)
+            Log.e(TAG, "Uncaught exception in thread ${thread.name}", throwable)
             
-            // 如果是 JNI 相关的错误，记录详细信息
+            // Log detailed info for JNI related errors
             if (throwable.message?.contains("JNI") == true || 
                 throwable.message?.contains("native") == true ||
                 throwable is UnsatisfiedLinkError) {
-                android.util.Log.e("App", "Native/JNI related crash detected")
+                Log.e(TAG, "Native/JNI related crash detected")
             }
             
-            // 调用默认的异常处理器
+            // Call default exception handler
             val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
             defaultHandler?.uncaughtException(thread, throwable)
         }

@@ -1439,6 +1439,21 @@ class S {
     );
   }
 
+  /// `自启动相关说明`
+  String get autoStartIssue {
+    return Intl.message('自启动相关说明', name: 'autoStartIssue', desc: '', args: []);
+  }
+
+  /// `设置自启动时建议把app的电池优化一并关闭，当前在开启自启动后，系统重启时服务会自动在后台启动，但可能不会在通知栏弹出通知。请放心，服务已正常运行，您可以在通知栏快捷开关查看服务状态，或回到主界面查看服务开关确认服务是否已启动。`
+  String get autoStartIssueDesc {
+    return Intl.message(
+      '设置自启动时建议把app的电池优化一并关闭，当前在开启自启动后，系统重启时服务会自动在后台启动，但可能不会在通知栏弹出通知。请放心，服务已正常运行，您可以在通知栏快捷开关查看服务状态，或回到主界面查看服务开关确认服务是否已启动。',
+      name: 'autoStartIssueDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `正在下载`
   String get currentlyDownloading {
     return Intl.message(
