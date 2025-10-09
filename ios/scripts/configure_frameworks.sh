@@ -69,6 +69,22 @@ if ! grep -q "OTHER_LDFLAGS.*framework.*${FRAMEWORK_NAME%.xcframework}" "$GENERA
     echo "OTHER_LDFLAGS = \$(inherited) -framework ${FRAMEWORK_NAME%.xcframework}" >> "$GENERATED_CONFIG"
 fi
 
+# Try to automatically add framework to Xcode project using Python script
+PYTHON_SCRIPT="$SCRIPT_DIR/add_frameworks_to_xcode.py"
+if [ -f "$PYTHON_SCRIPT" ]; then
+    echo ""
+    echo "Attempting to add framework reference to Xcode project..."
+    if command -v python3 &> /dev/null; then
+        chmod +x "$PYTHON_SCRIPT"
+        python3 "$PYTHON_SCRIPT" || echo "Warning: Failed to automatically add framework to Xcode project"
+    else
+        echo "Warning: python3 not found, skipping automatic Xcode project modification"
+    fi
+else
+    echo "Warning: Python script not found at $PYTHON_SCRIPT"
+fi
+
+echo ""
 echo "✅ iOS project configuration completed"
 echo ""
 echo "Configuration summary:"
