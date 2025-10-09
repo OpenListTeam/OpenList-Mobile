@@ -376,7 +376,7 @@ jobs:
 
       - name: Pre-build Framework Check
         run: |
-          echo "=== Pre-build framework verification ===\"
+          echo "=== Pre-build framework verification ==="
           echo "Checking if xcframework exists before Flutter build:"
           ls -la $GITHUB_WORKSPACE/ios/Frameworks/ || echo "Warning: ios/Frameworks directory not found"
           
