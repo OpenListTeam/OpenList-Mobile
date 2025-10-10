@@ -45,19 +45,21 @@ post_install do |installer|
       next unless target.name == 'Runner'
       
       target.build_configurations.each do |config|
+        # Add framework search paths
         config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= ['$(inherited)']
         config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '$(PROJECT_DIR)/Frameworks'
         
+        # Add system libraries needed by Go mobile
         config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
         config.build_settings['OTHER_LDFLAGS'] << '-lresolv'
         
-        # Add xcframework to linker
+        # Link xcframework directly
         frameworks_dir = File.join(File.dirname(__FILE__), 'Frameworks')
         if Dir.exist?(frameworks_dir)
           Dir.glob("#{frameworks_dir}/*.xcframework").each do |path|
             name = File.basename(path, '.xcframework')
-            config.build_settings['OTHER_LDFLAGS'] << '-framework'
-            config.build_settings['OTHER_LDFLAGS'] << name
+            # Add framework as a single flag argument
+            config.build_settings['OTHER_LDFLAGS'] << "-framework #{name}"
           end
         end
       end
