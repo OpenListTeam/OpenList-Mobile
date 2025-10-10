@@ -333,7 +333,6 @@ jobs:
       - name: Verify iOS Framework Generation
         run: |
           echo "=== Verifying xcframework generation ==="
-          echo "Checking workspace ios/Frameworks directory:"
           ls -la $GITHUB_WORKSPACE/ios/Frameworks/ || echo "ios/Frameworks directory not found"
           
           if [ -d "$GITHUB_WORKSPACE/ios/Frameworks" ]; then
@@ -342,26 +341,15 @@ jobs:
             
             if [ "$FRAMEWORK_COUNT" -eq 0 ]; then
               echo "❌ ERROR: No xcframework files found!"
-              echo "Searching for xcframework in entire workspace..."
               find $GITHUB_WORKSPACE -name "*.xcframework" -type d || echo "No xcframework found anywhere"
               exit 1
             else
               echo "✅ Found xcframework files:"
-              find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d -exec ls -lah {} \;
+              find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d
             fi
           else
             echo "❌ ERROR: ios/Frameworks directory does not exist!"
             exit 1
-          fi
-      
-      - name: Configure iOS Project
-        run: |
-          echo "Configuring iOS project for framework linking..."
-          if [ -f "$GITHUB_WORKSPACE/ios/scripts/configure_frameworks.sh" ]; then
-            chmod +x $GITHUB_WORKSPACE/ios/scripts/configure_frameworks.sh
-            $GITHUB_WORKSPACE/ios/scripts/configure_frameworks.sh
-          else
-            echo "Warning: configure_frameworks.sh not found, manual configuration may be needed"
           fi
 
       - name: Upload iOS Framework
@@ -374,20 +362,11 @@ jobs:
         with:
           flutter-version: '3.32.7'
 
-      - name: Pre-build Framework Check
-        run: |
-          echo "=== Pre-build framework verification ==="
-          echo "Checking if xcframework exists before Flutter build:"
-          ls -la $GITHUB_WORKSPACE/ios/Frameworks/ || echo "Warning: ios/Frameworks directory not found"
-          
-          if [ -d "$GITHUB_WORKSPACE/ios/Frameworks" ]; then
-            find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d || echo "Warning: No xcframework found"
-          fi
-
       - name: Build iOS App
         env:
           BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
         run: |
+          echo "Building iOS app with CocoaPods..."
           flutter build ios --release --no-codesign
 
       - name: Create IPA
