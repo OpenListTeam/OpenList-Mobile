@@ -53,13 +53,16 @@ post_install do |installer|
         config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
         config.build_settings['OTHER_LDFLAGS'] << '-lresolv'
         
-        # Link xcframework directly
+        # Link xcframework using proper Xcode linker flags
         frameworks_dir = File.join(File.dirname(__FILE__), 'Frameworks')
         if Dir.exist?(frameworks_dir)
           Dir.glob("#{frameworks_dir}/*.xcframework").each do |path|
             name = File.basename(path, '.xcframework')
-            # Add framework as a single flag argument
-            config.build_settings['OTHER_LDFLAGS'] << "-framework #{name}"
+            # Use -Xlinker for proper framework linking
+            config.build_settings['OTHER_LDFLAGS'] << '-Xlinker'
+            config.build_settings['OTHER_LDFLAGS'] << '-framework'
+            config.build_settings['OTHER_LDFLAGS'] << '-Xlinker'
+            config.build_settings['OTHER_LDFLAGS'] << name
           end
         end
       end
