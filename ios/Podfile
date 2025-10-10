@@ -39,61 +39,28 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
   
-  # Configure Runner target for xcframework integration
+  # Add xcframework integration to Runner target
   installer.aggregate_targets.each do |aggregate_target|
     aggregate_target.user_project.targets.each do |target|
       next unless target.name == 'Runner'
       
       target.build_configurations.each do |config|
-        # Framework search paths
         config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= ['$(inherited)']
         config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '$(PROJECT_DIR)/Frameworks'
         
-        # Link flags for system libraries (fixes DNS resolution symbols)
         config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
         config.build_settings['OTHER_LDFLAGS'] << '-lresolv'
         
-        # Find and link xcframeworks
+        # Add xcframework to linker
         frameworks_dir = File.join(File.dirname(__FILE__), 'Frameworks')
         if Dir.exist?(frameworks_dir)
-          Dir.glob("#{frameworks_dir}/*.xcframework").each do |xcframework_path|
-            framework_name = File.basename(xcframework_path, '.xcframework')
-            
-            # Add framework to linker flags
-            unless config.build_settings['OTHER_LDFLAGS'].any? { |flag| flag.include?(framework_name) }
-              config.build_settings['OTHER_LDFLAGS'] << "-framework"
-              config.build_settings['OTHER_LDFLAGS'] << framework_name
-            end
-            
-            # Add xcframework files to the project if not already present
-            frameworks_group = target.project.main_group.find_subpath('Frameworks', true)
-            frameworks_group ||= target.project.main_group.new_group('Frameworks')
-            
-            framework_ref = frameworks_group.files.find { |f| f.path == File.basename(xcframework_path) }
-            unless framework_ref
-              framework_ref = frameworks_group.new_file(xcframework_path)
-              framework_ref.source_tree = 'SOURCE_ROOT'
-              
-              # Add to frameworks build phase
-              frameworks_build_phase = target.frameworks_build_phase
-              build_file = frameworks_build_phase.add_file_reference(framework_ref)
-              
-              # Add to embed frameworks phase
-              embed_frameworks_phase = target.copy_files_build_phases.find { |phase| 
-                phase.name == 'Embed Frameworks' 
-              }
-              
-              if embed_frameworks_phase
-                embed_build_file = embed_frameworks_phase.add_file_reference(framework_ref)
-                embed_build_file.settings = { 'ATTRIBUTES' => ['CodeSignOnCopy', 'RemoveHeadersOnCopy'] }
-              end
-            end
+          Dir.glob("#{frameworks_dir}/*.xcframework").each do |path|
+            name = File.basename(path, '.xcframework')
+            config.build_settings['OTHER_LDFLAGS'] << '-framework'
+            config.build_settings['OTHER_LDFLAGS'] << name
           end
         end
       end
-      
-      # Save the project
-      target.project.save
     end
   end
 end
