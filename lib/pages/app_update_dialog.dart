@@ -73,7 +73,7 @@ class AppUpdateDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                'v$version',
+                version,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onPrimaryContainer,
@@ -116,7 +116,7 @@ class AppUpdateDialog extends StatelessWidget {
                   Navigator.pop(context);
                   DownloadManager.downloadFileInBackground(
                     url: apkUrl,
-                    filename: 'OpenList_v$version.apk',
+                    filename: 'OpenList_$version.apk',
                   );
                 },
               ),
