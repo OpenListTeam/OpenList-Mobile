@@ -91,13 +91,13 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
                     Icons.folder_open,
                     color: theme.colorScheme.primary,
                   ),
-                  title: const Text('OpenList'),
+                  title: Text(S.of(context).openlist),
                   subtitle: Text(_openlistVersion.isNotEmpty 
                       ? _openlistVersion
                       : S.of(context).about),
                   trailing: const Icon(Icons.open_in_new, size: 20),
                   onTap: () {
-                    IntentUtils.getUrlIntent(openlistUrl).launchChooser("OpenList");
+                    IntentUtils.getUrlIntent(openlistUrl).launchChooser(S.of(context).openlist);
                   },
                   onLongPress: () {
                     Clipboard.setData(ClipboardData(text: openlistUrl));
@@ -116,11 +116,11 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
                     Icons.phone_android,
                     color: theme.colorScheme.secondary,
                   ),
-                  title: const Text('OpenList Mobile'),
+                  title: Text(S.of(context).openlistMobile),
                   subtitle: Text(_version),
                   trailing: const Icon(Icons.open_in_new, size: 20),
                   onTap: () {
-                    IntentUtils.getUrlIntent(appUrl).launchChooser("OpenList Mobile");
+                    IntentUtils.getUrlIntent(appUrl).launchChooser(S.of(context).openlistMobile);
                   },
                   onLongPress: () {
                     Clipboard.setData(ClipboardData(text: appUrl));
@@ -139,8 +139,8 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
                     Icons.description_outlined,
                     color: theme.colorScheme.tertiary,
                   ),
-                  title: const Text('Open Source Licenses'),
-                  subtitle: const Text('View third-party licenses'),
+                  title: Text(S.of(context).openSourceLicenses),
+                  subtitle: Text(S.of(context).viewThirdPartyLicenses),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     showLicensePage(

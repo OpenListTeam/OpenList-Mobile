@@ -441,6 +441,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "openFileManagerFailed": m32,
     "openFileResult": m33,
     "openListDownloadDirectory": m34,
+    "openSourceLicenses": MessageLookupByLibrary.simpleMessage(
+      "Open Source Licenses",
+    ),
+    "openlist": MessageLookupByLibrary.simpleMessage("OpenList"),
+    "openlistMobile": MessageLookupByLibrary.simpleMessage("OpenList Mobile"),
     "parseFilenameFailed": m35,
     "pending": MessageLookupByLibrary.simpleMessage("Pending"),
     "preparingDownload": MessageLookupByLibrary.simpleMessage(
@@ -520,6 +525,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "viewDownloads": MessageLookupByLibrary.simpleMessage("View Downloads"),
     "viewLocation": MessageLookupByLibrary.simpleMessage("View Location"),
+    "viewThirdPartyLicenses": MessageLookupByLibrary.simpleMessage(
+      "View third-party licenses",
+    ),
     "wakeLock": MessageLookupByLibrary.simpleMessage("Wake lock"),
     "wakeLockDesc": MessageLookupByLibrary.simpleMessage(
       "Prevent CPU from sleeping when screen is off. (May cause app killed in background on some devices)",

@@ -510,5 +510,9 @@
       }
     }
   },
-  "apkDownloadCompleteMessage": "APK file download completed, do you want to install?"
+  "apkDownloadCompleteMessage": "APK file download completed, do you want to install?",
+  "openlist": "OpenList",
+  "openlistMobile": "OpenList Mobile",
+  "openSourceLicenses": "Open Source Licenses",
+  "viewThirdPartyLicenses": "View third-party licenses"
 }

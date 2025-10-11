@@ -1758,6 +1758,41 @@ class S {
       args: [],
     );
   }
+
+  /// `OpenList`
+  String get openlist {
+    return Intl.message('OpenList', name: 'openlist', desc: '', args: []);
+  }
+
+  /// `OpenList Mobile`
+  String get openlistMobile {
+    return Intl.message(
+      'OpenList Mobile',
+      name: 'openlistMobile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `开源许可证`
+  String get openSourceLicenses {
+    return Intl.message(
+      '开源许可证',
+      name: 'openSourceLicenses',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `查看第三方许可证`
+  String get viewThirdPartyLicenses {
+    return Intl.message(
+      '查看第三方许可证',
+      name: 'viewThirdPartyLicenses',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

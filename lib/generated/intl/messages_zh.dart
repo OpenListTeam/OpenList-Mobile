@@ -341,6 +341,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "openFileManagerFailed": m32,
     "openFileResult": m33,
     "openListDownloadDirectory": m34,
+    "openSourceLicenses": MessageLookupByLibrary.simpleMessage("开源许可证"),
+    "openlist": MessageLookupByLibrary.simpleMessage("OpenList"),
+    "openlistMobile": MessageLookupByLibrary.simpleMessage("OpenList Mobile"),
     "parseFilenameFailed": m35,
     "pending": MessageLookupByLibrary.simpleMessage("等待中"),
     "preparingDownload": MessageLookupByLibrary.simpleMessage("准备下载..."),
@@ -390,6 +393,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "viewDownloadFiles": MessageLookupByLibrary.simpleMessage("查看下载文件"),
     "viewDownloads": MessageLookupByLibrary.simpleMessage("查看下载"),
     "viewLocation": MessageLookupByLibrary.simpleMessage("查看位置"),
+    "viewThirdPartyLicenses": MessageLookupByLibrary.simpleMessage("查看第三方许可证"),
     "wakeLock": MessageLookupByLibrary.simpleMessage("唤醒锁"),
     "wakeLockDesc": MessageLookupByLibrary.simpleMessage(
       "开启防止锁屏后CPU休眠，保持进程在后台运行。（部分系统可能导致杀后台）",
