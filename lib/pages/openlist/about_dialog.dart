@@ -68,7 +68,7 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
               ),
               const SizedBox(height: 4),
               Text(
-                'v$_version ($_versionCode)',
+                '$_version ($_versionCode)',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -93,7 +93,7 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
                   ),
                   title: const Text('OpenList'),
                   subtitle: Text(_openlistVersion.isNotEmpty 
-                      ? 'v$_openlistVersion' 
+                      ? _openlistVersion
                       : S.of(context).about),
                   trailing: const Icon(Icons.open_in_new, size: 20),
                   onTap: () {
@@ -117,7 +117,7 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
                     color: theme.colorScheme.secondary,
                   ),
                   title: const Text('OpenList Mobile'),
-                  subtitle: Text('v$_version'),
+                  subtitle: Text(_version),
                   trailing: const Icon(Icons.open_in_new, size: 20),
                   onTap: () {
                     IntentUtils.getUrlIntent(appUrl).launchChooser("OpenList Mobile");
@@ -146,7 +146,7 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
                     showLicensePage(
                       context: context,
                       applicationName: S.of(context).appName,
-                      applicationVersion: 'v$_version ($_versionCode)',
+                      applicationVersion: '$_version ($_versionCode)',
                       applicationIcon: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: SvgPicture.asset(
