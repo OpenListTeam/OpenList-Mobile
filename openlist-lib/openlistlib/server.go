@@ -18,6 +18,8 @@ import (
 	"github.com/OpenListTeam/OpenList/v4/internal/db"
 	"github.com/OpenListTeam/OpenList/v4/pkg/utils"
 	"github.com/OpenListTeam/OpenList/v4/server"
+	"github.com/OpenListTeam/sftpd-openlist"
+	ftpserver "github.com/fclairamb/ftpserverlib"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
@@ -137,6 +139,66 @@ func Start() {
 
 			unixSrv = nil
 		}()
+	}
+	if conf.Conf.S3.Port != -1 && conf.Conf.S3.Enable {
+		s3r := gin.New()
+		s3r.Use(gin.LoggerWithWriter(log.StandardLogger().Out), gin.RecoveryWithWriter(log.StandardLogger().Out))
+		server.InitS3(s3r)
+		s3Base := fmt.Sprintf("%s:%d", conf.Conf.Scheme.Address, conf.Conf.S3.Port)
+		fmt.Printf("start S3 server @ %s\n", s3Base)
+		utils.Log.Infof("start S3 server @ %s", s3Base)
+		go func() {
+			var err error
+			if conf.Conf.S3.SSL {
+				httpsSrv = &http.Server{Addr: s3Base, Handler: s3r}
+				err = httpsSrv.ListenAndServeTLS(conf.Conf.Scheme.CertFile, conf.Conf.Scheme.KeyFile)
+			}
+			if !conf.Conf.S3.SSL {
+				httpSrv = &http.Server{Addr: s3Base, Handler: s3r}
+				err = httpSrv.ListenAndServe()
+			}
+			if err != nil && !errors.Is(err, http.ErrServerClosed) {
+				utils.Log.Fatalf("failed to start s3 server: %s", err.Error())
+			}
+		}()
+	}
+	var ftpDriver *server.FtpMainDriver
+	var ftpServer *ftpserver.FtpServer
+	if conf.Conf.FTP.Listen != "" && conf.Conf.FTP.Enable {
+		var err error
+		ftpDriver, err = server.NewMainDriver()
+		if err != nil {
+			utils.Log.Fatalf("failed to start ftp driver: %s", err.Error())
+		} else {
+			fmt.Printf("start ftp server on %s\n", conf.Conf.FTP.Listen)
+			utils.Log.Infof("start ftp server on %s", conf.Conf.FTP.Listen)
+			go func() {
+				ftpServer = ftpserver.NewFtpServer(ftpDriver)
+				err = ftpServer.ListenAndServe()
+				if err != nil {
+					utils.Log.Fatalf("problem ftp server listening: %s", err.Error())
+				}
+			}()
+		}
+	}
+	var sftpDriver *server.SftpDriver
+	var sftpServer *sftpd.SftpServer
+	if conf.Conf.SFTP.Listen != "" && conf.Conf.SFTP.Enable {
+		var err error
+		sftpDriver, err = server.NewSftpDriver()
+		if err != nil {
+			utils.Log.Fatalf("failed to start sftp driver: %s", err.Error())
+		} else {
+			fmt.Printf("start sftp server on %s", conf.Conf.SFTP.Listen)
+			utils.Log.Infof("start sftp server on %s", conf.Conf.SFTP.Listen)
+			go func() {
+				sftpServer = sftpd.NewSftpServer(sftpDriver)
+				err = sftpServer.RunServer()
+				if err != nil {
+					utils.Log.Fatalf("problem sftp server listening: %s", err.Error())
+				}
+			}()
+		}
 	}
 }
 
