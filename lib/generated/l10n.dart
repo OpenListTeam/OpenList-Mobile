@@ -1793,6 +1793,16 @@ class S {
       args: [],
     );
   }
+
+  /// `修改OpenList配置文件`
+  String get editOpenListConfig {
+    return Intl.message(
+      '修改OpenList配置文件',
+      name: 'editOpenListConfig',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

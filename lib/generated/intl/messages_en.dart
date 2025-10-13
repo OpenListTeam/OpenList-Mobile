@@ -308,6 +308,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "downloadingImage": MessageLookupByLibrary.simpleMessage(
       "Downloading image...",
     ),
+    "editOpenListConfig": MessageLookupByLibrary.simpleMessage(
+      "Edit OpenList Config",
+    ),
     "english": MessageLookupByLibrary.simpleMessage("English"),
     "failed": MessageLookupByLibrary.simpleMessage("Failed"),
     "fileDeleted": MessageLookupByLibrary.simpleMessage("File deleted"),

@@ -244,6 +244,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "downloading": MessageLookupByLibrary.simpleMessage("下载中"),
     "downloadingFileProgress": m19,
     "downloadingImage": MessageLookupByLibrary.simpleMessage("正在下载图片..."),
+    "editOpenListConfig": MessageLookupByLibrary.simpleMessage(
+      "修改OpenList配置文件",
+    ),
     "english": MessageLookupByLibrary.simpleMessage("English"),
     "failed": MessageLookupByLibrary.simpleMessage("失败"),
     "fileDeleted": MessageLookupByLibrary.simpleMessage("文件已删除"),

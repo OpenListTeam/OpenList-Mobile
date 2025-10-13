@@ -514,5 +514,6 @@
   "openlist": "OpenList",
   "openlistMobile": "OpenList Mobile",
   "openSourceLicenses": "Open Source Licenses",
-  "viewThirdPartyLicenses": "View third-party licenses"
+  "viewThirdPartyLicenses": "View third-party licenses",
+  "editOpenListConfig": "Edit OpenList Config"
 }

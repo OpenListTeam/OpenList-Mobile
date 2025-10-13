@@ -514,5 +514,6 @@
   "openlist": "OpenList",
   "openlistMobile": "OpenList Mobile",
   "openSourceLicenses": "开源许可证",
-  "viewThirdPartyLicenses": "查看第三方许可证"
+  "viewThirdPartyLicenses": "查看第三方许可证",
+  "editOpenListConfig": "修改OpenList配置文件"
 }
