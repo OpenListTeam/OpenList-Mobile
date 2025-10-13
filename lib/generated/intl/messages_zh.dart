@@ -300,7 +300,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "laterInstall": MessageLookupByLibrary.simpleMessage("稍后安装"),
     "loadDownloadFilesFailed": MessageLookupByLibrary.simpleMessage("加载下载文件失败"),
     "modifiedTime": MessageLookupByLibrary.simpleMessage("修改时间"),
-    "modifyAdminPassword": MessageLookupByLibrary.simpleMessage("修改admin密码"),
+    "modifyAdminPassword": MessageLookupByLibrary.simpleMessage("修改Admin密码"),
     "moreOptions": MessageLookupByLibrary.simpleMessage("更多选项"),
     "multipleFilesCompleted": m26,
     "needInstallPermission": MessageLookupByLibrary.simpleMessage("需要安装权限"),
@@ -352,7 +352,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "releasePage": MessageLookupByLibrary.simpleMessage("发布页面"),
     "selectAppToOpen": MessageLookupByLibrary.simpleMessage("选择应用打开"),
     "selectDownloadMethod": MessageLookupByLibrary.simpleMessage("选择下载方式"),
-    "setAdminPassword": MessageLookupByLibrary.simpleMessage("设置admin密码"),
+    "setAdminPassword": MessageLookupByLibrary.simpleMessage("设置Admin密码"),
     "setDefaultDirectory": MessageLookupByLibrary.simpleMessage("是否设为初始目录？"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),
     "shareFeatureNotImplemented": MessageLookupByLibrary.simpleMessage(

@@ -64,10 +64,10 @@ class S {
     return Intl.message('桌面快捷方式', name: 'desktopShortcut', desc: '', args: []);
   }
 
-  /// `设置admin密码`
+  /// `设置Admin密码`
   String get setAdminPassword {
     return Intl.message(
-      '设置admin密码',
+      '设置Admin密码',
       name: 'setAdminPassword',
       desc: '',
       args: [],
@@ -389,10 +389,10 @@ class S {
     );
   }
 
-  /// `修改admin密码`
+  /// `修改Admin密码`
   String get modifyAdminPassword {
     return Intl.message(
-      '修改admin密码',
+      '修改Admin密码',
       name: 'modifyAdminPassword',
       desc: '',
       args: [],

@@ -2,7 +2,7 @@
   "@@locale": "zh",
   "appName": "OpenList",
   "desktopShortcut": "桌面快捷方式",
-  "setAdminPassword": "设置admin密码",
+  "setAdminPassword": "设置Admin密码",
   "moreOptions": "更多选项",
   "checkForUpdates": "检查更新",
   "currentIsLatestVersion": "已经是最新版本",
@@ -51,7 +51,7 @@
       }
     }
   },
-  "modifyAdminPassword": "修改admin密码",
+  "modifyAdminPassword": "修改Admin密码",
   "directDownload": "直接下载",
   "browserDownload": "浏览器下载",
   "loadDownloadFilesFailed": "加载下载文件失败",

@@ -168,10 +168,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "Cannot get download directory",
     ),
     "cannotInstallApkFile": MessageLookupByLibrary.simpleMessage(
-      "Cannot install APK file, you may need to enable \\\"Install unknown apps\\\" in settings",
+      "Cannot install APK file, you may need to enable \"Install unknown apps\" in settings",
     ),
     "cannotInstallApkNeedPermission": MessageLookupByLibrary.simpleMessage(
-      "Cannot install APK file, you may need to enable \\\"Install unknown apps\\\" in settings",
+      "Cannot install APK file, you may need to enable \"Install unknown apps\" in settings",
     ),
     "checkDownloadManagerForFiles": MessageLookupByLibrary.simpleMessage(
       "Please check download manager via bottom navigation bar to view download files",
@@ -342,16 +342,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "goTo": MessageLookupByLibrary.simpleMessage("GO"),
     "goToSettings": MessageLookupByLibrary.simpleMessage("Go to Settings"),
     "grantManagerStoragePermission": MessageLookupByLibrary.simpleMessage(
-      "Grant 【Manage external storage】 permission",
+      "Grant [Manage external storage] permission",
     ),
     "grantNotificationPermission": MessageLookupByLibrary.simpleMessage(
-      "Grant 【Notification】 permission",
+      "Grant [Notification] permission",
     ),
     "grantNotificationPermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Used for foreground service keep alive",
     ),
     "grantStoragePermission": MessageLookupByLibrary.simpleMessage(
-      "Grant 【external storage】 permission",
+      "Grant [external storage] permission",
     ),
     "grantStoragePermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Mounting local storage is a must, otherwise no permission to read and write files",
@@ -463,7 +463,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Select download method",
     ),
     "setAdminPassword": MessageLookupByLibrary.simpleMessage(
-      "Set admin password",
+      "Set Admin password",
     ),
     "setDefaultDirectory": MessageLookupByLibrary.simpleMessage(
       "Set as default directory?",

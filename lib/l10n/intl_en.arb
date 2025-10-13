@@ -2,7 +2,7 @@
   "@@locale": "en",
   "appName": "OpenList",
   "desktopShortcut": "Desktop shortcut",
-  "setAdminPassword": "Set admin password",
+  "setAdminPassword": "Set Admin password",
   "moreOptions": "More options",
   "checkForUpdates": "Check for updates",
   "currentIsLatestVersion": "Current is latest version",
@@ -28,10 +28,10 @@
   "copiedToClipboard": "Copied to clipboard",
   "importantSettings": "Important settings",
   "uiSettings": "UI",
-  "grantManagerStoragePermission": "Grant 【Manage external storage】 permission",
+  "grantManagerStoragePermission": "Grant [Manage external storage] permission",
   "grantStoragePermissionDesc": "Mounting local storage is a must, otherwise no permission to read and write files",
-  "grantStoragePermission": "Grant 【external storage】 permission",
-  "grantNotificationPermission": "Grant 【Notification】 permission",
+  "grantStoragePermission": "Grant [external storage] permission",
+  "grantNotificationPermission": "Grant [Notification] permission",
   "grantNotificationPermissionDesc": "Used for foreground service keep alive",
   "autoStartWebPage": "Set web page as startup page",
   "autoStartWebPageDesc": "Default page when opening main interface",
@@ -247,7 +247,7 @@
       }
     }
   },
-  "cannotInstallApkFile": "Cannot install APK file, you may need to enable \\\"Install unknown apps\\\" in settings",
+  "cannotInstallApkFile": "Cannot install APK file, you may need to enable \"Install unknown apps\" in settings",
   "noPermissionToInstallApk": "No permission to install APK file, please enable install permission in settings",
   "openFileException": "Open file exception: {error}",
   "@openFileException": {
@@ -444,7 +444,7 @@
     }
   },
   "userCancelledDownloadError": "User cancelled download",
-  "cannotInstallApkNeedPermission": "Cannot install APK file, you may need to enable \\\"Install unknown apps\\\" in settings",
+  "cannotInstallApkNeedPermission": "Cannot install APK file, you may need to enable \"Install unknown apps\" in settings",
   "noPermissionToInstallApkFile": "No permission to install APK file, please enable install permission in settings",
   "preparingDownloadStatus": "Preparing download...",
   "downloadCancelledText": "Download cancelled",
