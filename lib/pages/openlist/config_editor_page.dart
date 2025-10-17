@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
@@ -26,6 +27,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
   String? _errorMessage;
   String? _jsonErrorMessage;
   int? _jsonErrorLine;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -35,39 +37,45 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
     _controller.addListener(_validateJson);
   }
 
-  /// Real-time JSON syntax validation
+  /// Real-time JSON syntax validation with debounce
   void _validateJson() {
     if (_isPreview) return; // Skip validation in preview mode
     
-    final text = _controller.text.trim();
-    if (text.isEmpty) {
-      if (mounted) {
-        setState(() {
-          _jsonErrorMessage = null;
-          _jsonErrorLine = null;
-        });
+    // Cancel previous timer to implement debounce
+    _debounceTimer?.cancel();
+    
+    // Create new timer with 300ms delay
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      final text = _controller.text.trim();
+      if (text.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _jsonErrorMessage = null;
+            _jsonErrorLine = null;
+          });
+        }
+        return;
       }
-      return;
-    }
 
-    try {
-      jsonDecode(text);
-      if (mounted) {
-        setState(() {
-          _jsonErrorMessage = null;
-          _jsonErrorLine = null;
-        });
+      try {
+        jsonDecode(text);
+        if (mounted) {
+          setState(() {
+            _jsonErrorMessage = null;
+            _jsonErrorLine = null;
+          });
+        }
+      } on FormatException catch (e) {
+        if (mounted) {
+          // Extract line number from error message
+          final match = RegExp(r'line (\d+)').firstMatch(e.message);
+          setState(() {
+            _jsonErrorMessage = e.message;
+            _jsonErrorLine = match != null ? int.tryParse(match.group(1) ?? '') : null;
+          });
+        }
       }
-    } on FormatException catch (e) {
-      if (mounted) {
-        // Extract line number from error message
-        final match = RegExp(r'line (\d+)').firstMatch(e.message);
-        setState(() {
-          _jsonErrorMessage = e.message;
-          _jsonErrorLine = match != null ? int.tryParse(match.group(1) ?? '') : null;
-        });
-      }
-    }
+    });
   }
 
   /// Load config file with permission checking
@@ -459,6 +467,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
