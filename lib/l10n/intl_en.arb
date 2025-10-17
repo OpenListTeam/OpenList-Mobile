@@ -564,5 +564,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "restartingService": "Restarting OpenList service...",
+  "serviceRestartSuccess": "Service restarted successfully",
+  "serviceRestartFailed": "Failed to restart service. Please restart manually.",
+  "serviceRestartOnlyAndroid": "Service restart is only supported on Android"
 }

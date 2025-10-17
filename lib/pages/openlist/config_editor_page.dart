@@ -7,6 +7,7 @@ import 'package:flutter_highlight/themes/github.dart';
 import 'package:get/get.dart';
 import '../../contant/native_bridge.dart';
 import '../../generated/l10n.dart';
+import '../../utils/service_manager.dart';
 
 /// Config.json Editor with validation, backup, and real-time syntax checking
 class ConfigEditorPage extends StatefulWidget {
@@ -149,6 +150,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
   }
 
   /// Show confirmation dialog before saving
+  /// Provides three options: Cancel, Save Only, Save and Restart
   Future<void> _showSaveConfirmation() async {
     final result = await showDialog<String>(
       context: context,
@@ -173,13 +175,70 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
     );
 
     if (result == 'save' || result == 'save_restart') {
-      await _saveConfigFile();
-      // TODO: Implement service restart when result == 'save_restart'
+      final saveSuccess = await _saveConfigFile();
+      
+      // Restart service if requested and save was successful
+      if (saveSuccess && result == 'save_restart') {
+        await _restartOpenListService();
+      }
+    }
+  }
+
+  /// Restart OpenList service after config changes
+  /// Calls ServiceManager.instance.restartService() to stop and start the service
+  /// Only works on Android platform
+  Future<void> _restartOpenListService() async {
+    if (!Platform.isAndroid) {
+      if (mounted) {
+        Get.showSnackbar(GetSnackBar(
+          message: S.of(context).serviceRestartOnlyAndroid,
+          duration: const Duration(seconds: 2),
+        ));
+      }
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      if (mounted) {
+        Get.showSnackbar(GetSnackBar(
+          message: S.of(context).restartingService,
+          duration: const Duration(seconds: 2),
+          showProgressIndicator: true,
+        ));
+      }
+
+      // Restart service via ServiceManager
+      final success = await ServiceManager.instance.restartService();
+      
+      if (mounted) {
+        if (success) {
+          Get.showSnackbar(GetSnackBar(
+            message: S.of(context).serviceRestartSuccess,
+            duration: const Duration(seconds: 3),
+          ));
+        } else {
+          Get.showSnackbar(GetSnackBar(
+            message: S.of(context).serviceRestartFailed,
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.orange,
+          ));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Get.showSnackbar(GetSnackBar(
+          message: S.of(context).saveFailed(e.toString()),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.red,
+        ));
+      }
     }
   }
 
   /// Save config file with JSON validation and backup mechanism
-  Future<void> _saveConfigFile() async {
+  /// Returns true if save was successful, false otherwise
+  Future<bool> _saveConfigFile() async {
     final text = _controller.text.trim();
     
     // Validate JSON format before saving
@@ -197,7 +256,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
           backgroundColor: Colors.red,
         ));
       }
-      return;
+      return false;
     }
 
     File? backupFile;
@@ -218,10 +277,12 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
       
       if (mounted) {
         Get.showSnackbar(GetSnackBar(
-          message: S.of(context).configSavedRestartRequired,
-          duration: const Duration(seconds: 3),
+          message: S.of(context).saved,
+          duration: const Duration(seconds: 2),
         ));
       }
+      
+      return true;
     } on FileSystemException catch (e) {
       // Restore backup on failure
       if (backupFile != null && await backupFile.exists()) {
@@ -240,6 +301,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
           backgroundColor: Colors.red,
         ));
       }
+      return false;
     } catch (e) {
       // Restore backup on failure
       if (backupFile != null && await backupFile.exists()) {
@@ -255,6 +317,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
           backgroundColor: Colors.red,
         ));
       }
+      return false;
     }
   }
 

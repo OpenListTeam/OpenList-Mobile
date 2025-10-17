@@ -380,6 +380,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "preview": MessageLookupByLibrary.simpleMessage("预览"),
     "refresh": MessageLookupByLibrary.simpleMessage("刷新"),
     "releasePage": MessageLookupByLibrary.simpleMessage("发布页面"),
+    "restartingService": MessageLookupByLibrary.simpleMessage(
+      "正在重启OpenList服务...",
+    ),
     "restoreBackup": MessageLookupByLibrary.simpleMessage("恢复备份"),
     "restoreBackupFailed": m38,
     "save": MessageLookupByLibrary.simpleMessage("保存"),
@@ -389,6 +392,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "saved": MessageLookupByLibrary.simpleMessage("已保存"),
     "selectAppToOpen": MessageLookupByLibrary.simpleMessage("选择应用打开"),
     "selectDownloadMethod": MessageLookupByLibrary.simpleMessage("选择下载方式"),
+    "serviceRestartFailed": MessageLookupByLibrary.simpleMessage(
+      "服务重启失败,请手动重启",
+    ),
+    "serviceRestartOnlyAndroid": MessageLookupByLibrary.simpleMessage(
+      "服务重启仅支持Android系统",
+    ),
+    "serviceRestartSuccess": MessageLookupByLibrary.simpleMessage("服务重启成功"),
     "setAdminPassword": MessageLookupByLibrary.simpleMessage("设置Admin密码"),
     "setDefaultDirectory": MessageLookupByLibrary.simpleMessage("是否设为初始目录？"),
     "settings": MessageLookupByLibrary.simpleMessage("设置"),

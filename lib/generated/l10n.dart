@@ -1938,6 +1938,46 @@ class S {
       args: [error],
     );
   }
+
+  /// `正在重启OpenList服务...`
+  String get restartingService {
+    return Intl.message(
+      '正在重启OpenList服务...',
+      name: 'restartingService',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `服务重启成功`
+  String get serviceRestartSuccess {
+    return Intl.message(
+      '服务重启成功',
+      name: 'serviceRestartSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `服务重启失败,请手动重启`
+  String get serviceRestartFailed {
+    return Intl.message(
+      '服务重启失败,请手动重启',
+      name: 'serviceRestartFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `服务重启仅支持Android系统`
+  String get serviceRestartOnlyAndroid {
+    return Intl.message(
+      '服务重启仅支持Android系统',
+      name: 'serviceRestartOnlyAndroid',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

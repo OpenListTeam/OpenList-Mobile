@@ -564,5 +564,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "restartingService": "正在重启OpenList服务...",
+  "serviceRestartSuccess": "服务重启成功",
+  "serviceRestartFailed": "服务重启失败,请手动重启",
+  "serviceRestartOnlyAndroid": "服务重启仅支持Android系统"
 }

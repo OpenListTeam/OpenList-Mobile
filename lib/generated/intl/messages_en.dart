@@ -493,6 +493,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "preview": MessageLookupByLibrary.simpleMessage("Preview"),
     "refresh": MessageLookupByLibrary.simpleMessage("Refresh"),
     "releasePage": MessageLookupByLibrary.simpleMessage("Release Page"),
+    "restartingService": MessageLookupByLibrary.simpleMessage(
+      "Restarting OpenList service...",
+    ),
     "restoreBackup": MessageLookupByLibrary.simpleMessage("Restore Backup"),
     "restoreBackupFailed": m38,
     "save": MessageLookupByLibrary.simpleMessage("Save"),
@@ -505,6 +508,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "selectDownloadMethod": MessageLookupByLibrary.simpleMessage(
       "Select download method",
+    ),
+    "serviceRestartFailed": MessageLookupByLibrary.simpleMessage(
+      "Failed to restart service. Please restart manually.",
+    ),
+    "serviceRestartOnlyAndroid": MessageLookupByLibrary.simpleMessage(
+      "Service restart is only supported on Android",
+    ),
+    "serviceRestartSuccess": MessageLookupByLibrary.simpleMessage(
+      "Service restarted successfully",
     ),
     "setAdminPassword": MessageLookupByLibrary.simpleMessage(
       "Set Admin password",
