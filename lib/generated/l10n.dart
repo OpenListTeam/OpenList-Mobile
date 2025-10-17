@@ -1803,6 +1803,141 @@ class S {
       args: [],
     );
   }
+
+  /// `保存`
+  String get save {
+    return Intl.message('保存', name: 'save', desc: '', args: []);
+  }
+
+  /// `已保存`
+  String get saved {
+    return Intl.message('已保存', name: 'saved', desc: '', args: []);
+  }
+
+  /// `编辑`
+  String get edit {
+    return Intl.message('编辑', name: 'edit', desc: '', args: []);
+  }
+
+  /// `预览`
+  String get preview {
+    return Intl.message('预览', name: 'preview', desc: '', args: []);
+  }
+
+  /// `文件不存在,保存时将创建`
+  String get fileNotFoundWillCreateOnSave {
+    return Intl.message(
+      '文件不存在,保存时将创建',
+      name: 'fileNotFoundWillCreateOnSave',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `加载失败:{error}`
+  String loadFailed(String error) {
+    return Intl.message(
+      '加载失败:$error',
+      name: 'loadFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `保存失败:{error}`
+  String saveFailed(String error) {
+    return Intl.message(
+      '保存失败:$error',
+      name: 'saveFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `JSON格式错误,第{line}行:{error}`
+  String invalidJsonFormat(int line, String error) {
+    return Intl.message(
+      'JSON格式错误,第$line行:$error',
+      name: 'invalidJsonFormat',
+      desc: '',
+      args: [line, error],
+    );
+  }
+
+  /// `文件权限被拒绝,请检查应用权限`
+  String get filePermissionDenied {
+    return Intl.message(
+      '文件权限被拒绝,请检查应用权限',
+      name: 'filePermissionDenied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `配置已保存,请重启OpenList服务以生效`
+  String get configSavedRestartRequired {
+    return Intl.message(
+      '配置已保存,请重启OpenList服务以生效',
+      name: 'configSavedRestartRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确认保存`
+  String get confirmSaveConfigTitle {
+    return Intl.message(
+      '确认保存',
+      name: 'confirmSaveConfigTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `修改配置可能导致服务不可用,确定保存吗?`
+  String get confirmSaveConfigMessage {
+    return Intl.message(
+      '修改配置可能导致服务不可用,确定保存吗?',
+      name: 'confirmSaveConfigMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `保存并重启`
+  String get saveAndRestart {
+    return Intl.message('保存并重启', name: 'saveAndRestart', desc: '', args: []);
+  }
+
+  /// `仅保存`
+  String get saveOnly {
+    return Intl.message('仅保存', name: 'saveOnly', desc: '', args: []);
+  }
+
+  /// `恢复备份`
+  String get restoreBackup {
+    return Intl.message('恢复备份', name: 'restoreBackup', desc: '', args: []);
+  }
+
+  /// `备份已恢复`
+  String get backupRestored {
+    return Intl.message('备份已恢复', name: 'backupRestored', desc: '', args: []);
+  }
+
+  /// `未找到备份文件`
+  String get noBackupFound {
+    return Intl.message('未找到备份文件', name: 'noBackupFound', desc: '', args: []);
+  }
+
+  /// `恢复备份失败:{error}`
+  String restoreBackupFailed(String error) {
+    return Intl.message(
+      '恢复备份失败:$error',
+      name: 'restoreBackupFailed',
+      desc: '',
+      args: [error],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

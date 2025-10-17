@@ -515,5 +515,54 @@
   "openlistMobile": "OpenList Mobile",
   "openSourceLicenses": "Open Source Licenses",
   "viewThirdPartyLicenses": "View third-party licenses",
-  "editOpenListConfig": "Edit OpenList Config"
+  "editOpenListConfig": "Edit OpenList Config",
+  "save": "Save",
+  "saved": "Saved",
+  "edit": "Edit",
+  "preview": "Preview",
+  "fileNotFoundWillCreateOnSave": "File not found. Will create on save.",
+  "loadFailed": "Load failed: {error}",
+  "@loadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "Save failed: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidJsonFormat": "Invalid JSON format at line {line}: {error}",
+  "@invalidJsonFormat": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePermissionDenied": "File permission denied. Please check app permissions.",
+  "configSavedRestartRequired": "Config saved. Please restart OpenList service to take effect.",
+  "confirmSaveConfigTitle": "Confirm Save",
+  "confirmSaveConfigMessage": "Modifying configuration may cause service unavailable. Are you sure to save?",
+  "saveAndRestart": "Save and Restart",
+  "saveOnly": "Save Only",
+  "restoreBackup": "Restore Backup",
+  "backupRestored": "Backup restored successfully",
+  "noBackupFound": "No backup file found",
+  "restoreBackupFailed": "Restore backup failed: {error}",
+  "@restoreBackupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }
