@@ -2,7 +2,7 @@
   "@@locale": "en",
   "appName": "OpenList",
   "desktopShortcut": "Desktop shortcut",
-  "setAdminPassword": "Set admin password",
+  "setAdminPassword": "Set Admin password",
   "moreOptions": "More options",
   "checkForUpdates": "Check for updates",
   "currentIsLatestVersion": "Current is latest version",
@@ -28,10 +28,10 @@
   "copiedToClipboard": "Copied to clipboard",
   "importantSettings": "Important settings",
   "uiSettings": "UI",
-  "grantManagerStoragePermission": "Grant 【Manage external storage】 permission",
+  "grantManagerStoragePermission": "Grant [Manage external storage] permission",
   "grantStoragePermissionDesc": "Mounting local storage is a must, otherwise no permission to read and write files",
-  "grantStoragePermission": "Grant 【external storage】 permission",
-  "grantNotificationPermission": "Grant 【Notification】 permission",
+  "grantStoragePermission": "Grant [external storage] permission",
+  "grantNotificationPermission": "Grant [Notification] permission",
   "grantNotificationPermissionDesc": "Used for foreground service keep alive",
   "autoStartWebPage": "Set web page as startup page",
   "autoStartWebPageDesc": "Default page when opening main interface",
@@ -247,7 +247,7 @@
       }
     }
   },
-  "cannotInstallApkFile": "Cannot install APK file, you may need to enable \\\"Install unknown apps\\\" in settings",
+  "cannotInstallApkFile": "Cannot install APK file, you may need to enable \"Install unknown apps\" in settings",
   "noPermissionToInstallApk": "No permission to install APK file, please enable install permission in settings",
   "openFileException": "Open file exception: {error}",
   "@openFileException": {
@@ -444,7 +444,7 @@
     }
   },
   "userCancelledDownloadError": "User cancelled download",
-  "cannotInstallApkNeedPermission": "Cannot install APK file, you may need to enable \\\"Install unknown apps\\\" in settings",
+  "cannotInstallApkNeedPermission": "Cannot install APK file, you may need to enable \"Install unknown apps\" in settings",
   "noPermissionToInstallApkFile": "No permission to install APK file, please enable install permission in settings",
   "preparingDownloadStatus": "Preparing download...",
   "downloadCancelledText": "Download cancelled",
@@ -510,5 +510,63 @@
       }
     }
   },
-  "apkDownloadCompleteMessage": "APK file download completed, do you want to install?"
+  "apkDownloadCompleteMessage": "APK file download completed, do you want to install?",
+  "openlist": "OpenList",
+  "openlistMobile": "OpenList Mobile",
+  "openSourceLicenses": "Open Source Licenses",
+  "viewThirdPartyLicenses": "View third-party licenses",
+  "editOpenListConfig": "Edit OpenList Config",
+  "save": "Save",
+  "saved": "Saved",
+  "edit": "Edit",
+  "preview": "Preview",
+  "fileNotFoundWillCreateOnSave": "File not found. Will create on save.",
+  "loadFailed": "Load failed: {error}",
+  "@loadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "Save failed: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidJsonFormat": "Invalid JSON format at line {line}: {error}",
+  "@invalidJsonFormat": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePermissionDenied": "File permission denied. Please check app permissions.",
+  "configSavedRestartRequired": "Config saved. Please restart OpenList service to take effect.",
+  "confirmSaveConfigTitle": "Confirm Save",
+  "confirmSaveConfigMessage": "Modifying configuration may cause service unavailable. Are you sure to save?",
+  "saveAndRestart": "Save and Restart",
+  "saveOnly": "Save Only",
+  "restoreBackup": "Restore Backup",
+  "backupRestored": "Backup restored successfully",
+  "noBackupFound": "No backup file found",
+  "restoreBackupFailed": "Restore backup failed: {error}",
+  "@restoreBackupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "restartingService": "Restarting OpenList service...",
+  "serviceRestartSuccess": "Service restarted successfully",
+  "serviceRestartFailed": "Failed to restart service. Please restart manually.",
+  "serviceRestartOnlyAndroid": "Service restart is only supported on Android"
 }

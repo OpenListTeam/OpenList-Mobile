@@ -54,6 +54,7 @@ dependencies:
   flutter_local_notifications: ^19.3.1
   open_file_manager: ^2.0.1
   shared_preferences: ^2.3.2
+  flutter_highlight: ^0.7.0
 
 
 dev_dependencies:

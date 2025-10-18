@@ -90,7 +90,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: 1.23.4
+          go-version: 1.25.0
           cache-dependency-path: ${{ github.workspace }}/openlist-lib/openlist/go.sum
 
       - uses: actions/setup-java@v4
@@ -218,7 +218,7 @@ jobs:
 
   #     - uses: actions/setup-go@v5
   #       with:
-  #         go-version: 1.23.4
+  #         go-version: 1.25.0
 
   #     - name: Download OpenList Source Code
   #       run: |

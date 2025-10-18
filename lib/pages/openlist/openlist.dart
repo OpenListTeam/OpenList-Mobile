@@ -1,6 +1,7 @@
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/openlist/about_dialog.dart';
 import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
+import 'package:openlist_mobile/pages/openlist/config_editor_page.dart';
 import 'package:openlist_mobile/pages/app_update_dialog.dart';
 import 'package:openlist_mobile/widgets/switch_floating_action_button.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
@@ -23,13 +24,6 @@ class OpenListScreen extends StatelessWidget {
             title: Obx(() => Text("OpenList - ${ui.openlistVersion.value}")),
             actions: [
               IconButton(
-                tooltip: S.of(context).desktopShortcut,
-                onPressed: () async  {
-                  Android().addShortcut();
-                },
-                icon: const Icon(Icons.add_home),
-              ),
-              IconButton(
                 tooltip: S.current.setAdminPassword,
                 onPressed: () {
                   showDialog(
@@ -43,6 +37,20 @@ class OpenListScreen extends StatelessWidget {
                           }));
                 },
                 icon: const Icon(Icons.password),
+              ),
+              IconButton(
+                tooltip: S.of(context).editOpenListConfig,
+                onPressed: () {
+                  Get.to(() => const ConfigEditorPage());
+                },
+                icon: const Icon(Icons.edit_note),
+              ),
+              IconButton(
+                tooltip: S.of(context).desktopShortcut,
+                onPressed: () async  {
+                  Android().addShortcut();
+                },
+                icon: const Icon(Icons.add_home),
               ),
               PopupMenuButton(
                 tooltip: S.of(context).moreOptions,

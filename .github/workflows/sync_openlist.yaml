@@ -40,7 +40,7 @@ jobs:
           then
             echo "无更新"
           else
-            echo -e "[自动同步OpenList] ${{ env.openlist_version }}" > $GITHUB_WORKSPACE/CHANGELOG.md
+            echo -e "[自动同步OpenList] ${{ env.openlist_version }}\n\n[Auto Sync OpenList] ${{ env.openlist_version }}" > $GITHUB_WORKSPACE/CHANGELOG.md
             echo -e "${{ env.openlist_version }}" > ${{ env.VERSION_FILE }}
             
             # 更新pubspec.yaml中的版本号

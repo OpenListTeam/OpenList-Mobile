@@ -2,7 +2,7 @@
   "@@locale": "zh",
   "appName": "OpenList",
   "desktopShortcut": "桌面快捷方式",
-  "setAdminPassword": "设置admin密码",
+  "setAdminPassword": "设置Admin密码",
   "moreOptions": "更多选项",
   "checkForUpdates": "检查更新",
   "currentIsLatestVersion": "已经是最新版本",
@@ -51,7 +51,7 @@
       }
     }
   },
-  "modifyAdminPassword": "修改admin密码",
+  "modifyAdminPassword": "修改Admin密码",
   "directDownload": "直接下载",
   "browserDownload": "浏览器下载",
   "loadDownloadFilesFailed": "加载下载文件失败",
@@ -510,5 +510,63 @@
       }
     }
   },
-  "apkDownloadCompleteMessage": "APK文件已下载完成，是否要安装？"
+  "apkDownloadCompleteMessage": "APK文件已下载完成，是否要安装？",
+  "openlist": "OpenList",
+  "openlistMobile": "OpenList Mobile",
+  "openSourceLicenses": "开源许可证",
+  "viewThirdPartyLicenses": "查看第三方许可证",
+  "editOpenListConfig": "修改OpenList配置文件",
+  "save": "保存",
+  "saved": "已保存",
+  "edit": "编辑",
+  "preview": "预览",
+  "fileNotFoundWillCreateOnSave": "文件不存在,保存时将创建",
+  "loadFailed": "加载失败:{error}",
+  "@loadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "保存失败:{error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidJsonFormat": "JSON格式错误,第{line}行:{error}",
+  "@invalidJsonFormat": {
+    "placeholders": {
+      "line": {
+        "type": "int"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "filePermissionDenied": "文件权限被拒绝,请检查应用权限",
+  "configSavedRestartRequired": "配置已保存,请重启OpenList服务以生效",
+  "confirmSaveConfigTitle": "确认保存",
+  "confirmSaveConfigMessage": "修改配置可能导致服务不可用,确定保存吗?",
+  "saveAndRestart": "保存并重启",
+  "saveOnly": "仅保存",
+  "restoreBackup": "恢复备份",
+  "backupRestored": "备份已恢复",
+  "noBackupFound": "未找到备份文件",
+  "restoreBackupFailed": "恢复备份失败:{error}",
+  "@restoreBackupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "restartingService": "正在重启OpenList服务...",
+  "serviceRestartSuccess": "服务重启成功",
+  "serviceRestartFailed": "服务重启失败,请手动重启",
+  "serviceRestartOnlyAndroid": "服务重启仅支持Android系统"
 }

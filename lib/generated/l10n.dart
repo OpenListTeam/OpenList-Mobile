@@ -64,10 +64,10 @@ class S {
     return Intl.message('桌面快捷方式', name: 'desktopShortcut', desc: '', args: []);
   }
 
-  /// `设置admin密码`
+  /// `设置Admin密码`
   String get setAdminPassword {
     return Intl.message(
-      '设置admin密码',
+      '设置Admin密码',
       name: 'setAdminPassword',
       desc: '',
       args: [],
@@ -389,10 +389,10 @@ class S {
     );
   }
 
-  /// `修改admin密码`
+  /// `修改Admin密码`
   String get modifyAdminPassword {
     return Intl.message(
-      '修改admin密码',
+      '修改Admin密码',
       name: 'modifyAdminPassword',
       desc: '',
       args: [],
@@ -1754,6 +1754,226 @@ class S {
     return Intl.message(
       'APK文件已下载完成，是否要安装？',
       name: 'apkDownloadCompleteMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OpenList`
+  String get openlist {
+    return Intl.message('OpenList', name: 'openlist', desc: '', args: []);
+  }
+
+  /// `OpenList Mobile`
+  String get openlistMobile {
+    return Intl.message(
+      'OpenList Mobile',
+      name: 'openlistMobile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `开源许可证`
+  String get openSourceLicenses {
+    return Intl.message(
+      '开源许可证',
+      name: 'openSourceLicenses',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `查看第三方许可证`
+  String get viewThirdPartyLicenses {
+    return Intl.message(
+      '查看第三方许可证',
+      name: 'viewThirdPartyLicenses',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `修改OpenList配置文件`
+  String get editOpenListConfig {
+    return Intl.message(
+      '修改OpenList配置文件',
+      name: 'editOpenListConfig',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `保存`
+  String get save {
+    return Intl.message('保存', name: 'save', desc: '', args: []);
+  }
+
+  /// `已保存`
+  String get saved {
+    return Intl.message('已保存', name: 'saved', desc: '', args: []);
+  }
+
+  /// `编辑`
+  String get edit {
+    return Intl.message('编辑', name: 'edit', desc: '', args: []);
+  }
+
+  /// `预览`
+  String get preview {
+    return Intl.message('预览', name: 'preview', desc: '', args: []);
+  }
+
+  /// `文件不存在,保存时将创建`
+  String get fileNotFoundWillCreateOnSave {
+    return Intl.message(
+      '文件不存在,保存时将创建',
+      name: 'fileNotFoundWillCreateOnSave',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `加载失败:{error}`
+  String loadFailed(String error) {
+    return Intl.message(
+      '加载失败:$error',
+      name: 'loadFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `保存失败:{error}`
+  String saveFailed(String error) {
+    return Intl.message(
+      '保存失败:$error',
+      name: 'saveFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `JSON格式错误,第{line}行:{error}`
+  String invalidJsonFormat(int line, String error) {
+    return Intl.message(
+      'JSON格式错误,第$line行:$error',
+      name: 'invalidJsonFormat',
+      desc: '',
+      args: [line, error],
+    );
+  }
+
+  /// `文件权限被拒绝,请检查应用权限`
+  String get filePermissionDenied {
+    return Intl.message(
+      '文件权限被拒绝,请检查应用权限',
+      name: 'filePermissionDenied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `配置已保存,请重启OpenList服务以生效`
+  String get configSavedRestartRequired {
+    return Intl.message(
+      '配置已保存,请重启OpenList服务以生效',
+      name: 'configSavedRestartRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确认保存`
+  String get confirmSaveConfigTitle {
+    return Intl.message(
+      '确认保存',
+      name: 'confirmSaveConfigTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `修改配置可能导致服务不可用,确定保存吗?`
+  String get confirmSaveConfigMessage {
+    return Intl.message(
+      '修改配置可能导致服务不可用,确定保存吗?',
+      name: 'confirmSaveConfigMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `保存并重启`
+  String get saveAndRestart {
+    return Intl.message('保存并重启', name: 'saveAndRestart', desc: '', args: []);
+  }
+
+  /// `仅保存`
+  String get saveOnly {
+    return Intl.message('仅保存', name: 'saveOnly', desc: '', args: []);
+  }
+
+  /// `恢复备份`
+  String get restoreBackup {
+    return Intl.message('恢复备份', name: 'restoreBackup', desc: '', args: []);
+  }
+
+  /// `备份已恢复`
+  String get backupRestored {
+    return Intl.message('备份已恢复', name: 'backupRestored', desc: '', args: []);
+  }
+
+  /// `未找到备份文件`
+  String get noBackupFound {
+    return Intl.message('未找到备份文件', name: 'noBackupFound', desc: '', args: []);
+  }
+
+  /// `恢复备份失败:{error}`
+  String restoreBackupFailed(String error) {
+    return Intl.message(
+      '恢复备份失败:$error',
+      name: 'restoreBackupFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `正在重启OpenList服务...`
+  String get restartingService {
+    return Intl.message(
+      '正在重启OpenList服务...',
+      name: 'restartingService',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `服务重启成功`
+  String get serviceRestartSuccess {
+    return Intl.message(
+      '服务重启成功',
+      name: 'serviceRestartSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `服务重启失败,请手动重启`
+  String get serviceRestartFailed {
+    return Intl.message(
+      '服务重启失败,请手动重启',
+      name: 'serviceRestartFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `服务重启仅支持Android系统`
+  String get serviceRestartOnlyAndroid {
+    return Intl.message(
+      '服务重启仅支持Android系统',
+      name: 'serviceRestartOnlyAndroid',
       desc: '',
       args: [],
     );
