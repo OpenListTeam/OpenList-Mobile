@@ -128,6 +128,10 @@ if [ -f ../go.mod ]; then
     echo "Listing generated files in current directory:"
     ls -la *.xcframework 2>/dev/null || echo "No .xcframework files found in current directory"
     
+    # Also check if any frameworks were generated with different patterns
+    ls -la Openlistlib.xcframework 2>/dev/null || echo "Openlistlib.xcframework not found"
+    ls -la openlistlib.xcframework 2>/dev/null || echo "openlistlib.xcframework not found"
+    
     # Find the Flutter project root by looking for pubspec.yaml
     echo "Locating Flutter project root..."
     FLUTTER_ROOT=""
@@ -172,31 +176,31 @@ if [ -f ../go.mod ]; then
     if ls *.xcframework 1> /dev/null 2>&1; then
         echo "Moving xcframework files to Flutter iOS Frameworks directory..."
         
+        # Ensure the target directory exists
+        mkdir -p "${FLUTTER_ROOT}ios/Frameworks"
+        
         # Copy files to Flutter project
         for framework in *.xcframework; do
-            echo "Moving $framework to ${FLUTTER_ROOT}ios/Frameworks/"
-            mv "$framework" "${FLUTTER_ROOT}ios/Frameworks/"
+            echo "Copying $framework to ${FLUTTER_ROOT}ios/Frameworks/"
+            cp -rf "$framework" "${FLUTTER_ROOT}ios/Frameworks/"
         done
         
-        echo "iOS framework build completed successfully"
+        echo "✅ iOS framework build completed successfully"
         echo "Files in Flutter iOS Frameworks directory:"
-        ls -la "${FLUTTER_ROOT}ios/Frameworks/"
+        ls -lah "${FLUTTER_ROOT}ios/Frameworks/"
         
         # Verify the files are in the expected location
         EXPECTED_PATH="${FLUTTER_ROOT}ios/Frameworks"
+        ABSOLUTE_EXPECTED_PATH=$(cd "$EXPECTED_PATH" && pwd)
         if [ -d "$EXPECTED_PATH" ] && [ "$(ls -A "$EXPECTED_PATH")" ]; then
-            echo "✅ Framework files successfully placed in: $EXPECTED_PATH"
-            echo "Absolute path: $(cd "$EXPECTED_PATH" && pwd)"
+            echo "✅ Framework files successfully placed in: $ABSOLUTE_EXPECTED_PATH"
+            
+            # List all frameworks found
+            echo ""
+            echo "=== Frameworks Ready ==="
+            find "$EXPECTED_PATH" -name "*.xcframework" -type d -exec basename {} \;
         else
             echo "❌ Warning: Framework files may not be in the expected location"
-        fi
-        
-        # Also create a local ios/Frameworks for backward compatibility
-        mkdir -p ios/Frameworks
-        if [ -d "${FLUTTER_ROOT}ios/Frameworks" ]; then
-            cp -f "${FLUTTER_ROOT}ios/Frameworks/"*.xcframework ios/Frameworks/ 2>/dev/null || true
-            echo "Local backup copy created in: $(pwd)/ios/Frameworks/"
-            ls -la ios/Frameworks/ 2>/dev/null || echo "No local backup copy created"
         fi
     else
         echo "Warning: No .xcframework files were generated"

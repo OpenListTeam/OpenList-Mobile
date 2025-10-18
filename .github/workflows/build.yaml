@@ -330,6 +330,28 @@ jobs:
           OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
           OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
 
+      - name: Verify iOS Framework Generation
+        run: |
+          echo "=== Verifying xcframework generation ==="
+          ls -la $GITHUB_WORKSPACE/ios/Frameworks/ || echo "ios/Frameworks directory not found"
+          
+          if [ -d "$GITHUB_WORKSPACE/ios/Frameworks" ]; then
+            FRAMEWORK_COUNT=$(find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d | wc -l)
+            echo "Found $FRAMEWORK_COUNT xcframework(s)"
+            
+            if [ "$FRAMEWORK_COUNT" -eq 0 ]; then
+              echo "❌ ERROR: No xcframework files found!"
+              find $GITHUB_WORKSPACE -name "*.xcframework" -type d || echo "No xcframework found anywhere"
+              exit 1
+            else
+              echo "✅ Found xcframework files:"
+              find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d
+            fi
+          else
+            echo "❌ ERROR: ios/Frameworks directory does not exist!"
+            exit 1
+          fi
+
       - name: Upload iOS Framework
         uses: actions/upload-artifact@v4
         with:
@@ -344,6 +366,7 @@ jobs:
         env:
           BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
         run: |
+          echo "Building iOS app with CocoaPods..."
           flutter build ios --release --no-codesign
 
       - name: Create IPA
