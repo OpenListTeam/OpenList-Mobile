@@ -1,0 +1,168 @@
+name: Build OpenList Libraries
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      openlist_version: ${{ steps.openlist_version.outputs.openlist_version }}
+      openlist_git_commit: ${{ steps.openlist_version.outputs.openlist_git_commit }}
+      openlist_web_version: ${{ steps.openlist_version.outputs.openlist_web_version }}
+      openlist_built_at: ${{ steps.openlist_version.outputs.openlist_built_at }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download OpenList Source Code
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_openlist.sh
+
+      - name: Extract OpenList Version Info
+        id: openlist_version
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          
+          GIT_REPO="https://github.com/OpenListTeam/OpenList.git"
+          OPENLIST_VERSION=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags $GIT_REPO | tail -n 1 | cut -d'/' -f3)
+          OPENLIST_GIT_COMMIT=$(git ls-remote $GIT_REPO "refs/tags/${OPENLIST_VERSION}" | cut -f1 | cut -c1-7)
+          OPENLIST_WEB_VERSION=$(curl -fsSL --max-time 10 "https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/"//g;s/,//g;s/ //g' || echo "rolling")
+          OPENLIST_BUILT_AT=$(date +'%F %T %z')
+          
+          echo "openlist_version=${OPENLIST_VERSION}" >> $GITHUB_OUTPUT
+          echo "openlist_git_commit=${OPENLIST_GIT_COMMIT}" >> $GITHUB_OUTPUT
+          echo "openlist_web_version=${OPENLIST_WEB_VERSION}" >> $GITHUB_OUTPUT
+          echo "openlist_built_at=${OPENLIST_BUILT_AT}" >> $GITHUB_OUTPUT
+          
+          echo "OpenList Backend Version: ${OPENLIST_VERSION}"
+          echo "OpenList Git Commit: ${OPENLIST_GIT_COMMIT}"
+          echo "OpenList Web Version: ${OPENLIST_WEB_VERSION}"
+          echo "Built At: ${OPENLIST_BUILT_AT}"
+
+  build_android:
+    needs: [version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download OpenList Source Code
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_openlist.sh
+          ./init_web.sh
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.25.0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r25c
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+
+      - name: Build OpenList Android AAR
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_gomobile.sh
+          ./gobind.sh
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          OPENLIST_VERSION: ${{ needs.version.outputs.openlist_version }}
+          OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
+          OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
+          OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
+          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
+
+      - name: Upload OpenList Android AAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: "openlist-android-aar"
+          path: "${{ github.workspace }}/android/app/libs/*.aar"
+          retention-days: 50
+
+  build_ios:
+    needs: [version]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.25.0
+
+      - name: Download OpenList Source Code
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_openlist.sh
+          ./init_web_ios.sh
+
+      - name: Verify Go Installation
+        run: |
+          which go
+          go version
+          echo "GOPATH: $GOPATH"
+          echo "GOROOT: $GOROOT"
+
+      - name: Build OpenList iOS Framework
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_gomobile.sh
+          ./gobind_ios.sh
+        env:
+          OPENLIST_VERSION: ${{ needs.version.outputs.openlist_version }}
+          OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
+          OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
+          OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
+          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
+
+      - name: Verify iOS Framework Generation
+        run: |
+          echo "=== Verifying xcframework generation ==="
+          ls -la $GITHUB_WORKSPACE/ios/Frameworks/ || echo "ios/Frameworks directory not found"
+          
+          if [ -d "$GITHUB_WORKSPACE/ios/Frameworks" ]; then
+            FRAMEWORK_COUNT=$(find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d | wc -l)
+            echo "Found $FRAMEWORK_COUNT xcframework(s)"
+            
+            if [ "$FRAMEWORK_COUNT" -eq 0 ]; then
+              echo "❌ ERROR: No xcframework files found!"
+              exit 1
+            else
+              echo "✅ Found xcframework files:"
+              find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d
+            fi
+          else
+            echo "❌ ERROR: ios/Frameworks directory does not exist!"
+            exit 1
+          fi
+
+      - name: Upload OpenList iOS Framework
+        uses: actions/upload-artifact@v4
+        with:
+          name: "openlist-ios-xcframework"
+          path: "${{ github.workspace }}/ios/Frameworks/*.xcframework"
+          retention-days: 50
