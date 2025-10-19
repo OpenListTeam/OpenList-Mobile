@@ -98,7 +98,7 @@ jobs:
         with:
           name: "openlist-android-aar"
           path: "${{ github.workspace }}/android/app/libs/*.aar"
-          retention-days: 30
+          retention-days: 50
 
   build_ios:
     needs: [version]
@@ -165,4 +165,4 @@ jobs:
         with:
           name: "openlist-ios-xcframework"
           path: "${{ github.workspace }}/ios/Frameworks/*.xcframework"
-          retention-days: 30
+          retention-days: 50
