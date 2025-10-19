@@ -86,7 +86,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download OpenList Android AAR from latest build
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: build_openlist.yaml
           name: openlist-android-aar
@@ -256,7 +256,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download OpenList iOS Framework from latest build
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: build_openlist.yaml
           name: openlist-ios-xcframework
