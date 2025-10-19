@@ -15,55 +15,60 @@ permissions:
   actions: write
 
 jobs:
-  build:
+  check_and_update:
     runs-on: ubuntu-latest
+    outputs:
+      openlist_update: ${{ steps.set_output.outputs.openlist_update }}
+      openlist_version: ${{ steps.set_output.outputs.openlist_version }}
     env:
       VERSION_FILE: ${{ github.workspace }}/openlist_version
     steps:
       - uses: actions/checkout@v3
-      - run: |
+      
+      - name: Check OpenList Version
+        run: |
           cd $GITHUB_WORKSPACE/.github/scripts
           chmod +x ./*.sh
 
           touch ${{ env.VERSION_FILE }}
           ./check_openlist.sh
 
-      - name: Change OpenList Version
+      - name: Set Output Variables
+        id: set_output
         run: |
-          echo "openlist_version=${{ env.openlist_version }}"
-          echo "openlist_update=${{ env.openlist_update }}" 
+          echo "openlist_version=${{ env.openlist_version }}" >> $GITHUB_OUTPUT
+          echo "openlist_update=${{ env.openlist_update }}" >> $GITHUB_OUTPUT
+          echo "OpenList Version: ${{ env.openlist_version }}"
+          echo "Update Required: ${{ env.openlist_update }}"
 
-          # 用于测试
-          # echo "openlist_update=1" >> $GITHUB_ENV 
-
-          if [ ${{ env.openlist_update }} -eq 0 ]
-          then
-            echo "无更新"
-          else
-            echo -e "[自动同步OpenList] ${{ env.openlist_version }}\n\n[Auto Sync OpenList] ${{ env.openlist_version }}" > $GITHUB_WORKSPACE/CHANGELOG.md
-            echo -e "${{ env.openlist_version }}" > ${{ env.VERSION_FILE }}
-            
-            # 更新pubspec.yaml中的版本号
-            chmod +x $GITHUB_WORKSPACE/.github/scripts/update_pubspec_version.sh
-            $GITHUB_WORKSPACE/.github/scripts/update_pubspec_version.sh
-
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .
-            git commit -m "[bot] Update openlist to ${{ env.openlist_version }}"
-            git push
-          fi
-
-      - name: Run workflow build_openlist
-        if: env.openlist_update == 1 && ( success() || failure() )
+      - name: Update Version Files
+        if: env.openlist_update == '1'
         run: |
-          gh workflow run build_openlist.yaml -R OpenListTeam/OpenList-Mobile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo -e "[自动同步OpenList] ${{ env.openlist_version }}\n\n[Auto Sync OpenList] ${{ env.openlist_version }}" > $GITHUB_WORKSPACE/CHANGELOG.md
+          echo -e "${{ env.openlist_version }}" > ${{ env.VERSION_FILE }}
+          
+          chmod +x $GITHUB_WORKSPACE/.github/scripts/update_pubspec_version.sh
+          $GITHUB_WORKSPACE/.github/scripts/update_pubspec_version.sh
 
-      - name: Run workflow release
-        if: env.openlist_update == 1 && ( success() || failure() )
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "[bot] Update openlist to ${{ env.openlist_version }}"
+          git push
+
+  build_openlist_libraries:
+    needs: [check_and_update]
+    if: needs.check_and_update.outputs.openlist_update == '1'
+    uses: ./.github/workflows/build_openlist.yaml
+
+  trigger_release:
+    needs: [check_and_update, build_openlist_libraries]
+    if: needs.check_and_update.outputs.openlist_update == '1' && ( success() || failure() )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Release Workflow
         run: |
+          echo "OpenList libraries built successfully, triggering release workflow..."
           gh workflow run release.yaml -R OpenListTeam/OpenList-Mobile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
