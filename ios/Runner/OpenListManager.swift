@@ -21,7 +21,7 @@ class OpenListManager: NSObject {
         }
         
         do {
-            try OpenlistlibInit(event, logger)
+            try OpenlistlibInit(event, cb: logger)
             isInitialized = true
             print("[OpenListManager] Initialized successfully")
         } catch {
@@ -59,7 +59,11 @@ class OpenListManager: NSObject {
         
         print("[OpenListManager] Stopping OpenList server...")
         do {
-            try OpenlistlibShutdown(timeout)
+            var err: NSError?
+            OpenlistlibShutdown(timeout, error: &err)
+            if let error = err {
+                throw error
+            }
             isServerRunning = false
             print("[OpenListManager] Server stopped")
         } catch {
@@ -68,7 +72,8 @@ class OpenListManager: NSObject {
     }
     
     func isRunning() -> Bool {
-        return isServerRunning && OpenlistlibIsRunning("http")
+        var t = "http"
+        return isServerRunning && OpenlistlibIsRunning(&t)
     }
     
     func getHttpPort() -> Int {
@@ -78,7 +83,11 @@ class OpenListManager: NSObject {
     
     func forceDBSync() {
         do {
-            try OpenlistlibForceDBSync()
+            var err: NSError?
+            OpenlistlibForceDBSync(&err)
+            if let error = err {
+                throw error
+            }
             print("[OpenListManager] Database sync completed")
         } catch {
             print("[OpenListManager] Database sync failed: \(error)")

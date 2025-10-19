@@ -11,7 +11,7 @@ class CommonBridge: NSObject, NativeCommon {
         super.init()
     }
     
-    func startActivityFromUri(_ intentUri: String) throws -> Bool {
+    func startActivityFromUri(intentUri: String) throws -> Bool {
         print("[CommonBridge] startActivityFromUri: \(intentUri)")
         
         guard let url = URL(string: intentUri) else {
@@ -69,12 +69,12 @@ class CommonBridge: NSObject, NativeCommon {
         return code
     }
     
-    func toast(_ msg: String) throws {
+    func toast(msg: String) throws {
         print("[CommonBridge] Toast: \(msg)")
         showToast(message: msg, duration: 2.0)
     }
     
-    func longToast(_ msg: String) throws {
+    func longToast(msg: String) throws {
         print("[CommonBridge] Long toast: \(msg)")
         showToast(message: msg, duration: 4.0)
     }

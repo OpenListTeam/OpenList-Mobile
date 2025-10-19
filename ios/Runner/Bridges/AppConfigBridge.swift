@@ -19,7 +19,7 @@ class AppConfigBridge: NSObject, AppConfig {
         return defaults.bool(forKey: Keys.wakeLock)
     }
     
-    func setWakeLockEnabled(_ enabled: Bool) throws {
+    func setWakeLockEnabled(enabled: Bool) throws {
         defaults.set(enabled, forKey: Keys.wakeLock)
         print("[AppConfigBridge] Wake lock enabled: \(enabled)")
     }
@@ -28,7 +28,7 @@ class AppConfigBridge: NSObject, AppConfig {
         return defaults.bool(forKey: Keys.startAtBoot)
     }
     
-    func setStartAtBootEnabled(_ enabled: Bool) throws {
+    func setStartAtBootEnabled(enabled: Bool) throws {
         defaults.set(enabled, forKey: Keys.startAtBoot)
         print("[AppConfigBridge] Start at boot enabled: \(enabled)")
     }
@@ -37,7 +37,7 @@ class AppConfigBridge: NSObject, AppConfig {
         return defaults.bool(forKey: Keys.autoCheckUpdate)
     }
     
-    func setAutoCheckUpdateEnabled(_ enabled: Bool) throws {
+    func setAutoCheckUpdateEnabled(enabled: Bool) throws {
         defaults.set(enabled, forKey: Keys.autoCheckUpdate)
         print("[AppConfigBridge] Auto check update enabled: \(enabled)")
     }
@@ -46,7 +46,7 @@ class AppConfigBridge: NSObject, AppConfig {
         return defaults.bool(forKey: Keys.autoOpenWebPage)
     }
     
-    func setAutoOpenWebPageEnabled(_ enabled: Bool) throws {
+    func setAutoOpenWebPageEnabled(enabled: Bool) throws {
         defaults.set(enabled, forKey: Keys.autoOpenWebPage)
         print("[AppConfigBridge] Auto open web page enabled: \(enabled)")
     }
@@ -62,7 +62,7 @@ class AppConfigBridge: NSObject, AppConfig {
         return documentsDirectory
     }
     
-    func setDataDir(_ dir: String) throws {
+    func setDataDir(dir: String) throws {
         defaults.set(dir, forKey: Keys.dataDir)
         print("[AppConfigBridge] Data directory set to: \(dir)")
     }
@@ -71,7 +71,7 @@ class AppConfigBridge: NSObject, AppConfig {
         return defaults.bool(forKey: Keys.silentJumpApp)
     }
     
-    func setSilentJumpAppEnabled(_ enabled: Bool) throws {
+    func setSilentJumpAppEnabled(enabled: Bool) throws {
         defaults.set(enabled, forKey: Keys.silentJumpApp)
         print("[AppConfigBridge] Silent jump app enabled: \(enabled)")
     }
