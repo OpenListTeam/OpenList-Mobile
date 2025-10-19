@@ -89,40 +89,31 @@ class OpenListManager: NSObject {
 // MARK: - Event Handler
 
 class OpenListEventHandler: NSObject, OpenlistlibEventProtocol {
-    weak var delegate: OpenListEventDelegate?
+    weak var eventAPI: Event?
     
     func onStartError(_ t: String?, err: String?) {
         print("[OpenListEvent] Start error - Type: \(t ?? "unknown"), Error: \(err ?? "unknown")")
-        delegate?.onStartError(type: t ?? "unknown", error: err ?? "unknown")
+        // Notify Flutter side via Event API if needed
     }
     
     func onShutdown(_ t: String?) {
         print("[OpenListEvent] Shutdown - Type: \(t ?? "unknown")")
-        delegate?.onShutdown(type: t ?? "unknown")
+        // Notify Flutter side via Event API if needed
     }
     
     func onProcessExit(_ code: Int) {
         print("[OpenListEvent] Process exit - Code: \(code)")
-        delegate?.onProcessExit(code: code)
+        // Handle process exit if needed
     }
-}
-
-protocol OpenListEventDelegate: AnyObject {
-    func onStartError(type: String, error: String)
-    func onShutdown(type: String)
-    func onProcessExit(code: Int)
 }
 
 // MARK: - Log Callback
 
 class OpenListLogCallback: NSObject, OpenlistlibLogCallbackProtocol {
-    weak var delegate: OpenListLogDelegate?
+    weak var eventAPI: Event?
     
     func onLog(_ level: Int16, time: Int64, message: String?) {
-        delegate?.onLog(level: level, time: time, message: message ?? "")
+        // Forward logs to Flutter side
+        eventAPI?.onServerLog(level: Int64(level), time: "\(time)", log: message ?? "") { _ in }
     }
-}
-
-protocol OpenListLogDelegate: AnyObject {
-    func onLog(level: Int16, time: Int64, message: String)
 }
