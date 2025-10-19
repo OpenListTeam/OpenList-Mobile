@@ -109,41 +109,6 @@ jobs:
           # 从Secrets读取无换行符Base64解码, 然后保存到到app/key.jks
           echo ${{ secrets.KEY_STORE }} | base64 --decode > $GITHUB_WORKSPACE/android/app/key.jks
 
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          # Keep tool cache to preserve Java, Go, Flutter installations
-          tool-cache: false
-          # Keep Android SDK as we need it for building
-          android: false
-          # Remove .NET runtime to save space
-          dotnet: true
-          # Remove Haskell runtime to save space
-          haskell: true  
-          # Remove large packages like Chrome, Firefox, etc.
-          large-packages: true
-          # Remove Docker images to save space
-          docker-images: true
-          # Remove swap storage to save space
-          swap-storage: true
-
-      - name: Additional Cleanup (Preserve Java)
-        run: |
-          echo "Before additional cleanup:"
-          df -h
-          # Remove specific large directories while preserving Java
-          sudo rm -rf /opt/hostedtoolcache/Python* 2>/dev/null || true
-          sudo rm -rf /opt/hostedtoolcache/node* 2>/dev/null || true
-          sudo rm -rf /opt/hostedtoolcache/Ruby* 2>/dev/null || true
-          sudo rm -rf /opt/hostedtoolcache/PyPy* 2>/dev/null || true
-          sudo rm -rf /opt/hostedtoolcache/CodeQL* 2>/dev/null || true
-          sudo rm -rf /imagegeneration 2>/dev/null || true
-          sudo rm -rf /opt/az 2>/dev/null || true
-          # Clean APT cache
-          sudo apt-get clean || true
-          echo "After additional cleanup:"
-          df -h
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.7'
@@ -160,18 +125,6 @@ jobs:
           name: "missing_rules"
           path: "${{ github.workspace }}/build/app/outputs/mapping/release/missing_rules.txt"
 
-      - name: Verify Version Consistency
-        run: |
-          # Verify the built APK version matches our generated version
-          BUILT_VERSION=$(grep -m 1 'versionName' ${{ env.output }}/output-metadata.json | cut -d\" -f4)
-          echo "Expected version: ${{ needs.version.outputs.version_name }}"
-          echo "Built version: ${BUILT_VERSION}"
-          if [ "${{ needs.version.outputs.version_name }}" != "${BUILT_VERSION}" ]; then
-            echo "Warning: Version mismatch detected!"
-            echo "Expected: ${{ needs.version.outputs.version_name }}"
-            echo "Got: ${BUILT_VERSION}"
-          fi
-
       - name: Upload Android APKs for Release
         uses: actions/upload-artifact@v4
         with:
@@ -184,63 +137,18 @@ jobs:
   #   env:
   #     output: "${{ github.workspace }}/build/ios/ipa"
   #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-
-  #     - uses: actions/setup-go@v5
-  #       with:
-  #         go-version: 1.25.0
-
-  #     - name: Download OpenList Source Code
-  #       run: |
-  #         cd $GITHUB_WORKSPACE/openlist-lib/scripts
-  #         chmod +x *.sh
-  #         echo "Initializing OpenList..."
-  #         ./init_openlist.sh
-  #         echo "Initializing Web assets for iOS..."
-  #         ./init_web_ios.sh
-
-  #     - name: Verify Go Installation
-  #       run: |
-  #         which go
-  #         go version
-  #         echo "GOPATH: $GOPATH"
-  #         echo "GOROOT: $GOROOT"
-
-  #     - name: Build OpenList for iOS
-  #       run: |
-  #         cd $GITHUB_WORKSPACE/openlist-lib/scripts
-  #         chmod +x *.sh
-  #         echo "Initializing gomobile for iOS..."
-  #         ./init_gomobile.sh
-  #         echo "Checking Go mobile installation..."
-  #         go list -m golang.org/x/mobile 2>/dev/null || echo "mobile module not found"
-  #         which gomobile || echo "gomobile not in PATH"
-  #         which gobind || echo "gobind not in PATH"
-  #         echo "Checking openlistlib directory..."
-  #         ls -la ../openlistlib/ || echo "openlistlib directory not found"
-  #         echo "Checking for problematic imports..."
-  #         if [ -d ../openlistlib ]; then
-  #           echo "Go files in openlistlib:"
-  #           ls -la ../openlistlib/*.go 2>/dev/null || echo "No Go files found"
-  #           echo "Checking imports:"
-  #           grep -r "golang.org/x/mobile/bind" ../openlistlib/ 2>/dev/null || echo "No bind imports found"
-  #         fi
-  #         echo "Building iOS framework..."
-  #         ./gobind_ios.sh
-  #       env:
-  #         OPENLIST_VERSION: ${{ needs.version.outputs.openlist_version }}
-  #         OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
-  #         OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
-  #         OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
-  #         OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
-
-  #     - name: Upload iOS Framework
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: "OpenList-iOS"
-  #         path: "${{ github.workspace }}/ios/Frameworks/*.xcframework"
+  #      - uses: actions/checkout@v3
+  #        with:
+  #          fetch-depth: 0
+  #
+  #      - name: Download OpenList iOS Framework from latest build
+  #        uses: dawidd6/action-download-artifact@v6
+  #        with:
+  #          workflow: build_openlist.yaml
+  #          name: openlist-ios-xcframework
+  #          path: ${{ github.workspace }}/ios/Frameworks/
+  #          check_artifacts: true
+  #          search_artifacts: true
 
   #     - uses: subosito/flutter-action@v2
   #       with:
