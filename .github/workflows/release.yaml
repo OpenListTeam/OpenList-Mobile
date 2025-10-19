@@ -81,50 +81,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download OpenList Source Code
-        run: |
-          cd $GITHUB_WORKSPACE/openlist-lib/scripts
-          chmod +x *.sh
-          ./init_openlist.sh
-          ./init_web.sh
-
-      - uses: actions/setup-go@v5
+      - name: Download OpenList Android AAR from latest build
+        uses: dawidd6/action-download-artifact@v3
         with:
-          go-version: 1.25.0
-          cache-dependency-path: ${{ github.workspace }}/openlist-lib/openlist/go.sum
+          workflow: build_openlist.yaml
+          name: openlist-android-aar
+          path: ${{ github.workspace }}/android/app/libs/
+          check_artifacts: true
+          search_artifacts: true
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        with:
-          ndk-version: r25c
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3
-
-      - name: Build OpenList
-        run: |
-            cd $GITHUB_WORKSPACE/openlist-lib/scripts
-            chmod +x *.sh
-            ./init_gomobile.sh
-            ./gobind.sh
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-          OPENLIST_VERSION: ${{ needs.version.outputs.openlist_version }}
-          OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
-          OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
-          OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
-          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
-
-      - name: Upload AAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: "OpenList"
-          path: "${{ github.workspace }}/android/app/libs/*.aar"
 
       - name: Init Signature
         run: |
