@@ -54,6 +54,13 @@ jobs:
             git push
           fi
 
+      - name: Run workflow build_openlist
+        if: env.openlist_update == 1 && ( success() || failure() )
+        run: |
+          gh workflow run build_openlist.yaml -R OpenListTeam/OpenList-Mobile
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run workflow release
         if: env.openlist_update == 1 && ( success() || failure() )
         run: |
