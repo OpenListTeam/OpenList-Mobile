@@ -20,14 +20,14 @@ class OpenListManager: NSObject {
             return
         }
         
-        do {
-            try OpenlistlibInit(event, cb: logger)
-            isInitialized = true
-            print("[OpenListManager] Initialized successfully")
-        } catch {
-            print("[OpenListManager] Initialization failed: \(error)")
-            throw error
+        var error: NSError?
+        OpenlistlibInit(event, logger, &error)
+        if let err = error {
+            print("[OpenListManager] Initialization failed: \(err)")
+            throw err
         }
+        isInitialized = true
+        print("[OpenListManager] Initialized successfully")
     }
     
     // MARK: - Server Control
@@ -58,22 +58,18 @@ class OpenListManager: NSObject {
         }
         
         print("[OpenListManager] Stopping OpenList server...")
-        do {
-            var err: NSError?
-            OpenlistlibShutdown(timeout, error: &err)
-            if let error = err {
-                throw error
-            }
-            isServerRunning = false
-            print("[OpenListManager] Server stopped")
-        } catch {
-            print("[OpenListManager] Failed to stop server: \(error)")
+        var error: NSError?
+        OpenlistlibShutdown(timeout, &error)
+        if let err = error {
+            print("[OpenListManager] Failed to stop server: \(err)")
+            return
         }
+        isServerRunning = false
+        print("[OpenListManager] Server stopped")
     }
     
     func isRunning() -> Bool {
-        var t = "http"
-        return isServerRunning && OpenlistlibIsRunning(&t)
+        return isServerRunning && OpenlistlibIsRunning("http")
     }
     
     func getHttpPort() -> Int {
@@ -82,16 +78,13 @@ class OpenListManager: NSObject {
     }
     
     func forceDBSync() {
-        do {
-            var err: NSError?
-            OpenlistlibForceDBSync(&err)
-            if let error = err {
-                throw error
-            }
-            print("[OpenListManager] Database sync completed")
-        } catch {
-            print("[OpenListManager] Database sync failed: \(error)")
+        var error: NSError?
+        OpenlistlibForceDBSync(&error)
+        if let err = error {
+            print("[OpenListManager] Database sync failed: \(err)")
+            return
         }
+        print("[OpenListManager] Database sync completed")
     }
 }
 
