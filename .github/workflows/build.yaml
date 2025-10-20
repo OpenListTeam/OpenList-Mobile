@@ -88,7 +88,7 @@ jobs:
       - name: Download OpenList Android AAR from latest build
         uses: dawidd6/action-download-artifact@v6
         with:
-          workflow: build_openlist.yaml
+          workflow: sync_openlist.yaml
           name: openlist-android-aar
           path: ${{ github.workspace }}/android/app/libs/
           check_artifacts: true
@@ -193,7 +193,7 @@ jobs:
       - name: Download OpenList iOS Framework from latest build
         uses: dawidd6/action-download-artifact@v6
         with:
-          workflow: build_openlist.yaml
+          workflow: sync_openlist.yaml
           name: openlist-ios-xcframework
           path: ${{ github.workspace }}/ios/Frameworks/
           check_artifacts: true
