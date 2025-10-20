@@ -46,7 +46,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         body: Obx(
       () => ListView(
         children: [
-          // SizedBox(height: MediaQuery.of(context).padding.top),
           Visibility(
             visible: !controller._managerStorageGranted.value ||
                 !controller._notificationGranted.value ||
