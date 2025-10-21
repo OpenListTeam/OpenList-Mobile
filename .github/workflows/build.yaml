@@ -36,7 +36,6 @@ jobs:
           TIMESTAMP=$(date +%y%m%d%H)
           VERSION_NAME="${BASE_VERSION}.${TIMESTAMP}"
           echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
-          echo "Generated version: ${VERSION_NAME}"
 
       - name: Download OpenList Source Code
         run: |
@@ -68,11 +67,6 @@ jobs:
           echo "openlist_git_commit=${OPENLIST_GIT_COMMIT}" >> $GITHUB_OUTPUT
           echo "openlist_web_version=${OPENLIST_WEB_VERSION}" >> $GITHUB_OUTPUT
           echo "openlist_built_at=${OPENLIST_BUILT_AT}" >> $GITHUB_OUTPUT
-          
-          echo "OpenList Backend Version: ${OPENLIST_VERSION}"
-          echo "OpenList Git Commit: ${OPENLIST_GIT_COMMIT}"
-          echo "OpenList Web Version: ${OPENLIST_WEB_VERSION}"
-          echo "Built At: ${OPENLIST_BUILT_AT}"
 
   android:
     needs: [version]
@@ -151,7 +145,6 @@ jobs:
           
           echo "output_path=$OUTPUT_DIR" >> $GITHUB_ENV
           echo "build_type=$BUILD_TYPE" >> $GITHUB_ENV
-          echo "Using version: ${{ needs.version.outputs.version_name }}"
 
       - name: Upload App To Artifact arm64-v8a
         if: success () || failure ()
@@ -220,13 +213,11 @@ jobs:
 
       - name: Set iOS Version
         run: |
-          # Use unified version from version job
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "ver_name=${{ needs.version.outputs.version_name }}-debug" >> $GITHUB_ENV
           else
             echo "ver_name=${{ needs.version.outputs.version_name }}" >> $GITHUB_ENV
           fi
-          echo "Using iOS version: ${{ needs.version.outputs.version_name }}"
 
       - name: Upload iOS App To Artifact
         if: success() || failure()

@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   version:
+    name: Get OpenList Version Information
     runs-on: ubuntu-latest
     outputs:
       openlist_version: ${{ steps.openlist_version.outputs.openlist_version }}
@@ -41,13 +42,9 @@ jobs:
           echo "openlist_git_commit=${OPENLIST_GIT_COMMIT}" >> $GITHUB_OUTPUT
           echo "openlist_web_version=${OPENLIST_WEB_VERSION}" >> $GITHUB_OUTPUT
           echo "openlist_built_at=${OPENLIST_BUILT_AT}" >> $GITHUB_OUTPUT
-          
-          echo "OpenList Backend Version: ${OPENLIST_VERSION}"
-          echo "OpenList Git Commit: ${OPENLIST_GIT_COMMIT}"
-          echo "OpenList Web Version: ${OPENLIST_WEB_VERSION}"
-          echo "Built At: ${OPENLIST_BUILT_AT}"
 
   build_android:
+    name: Build OpenList Android AAR
     needs: [version]
     runs-on: ubuntu-latest
     steps:
@@ -101,6 +98,7 @@ jobs:
           retention-days: 50
 
   build_ios:
+    name: Build OpenList iOS Framework
     needs: [version]
     runs-on: macos-latest
     steps:
@@ -119,13 +117,6 @@ jobs:
           ./init_openlist.sh
           ./init_web_ios.sh
 
-      - name: Verify Go Installation
-        run: |
-          which go
-          go version
-          echo "GOPATH: $GOPATH"
-          echo "GOROOT: $GOROOT"
-
       - name: Build OpenList iOS Framework
         run: |
           cd $GITHUB_WORKSPACE/openlist-lib/scripts
@@ -138,27 +129,6 @@ jobs:
           OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
           OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
           OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
-
-      - name: Verify iOS Framework Generation
-        run: |
-          echo "=== Verifying xcframework generation ==="
-          ls -la $GITHUB_WORKSPACE/ios/Frameworks/ || echo "ios/Frameworks directory not found"
-          
-          if [ -d "$GITHUB_WORKSPACE/ios/Frameworks" ]; then
-            FRAMEWORK_COUNT=$(find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d | wc -l)
-            echo "Found $FRAMEWORK_COUNT xcframework(s)"
-            
-            if [ "$FRAMEWORK_COUNT" -eq 0 ]; then
-              echo "❌ ERROR: No xcframework files found!"
-              exit 1
-            else
-              echo "✅ Found xcframework files:"
-              find $GITHUB_WORKSPACE/ios/Frameworks -name "*.xcframework" -type d
-            fi
-          else
-            echo "❌ ERROR: ios/Frameworks directory does not exist!"
-            exit 1
-          fi
 
       - name: Upload OpenList iOS Framework
         uses: actions/upload-artifact@v4
