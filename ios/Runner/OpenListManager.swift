@@ -33,21 +33,11 @@ class OpenListManager: NSObject {
             throw error
         }
         
-        // Set data directory for OpenList core
-        var setDirError: NSError?
-        OpenlistlibSetConfigData(dataDirPath, &setDirError)
-        if let err = setDirError {
-            print("[OpenListManager] Failed to set data directory: \(err)")
-            throw err
-        }
+        // Set data directory for OpenList core (no error return)
+        OpenlistlibSetConfigData(dataDirPath)
         
-        // Enable stdout logging
-        var setLogError: NSError?
-        OpenlistlibSetConfigLogStd(true, &setLogError)
-        if let err = setLogError {
-            print("[OpenListManager] Failed to set log config: \(err)")
-            throw err
-        }
+        // Enable stdout logging (no error return)
+        OpenlistlibSetConfigLogStd(true)
         
         var error: NSError?
         OpenlistlibInit(event, logger, &error)
