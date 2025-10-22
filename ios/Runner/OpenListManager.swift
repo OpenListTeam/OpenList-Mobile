@@ -7,6 +7,7 @@ class OpenListManager: NSObject {
     
     private var isInitialized = false
     private var isServerRunning = false
+    private var dataDir: String?
     
     private override init() {
         super.init()
@@ -20,6 +21,34 @@ class OpenListManager: NSObject {
             return
         }
         
+        // Get data directory from AppConfigBridge
+        let appConfig = AppConfigBridge()
+        let dataDirPath: String
+        do {
+            dataDirPath = try appConfig.getDataDir()
+            self.dataDir = dataDirPath
+            print("[OpenListManager] Data directory: \(dataDirPath)")
+        } catch {
+            print("[OpenListManager] Failed to get data directory: \(error)")
+            throw error
+        }
+        
+        // Set data directory for OpenList core
+        var setDirError: NSError?
+        OpenlistlibSetConfigData(dataDirPath, &setDirError)
+        if let err = setDirError {
+            print("[OpenListManager] Failed to set data directory: \(err)")
+            throw err
+        }
+        
+        // Enable stdout logging
+        var setLogError: NSError?
+        OpenlistlibSetConfigLogStd(true, &setLogError)
+        if let err = setLogError {
+            print("[OpenListManager] Failed to set log config: \(err)")
+            throw err
+        }
+        
         var error: NSError?
         OpenlistlibInit(event, logger, &error)
         if let err = error {
@@ -27,15 +56,27 @@ class OpenListManager: NSObject {
             throw err
         }
         isInitialized = true
-        print("[OpenListManager] Initialized successfully")
+        print("[OpenListManager] Initialized successfully with data directory: \(dataDirPath)")
     }
     
     // MARK: - Server Control
     
     func startServer() {
-        guard isInitialized else {
-            print("[OpenListManager] Not initialized, cannot start server")
-            return
+        print("[OpenListManager] Start server request received")
+        
+        // Check if initialized, if not, try to initialize first
+        if !isInitialized {
+            print("[OpenListManager] Not initialized, attempting initialization...")
+            let eventHandler = OpenListEventHandler()
+            let logCallback = OpenListLogCallback()
+            
+            do {
+                try initialize(event: eventHandler, logger: logCallback)
+                print("[OpenListManager] Initialization completed, proceeding to start server")
+            } catch {
+                print("[OpenListManager] Initialization failed: \(error), cannot start server")
+                return
+            }
         }
         
         guard !isServerRunning else {
@@ -43,7 +84,7 @@ class OpenListManager: NSObject {
             return
         }
         
-        print("[OpenListManager] Starting OpenList server...")
+        print("[OpenListManager] Starting OpenList server with data directory: \(dataDir ?? "unknown")...")
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             OpenlistlibStart()
             self?.isServerRunning = true
