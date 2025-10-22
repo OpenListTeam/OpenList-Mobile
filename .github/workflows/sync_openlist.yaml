@@ -1,9 +1,15 @@
-name: Check OpenList Version
+name: Check Updates
 
 on:
   schedule:
     - cron: "0 5,17 * * *" # 每日5点和17点执行
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build OpenList libraries'
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - "master"
@@ -16,6 +22,7 @@ permissions:
 
 jobs:
   check_and_update:
+    name: Check for version updates
     runs-on: ubuntu-latest
     outputs:
       openlist_update: ${{ steps.set_output.outputs.openlist_update }}
@@ -38,37 +45,45 @@ jobs:
         run: |
           echo "openlist_version=${{ env.openlist_version }}" >> $GITHUB_OUTPUT
           echo "openlist_update=${{ env.openlist_update }}" >> $GITHUB_OUTPUT
-          echo "OpenList Version: ${{ env.openlist_version }}"
-          echo "Update Required: ${{ env.openlist_update }}"
+
+      - name: Import GPG key
+        if: env.openlist_update == '1'
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.BOT_GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: true
 
       - name: Update Version Files
         if: env.openlist_update == '1'
         run: |
-          echo -e "[自动同步OpenList] ${{ env.openlist_version }}\n\n[Auto Sync OpenList] ${{ env.openlist_version }}" > $GITHUB_WORKSPACE/CHANGELOG.md
           echo -e "${{ env.openlist_version }}" > ${{ env.VERSION_FILE }}
           
           chmod +x $GITHUB_WORKSPACE/.github/scripts/update_pubspec_version.sh
           $GITHUB_WORKSPACE/.github/scripts/update_pubspec_version.sh
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ secrets.BOT_USERNAME }}"
+          git config user.email "${{ secrets.BOT_USEREMAIL }}"
           git add .
           git commit -m "[bot] Update openlist to ${{ env.openlist_version }}"
           git push
 
   build_openlist_libraries:
+    name: Build OpenList Libraries
     needs: [check_and_update]
-    if: needs.check_and_update.outputs.openlist_update == '1'
+    if: needs.check_and_update.outputs.openlist_update == '1' || inputs.force_build == true
     uses: ./.github/workflows/build_openlist.yaml
 
   trigger_release:
+    name: Trigger Release Workflow
     needs: [check_and_update, build_openlist_libraries]
     if: needs.check_and_update.outputs.openlist_update == '1' && ( success() || failure() )
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Release Workflow
         run: |
-          echo "OpenList libraries built successfully, triggering release workflow..."
-          gh workflow run release.yaml -R OpenListTeam/OpenList-Mobile
+          gh workflow run release.yaml -R ${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  

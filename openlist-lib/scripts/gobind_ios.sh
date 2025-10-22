@@ -64,33 +64,12 @@ if [ -f ../go.mod ]; then
     gomobile clean || true
     gomobile init
     
-    # Check module dependencies
-    echo "Checking module dependencies..."
-    go list -m all | grep mobile || echo "No mobile dependencies found"
-    
-    # Verify gomobile tools
-    echo "Verifying gomobile tools..."
-    which gomobile
-    which gobind
-    gomobile version 2>/dev/null || echo "gomobile version failed"
-    
     # Set CGO environment for iOS
     export CGO_ENABLED=1
     
     # Build for iOS with iOS-specific build tags to exclude incompatible packages
     echo "Starting iOS build from module root..."
     echo "CGO_ENABLED: $CGO_ENABLED"
-    
-    # Check what's in the openlistlib directory
-    echo "Checking openlistlib directory contents:"
-    ls -la openlistlib/
-    
-    # Try to build the package first to see if there are any issues
-    echo "Testing basic build of openlistlib package..."
-    go build -v ./openlistlib || {
-        echo "Basic build failed, checking for issues..."
-        go list -f '{{.ImportPath}}: {{.Error}}' ./openlistlib || true
-    }
     
     # Use build tags to exclude problematic packages on iOS
     echo "Attempting gomobile bind with iOS tags..."
