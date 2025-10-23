@@ -22,7 +22,7 @@ class WebScreen extends StatefulWidget {
   }
 }
 
-class WebScreenState extends State<WebScreen> {
+class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   InAppWebViewController? _webViewController;
   InAppWebViewSettings settings = InAppWebViewSettings(
     allowsInlineMediaPlayback: true,
@@ -44,6 +44,10 @@ class WebScreenState extends State<WebScreen> {
 
   @override
   void initState() {
+    super.initState();
+    // Register lifecycle observer to handle app state changes
+    WidgetsBinding.instance.addObserver(this);
+    
     Android()
         .getOpenListHttpPort()
         .then((port) => {_url = "http://localhost:$port"});
@@ -51,13 +55,46 @@ class WebScreenState extends State<WebScreen> {
     // NativeEvent().addServiceStatusListener((isRunning) {
     //   if (isRunning) _webViewController?.reload();
     // });
-    super.initState();
   }
 
   @override
   void dispose() {
+    // Remove lifecycle observer when widget is disposed
+    WidgetsBinding.instance.removeObserver(this);
     _webViewController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    log("App lifecycle state changed: $state");
+    
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // App returned to foreground, WebView should be active
+        log("App resumed, WebView is active");
+        _webViewController?.resume();
+        break;
+      case AppLifecycleState.paused:
+        // App entered background, ensure WebView state is preserved
+        log("App paused, WebView entering background");
+        // Note: Do not pause WebView to keep background tasks running
+        // The UIBackgroundModes in Info.plist allows WebKit processes to continue
+        break;
+      case AppLifecycleState.inactive:
+        // App transitioning states (e.g., incoming call, app switcher)
+        log("App inactive");
+        break;
+      case AppLifecycleState.detached:
+        // App is detached from UI
+        log("App detached");
+        break;
+      case AppLifecycleState.hidden:
+        // App is hidden
+        log("App hidden");
+        break;
+    }
   }
 
   @override
