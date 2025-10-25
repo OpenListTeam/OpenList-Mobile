@@ -137,7 +137,7 @@ class OpenListController extends GetxController {
   @override
   void onInit() {
     // 设置日志接收器，但状态变化只通过ServiceManager处理
-    Event.setup(MyEventReceiver(
+    Event.setUp(MyEventReceiver(
         (isRunning) {
           // 不在这里更新状态，避免冲突
           print('Event receiver status: $isRunning');
