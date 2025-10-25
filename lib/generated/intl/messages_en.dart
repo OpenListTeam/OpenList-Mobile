@@ -250,6 +250,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "databaseNotSavedIssueDesc": MessageLookupByLibrary.simpleMessage(
       "If you don\'t manually close OpenList, the database may not be saved to the corresponding db file. If you encounter this issue, please manually close the app to resolve it. (The switch is located in the main program menu on the OpenList interface, as well as in the notification bar)",
     ),
+    "debugLogLevel": MessageLookupByLibrary.simpleMessage("Full Logs (Debug)"),
+    "debugLogLevelDesc": MessageLookupByLibrary.simpleMessage(
+      "Show all log levels. Default shows Info and above. Restart service to apply",
+    ),
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
     "deleteFailed": MessageLookupByLibrary.simpleMessage("Delete failed"),
     "deleteFile": MessageLookupByLibrary.simpleMessage("Delete file"),

@@ -165,6 +165,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: (value) {
                 controller.silentJumpApp = value;
               }),
+          SwitchPreference(
+              icon: const Icon(Icons.bug_report),
+              title: S.of(context).debugLogLevel,
+              subtitle: S.of(context).debugLogLevelDesc,
+              value: controller._debugLogLevel.value,
+              onChanged: (value) {
+                controller.debugLogLevel = value;
+              }),
           
           BasicPreference(
             title: S.of(context).troubleshooting,
@@ -285,6 +293,15 @@ class _SettingsController extends GetxController {
         NativeBridge.appConfig.setSilentJumpAppEnabled(value)
       };
 
+  final _debugLogLevel = false.obs;
+
+  get debugLogLevel => _debugLogLevel.value;
+
+  set debugLogLevel(value) => {
+        _debugLogLevel.value = value,
+        NativeBridge.appConfig.setDebugLogEnabled(value)
+      };
+
   @override
   void onInit() async {
     updateData();
@@ -299,6 +316,7 @@ class _SettingsController extends GetxController {
     cfg.isStartAtBootEnabled().then((value) => startAtBoot = value);
     cfg.isAutoOpenWebPageEnabled().then((value) => autoStartWebPage = value);
     cfg.isSilentJumpAppEnabled().then((value) => silentJumpApp = value);
+    cfg.isDebugLogEnabled().then((value) => _debugLogLevel.value = value);
 
     _dataDir.value = await cfg.getDataDir();
 
