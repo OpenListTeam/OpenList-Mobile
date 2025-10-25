@@ -4,6 +4,7 @@ import UIKit
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var eventAPI: Event?
+  private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
   
   override func application(
     _ application: UIApplication,
@@ -55,6 +56,32 @@ import UIKit
   override func applicationWillTerminate(_ application: UIApplication) {
     // Cleanup OpenList core
     OpenListManager.shared.stopServer()
+    
+    // End background task if still active
+    endBackgroundTask()
+    
     super.applicationWillTerminate(application)
+  }
+  
+  override func applicationDidEnterBackground(_ application: UIApplication) {
+    // Begin background task to prevent WebView process suspension
+    backgroundTask = application.beginBackgroundTask { [weak self] in
+      // Background task is about to expire, clean up
+      self?.endBackgroundTask()
+    }
+  }
+  
+  override func applicationWillEnterForeground(_ application: UIApplication) {
+    // End background task when returning to foreground
+    endBackgroundTask()
+  }
+  
+  // MARK: - Background Task Management
+  
+  private func endBackgroundTask() {
+    if backgroundTask != .invalid {
+      UIApplication.shared.endBackgroundTask(backgroundTask)
+      backgroundTask = .invalid
+    }
   }
 }

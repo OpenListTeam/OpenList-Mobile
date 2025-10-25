@@ -31,6 +31,12 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
     javaScriptEnabled: true,
     mediaPlaybackRequiresUserGesture: false,
     useShouldOverrideUrlLoading: true,
+    // iOS specific: Enable page caching and state preservation
+    cacheEnabled: true,
+    sharedCookiesEnabled: true,
+    limitsNavigationsToAppBoundDomains: false,
+    // Enable disk and memory cache for better state preservation
+    cacheMode: CacheMode.LOAD_DEFAULT,
   );
 
   double _progress = 0;
