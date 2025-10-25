@@ -1,0 +1,10 @@
+# Pigeon configuration for OpenList Mobile
+# Generate platform-specific API code from Dart definitions
+
+input: pigeons/pigeon.dart
+dart_out: lib/generated_api.dart
+
+java_out: android/app/src/main/java/com/openlist/pigeon/GeneratedApi.java
+java_package: com.openlist.pigeon
+
+swift_out: ios/Runner/GeneratedPluginRegistrant.swift
