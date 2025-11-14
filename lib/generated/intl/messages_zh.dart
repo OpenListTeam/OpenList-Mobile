@@ -211,6 +211,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "databaseNotSavedIssueDesc": MessageLookupByLibrary.simpleMessage(
       "如不手动关闭OpenList，则数据库可能不会被保存到对应的db文件中，如遇到此问题，请手动关闭以解决此问题。（开关位于主程序菜单OpenList界面，以及通知栏的通知上）",
     ),
+    "debugLogLevel": MessageLookupByLibrary.simpleMessage("完整日志（Debug）"),
+    "debugLogLevelDesc": MessageLookupByLibrary.simpleMessage(
+      "显示全部级别日志，默认仅显示Info及以上级别。重启服务后生效",
+    ),
     "delete": MessageLookupByLibrary.simpleMessage("删除"),
     "deleteFailed": MessageLookupByLibrary.simpleMessage("删除失败"),
     "deleteFile": MessageLookupByLibrary.simpleMessage("删除文件"),

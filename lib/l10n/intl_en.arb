@@ -39,6 +39,8 @@
   "setDefaultDirectory": "Set as default directory?",
   "silentJumpApp": "Silent jump app",
   "silentJumpAppDesc": "Jump to other app without prompt",
+  "debugLogLevel": "Full Logs (Debug)",
+  "debugLogLevelDesc": "Show all log levels. Default shows Info and above. Restart service to apply",
   "newVersionFound": "New Version Found",
   "directDownloadApk": "Direct Download APK",
   "initializingNotificationManager": "Initializing notification manager",

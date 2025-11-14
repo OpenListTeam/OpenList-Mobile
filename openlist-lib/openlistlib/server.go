@@ -40,10 +40,14 @@ var logFormatter *internal.MyFormatter
 func Init(e Event, cb LogCallback) error {
 	event = e
 	cmd.Init()
+	// Apply log filtering based on debug mode
+	// When not in debug/dev mode, filter out Debug and Trace logs
+	filterDebug := !flags.Debug && !flags.Dev
 	logFormatter = &internal.MyFormatter{
 		OnLog: func(entry *log.Entry) {
 			cb.OnLog(int16(entry.Level), entry.Time.UnixMilli(), entry.Message)
 		},
+		FilterDebug: filterDebug,
 	}
 	if utils.Log == nil {
 		return errors.New("utils.log is nil")
