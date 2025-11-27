@@ -349,6 +349,41 @@ class S {
     );
   }
 
+  /// `完整日志（Debug）`
+  String get debugLogLevel {
+    return Intl.message(
+      '完整日志（Debug）',
+      name: 'debugLogLevel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `显示全部级别日志，默认仅显示Info及以上级别。重启服务后生效`
+  String get debugLogLevelDesc {
+    return Intl.message(
+      '显示全部级别日志，默认仅显示Info及以上级别。重启服务后生效',
+      name: 'debugLogLevelDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `疑难解答`
+  String get troubleshooting {
+    return Intl.message('疑难解答', name: 'troubleshooting', desc: '', args: []);
+  }
+
+  /// `常见问题与解决方案`
+  String get troubleshootingDesc {
+    return Intl.message(
+      '常见问题与解决方案',
+      name: 'troubleshootingDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `发现新版本`
   String get newVersionFound {
     return Intl.message('发现新版本', name: 'newVersionFound', desc: '', args: []);
@@ -1402,21 +1437,6 @@ class S {
   /// `English`
   String get english {
     return Intl.message('English', name: 'english', desc: '', args: []);
-  }
-
-  /// `疑难解答`
-  String get troubleshooting {
-    return Intl.message('疑难解答', name: 'troubleshooting', desc: '', args: []);
-  }
-
-  /// `常见问题与解决方案`
-  String get troubleshootingDesc {
-    return Intl.message(
-      '常见问题与解决方案',
-      name: 'troubleshootingDesc',
-      desc: '',
-      args: [],
-    );
   }
 
   /// `数据库未保存问题`

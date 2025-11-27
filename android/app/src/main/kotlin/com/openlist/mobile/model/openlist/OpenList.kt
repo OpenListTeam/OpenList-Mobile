@@ -30,6 +30,8 @@ object OpenList : Event, LogCallback {
         runCatching {
             Openlistlib.setConfigData(dataDir)
             Openlistlib.setConfigLogStd(true)
+            // Apply debug log level setting from user preferences
+            Openlistlib.setConfigDebug(AppConfig.isDebugLogEnabled)
             Openlistlib.init(this, this)
         }.onFailure {
             Log.e(TAG, "init:", it)

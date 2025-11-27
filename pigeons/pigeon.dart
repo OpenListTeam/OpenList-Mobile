@@ -25,6 +25,10 @@ abstract class AppConfig {
   bool isSilentJumpAppEnabled();
 
   void setSilentJumpAppEnabled(bool enabled);
+
+  bool isDebugLogEnabled();
+
+  void setDebugLogEnabled(bool enabled);
 }
 
 @HostApi()

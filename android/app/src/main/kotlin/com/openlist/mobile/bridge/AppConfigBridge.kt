@@ -23,6 +23,12 @@ object AppConfigBridge : GeneratedApi.AppConfig {
         AppConfig.isSilentJumpAppEnabled = enabled
     }
 
+    override fun isDebugLogEnabled() = AppConfig.isDebugLogEnabled
+
+    override fun setDebugLogEnabled(enabled: Boolean) {
+        AppConfig.isDebugLogEnabled = enabled
+    }
+
     override fun setAutoOpenWebPageEnabled(enabled: Boolean) {
         AppConfig.isAutoOpenWebPageEnabled = enabled
     }
