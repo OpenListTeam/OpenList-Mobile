@@ -21,12 +21,22 @@ type Event interface {
 	OnProcessExit(code int)
 }
 
-var event Event
+var startFailedHookUuid = ""
+var shutdownHookUuid = ""
 var logFormatter *internal.MyFormatter
 
-func Init(e Event, cb LogCallback) error {
-	event = e
+func Init(event Event, cb LogCallback) error {
+	if startFailedHookUuid != "" {
+		bootstrap.RemoveEndpointStartFailedHook(startFailedHookUuid)
+		startFailedHookUuid = ""
+	}
+	if shutdownHookUuid != "" {
+		bootstrap.RemoveEndpointShutdownHook(shutdownHookUuid)
+		shutdownHookUuid = ""
+	}
 	bootstrap.Init()
+	startFailedHookUuid = bootstrap.RegisterEndpointStartFailedHook(event.OnStartError)
+	shutdownHookUuid = bootstrap.RegisterEndpointShutdownHook(event.OnShutdown)
 	logFormatter = &internal.MyFormatter{
 		OnLog: func(entry *log.Entry) {
 			cb.OnLog(int16(entry.Level), entry.Time.UnixMilli(), entry.Message)
