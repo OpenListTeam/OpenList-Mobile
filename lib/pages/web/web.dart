@@ -131,13 +131,11 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
           _webViewController?.goBack();
         },
         child: Scaffold(
-          body:   log("WebView created, loading URL: $_url");
-                },
-                onLoadStart: (InAppWebViewController controller, Uri? url) {
-                  log("onLoadStart $url");
-                  setState(() {
-                    _progress = 0;
-                    _isLoading = truelors.grey[200],
+          body: Column(children: <Widget>[
+            SizedBox(height: MediaQuery.of(context).padding.top),
+            LinearProgressIndicator(
+              value: _progress,
+              backgroundColor: Colors.grey[200],
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
             Expanded(
@@ -146,11 +144,13 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
                 initialUrlRequest: URLRequest(url: WebUri(_url)),
                 onWebViewCreated: (InAppWebViewController controller) {
                   _webViewController = controller;
+                  log("WebView created, loading URL: $_url");
                 },
                 onLoadStart: (InAppWebViewController controller, Uri? url) {
                   log("onLoadStart $url");
                   setState(() {
                     _progress = 0;
+                    _isLoading = true;
                   });
                 },
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
@@ -256,12 +256,12 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
                     },
                   ));
                 },
-                onlog("onLoadStop $url");
+                onLoadStop:
+                    (InAppWebViewController controller, Uri? url) async {
+                  log("onLoadStop $url");
                   setState(() {
                     _progress = 0;
-                    _isLoading = falseController controller, Uri? url) async {
-                  setState(() {
-                    _progress = 0;
+                    _isLoading = false;
                   });
                 },
                 onProgressChanged:
