@@ -21,16 +21,30 @@ import 'contant/native_bridge.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 初始化语言控制器
+  // Initialize language controller
   Get.put(LanguageController());
   
-  // 初始化通知管理器
+  // Initialize notification manager
   await NotificationManager.initialize();
   
-  // 初始化服务管理器
+  // Initialize service manager (supports both Android and iOS)
   await ServiceManager.instance.initialize();
   
-  // Android
+  // For iOS: Ensure service is started on first launch
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    try {
+      // Check if service is running
+      final isRunning = await ServiceManager.instance.checkServiceStatus();
+      if (!isRunning) {
+        // Start service automatically on iOS
+        await ServiceManager.instance.startService();
+      }
+    } catch (e) {
+      debugPrint('Failed to start iOS service on launch: $e');
+    }
+  }
+  
+  // Android WebView debugging
   if (!kIsWeb &&
       kDebugMode &&
       defaultTargetPlatform == TargetPlatform.android) {
