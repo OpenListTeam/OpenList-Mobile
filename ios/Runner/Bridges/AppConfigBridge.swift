@@ -53,13 +53,28 @@ class AppConfigBridge: NSObject, AppConfig {
     
     func getDataDir() throws -> String {
         if let customDir = defaults.string(forKey: Keys.dataDir) {
+            print("[AppConfigBridge] Using custom data directory: \(customDir)")
             return customDir
         }
         
-        // Default to app's document directory
+        // Default to app's document directory with openlist_data subdirectory
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        let documentsDirectory = paths[0].path
-        return documentsDirectory
+        let documentsDirectory = paths[0]
+        let openlistDataDir = documentsDirectory.appendingPathComponent("openlist_data")
+        
+        // Create directory if not exists
+        if !FileManager.default.fileExists(atPath: openlistDataDir.path) {
+            do {
+                try FileManager.default.createDirectory(at: openlistDataDir, withIntermediateDirectories: true, attributes: nil)
+                print("[AppConfigBridge] Created data directory: \(openlistDataDir.path)")
+            } catch {
+                print("[AppConfigBridge] Failed to create data directory: \(error)")
+                throw error
+            }
+        }
+        
+        print("[AppConfigBridge] Data directory: \(openlistDataDir.path)")
+        return openlistDataDir.path
     }
     
     func setDataDir(dir: String) throws {
