@@ -99,5 +99,12 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
+	<key>OpenListVersion</key>
+	<string>dev-ios-beta</string>
+	<key>WKAppBoundDomains</key>
+	<array>
+		<string>localhost</string>
+		<string>127.0.0.1</string>
+	</array>
 </dict>
 </plist>
