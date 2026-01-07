@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/openlist/about_dialog.dart';
 import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
@@ -28,12 +29,19 @@ class OpenListScreen extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                       context: context,
-                      builder: (context) => PwdEditDialog(onConfirm: (pwd) {
-                            Get.showSnackbar(GetSnackBar(
-                                title: S.current.setAdminPassword,
-                                message: pwd,
-                                duration: const Duration(seconds: 1)));
-                            Android().setAdminPwd(pwd);
+                      builder: (context) => PwdEditDialog(onConfirm: (pwd) async {
+                            try {
+                              await Android().setAdminPwd(pwd);
+                              Get.showSnackbar(GetSnackBar(
+                                  title: S.current.setAdminPassword,
+                                  message: S.current.success,
+                                  duration: const Duration(seconds: 1)));
+                            } catch (e) {
+                              Get.showSnackbar(GetSnackBar(
+                                  title: S.current.setAdminPassword,
+                                  message: 'Error: $e',
+                                  duration: const Duration(seconds: 2)));
+                            }
                           }));
                 },
                 icon: const Icon(Icons.password),
@@ -45,13 +53,24 @@ class OpenListScreen extends StatelessWidget {
                 },
                 icon: const Icon(Icons.edit_note),
               ),
-              IconButton(
-                tooltip: S.of(context).desktopShortcut,
-                onPressed: () async  {
-                  Android().addShortcut();
-                },
-                icon: const Icon(Icons.add_home),
-              ),
+              // Desktop shortcut is only available on Android
+              if (Platform.isAndroid)
+                IconButton(
+                  tooltip: S.of(context).desktopShortcut,
+                  onPressed: () async  {
+                    try {
+                      await Android().addShortcut();
+                      Get.showSnackbar(GetSnackBar(
+                          message: S.of(context).success,
+                          duration: const Duration(seconds: 1)));
+                    } catch (e) {
+                      Get.showSnackbar(GetSnackBar(
+                          message: 'Error: $e',
+                          duration: const Duration(seconds: 2)));
+                    }
+                  },
+                  icon: const Icon(Icons.add_home),
+                ),
               PopupMenuButton(
                 tooltip: S.of(context).moreOptions,
                 itemBuilder: (context) {
