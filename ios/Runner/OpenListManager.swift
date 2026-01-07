@@ -100,7 +100,14 @@ class OpenListManager: NSObject {
                 
                 // Notify Flutter side
                 if let eventAPI = (UIApplication.shared.delegate as? AppDelegate)?.eventAPI {
-                    eventAPI.onServiceStatusChanged(isRunning: true) { _ in }
+                    eventAPI.onServiceStatusChanged(isRunning: true) { result in
+                        switch result {
+                        case .failure(let error):
+                            print("[OpenListManager] Failed to notify Flutter of status change: \(error)")
+                        case .success:
+                            print("[OpenListManager] Status change notification sent to Flutter")
+                        }
+                    }
                 }
             }
         }
@@ -175,9 +182,12 @@ class OpenListLogCallback: NSObject, OpenlistlibLogCallbackProtocol {
         
         // Forward logs to Flutter side
         if let api = eventAPI {
-            api.onServerLog(level: Int64(level), time: "\(time)", log: logMessage) { error in
-                if let err = error {
-                    print("[OpenListLog] Failed to send log to Flutter: \(err)")
+            api.onServerLog(level: Int64(level), time: "\(time)", log: logMessage) { result in
+                switch result {
+                case .failure(let error):
+                    print("[OpenListLog] Failed to send log to Flutter: \(error)")
+                case .success:
+                    break // Success, no action needed
                 }
             }
         } else {
