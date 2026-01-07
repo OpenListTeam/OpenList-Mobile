@@ -170,16 +170,26 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
                   return NavigationActionPolicy.ALLOW;
                 },
                 onReceivedError: (controller, request, error) async {
-                  if (!await Android().isRunning()) {
-                    await Android().startService();
+                  log("WebView error: ${error.description}");
+                  
+                  // Check if OpenList service is running
+                  try {
+                    if (!await Android().isRunning()) {
+                      log("Service not running, attempting to start...");
+                      await Android().startService();
 
-                    for (int i = 0; i < 3; i++) {
-                      await Future.delayed(const Duration(milliseconds: 500));
-                      if (await Android().isRunning()) {
-                        _webViewController?.reload();
-                        break;
+                      // Wait for service to start and retry
+                      for (int i = 0; i < 3; i++) {
+                        await Future.delayed(const Duration(milliseconds: 500));
+                        if (await Android().isRunning()) {
+                          log("Service started, reloading WebView");
+                          _webViewController?.reload();
+                          break;
+                        }
                       }
                     }
+                  } catch (e) {
+                    log("Failed to handle WebView error: $e");
                   }
                 },
                 onDownloadStartRequest: (controller, url) async {
