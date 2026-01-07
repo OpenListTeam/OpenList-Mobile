@@ -3,7 +3,7 @@ import UIKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
-  private var eventAPI: Event?
+  var eventAPI: Event?
   private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
   
   override func application(

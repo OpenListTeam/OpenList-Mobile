@@ -60,6 +60,10 @@ class OpenListManager: NSObject {
             let eventHandler = OpenListEventHandler()
             let logCallback = OpenListLogCallback()
             
+            // Set event API reference before initialization
+            eventHandler.eventAPI = (UIApplication.shared.delegate as? AppDelegate)?.eventAPI
+            logCallback.eventAPI = (UIApplication.shared.delegate as? AppDelegate)?.eventAPI
+            
             do {
                 try initialize(event: eventHandler, logger: logCallback)
                 print("[OpenListManager] Initialization completed, proceeding to start server")
@@ -77,8 +81,19 @@ class OpenListManager: NSObject {
         print("[OpenListManager] Starting OpenList server with data directory: \(dataDir ?? "unknown")...")
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             OpenlistlibStart()
-            self?.isServerRunning = true
-            print("[OpenListManager] Server started")
+            
+            // Small delay to ensure server is ready
+            Thread.sleep(forTimeInterval: 0.5)
+            
+            DispatchQueue.main.async {
+                self?.isServerRunning = true
+                print("[OpenListManager] Server started successfully")
+                
+                // Notify Flutter side
+                if let eventAPI = (UIApplication.shared.delegate as? AppDelegate)?.eventAPI {
+                    eventAPI.onServiceStatusChanged(isRunning: true) { _ in }
+                }
+            }
         }
     }
     
