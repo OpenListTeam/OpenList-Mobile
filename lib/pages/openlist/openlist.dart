@@ -34,7 +34,7 @@ class OpenListScreen extends StatelessWidget {
                               await Android().setAdminPwd(pwd);
                               Get.showSnackbar(GetSnackBar(
                                   title: S.current.setAdminPassword,
-                                  message: S.current.success,
+                                  message: pwd,
                                   duration: const Duration(seconds: 1)));
                             } catch (e) {
                               Get.showSnackbar(GetSnackBar(
@@ -61,7 +61,7 @@ class OpenListScreen extends StatelessWidget {
                     try {
                       await Android().addShortcut();
                       Get.showSnackbar(GetSnackBar(
-                          message: S.of(context).success,
+                          message: S.of(context).desktopShortcut,
                           duration: const Duration(seconds: 1)));
                     } catch (e) {
                       Get.showSnackbar(GetSnackBar(
