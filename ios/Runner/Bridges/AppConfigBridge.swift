@@ -52,12 +52,13 @@ class AppConfigBridge: NSObject, AppConfig {
     }
     
     func getDataDir() throws -> String {
-        if let customDir = defaults.string(forKey: Keys.dataDir) {
+        if let customDir = defaults.string(forKey: Keys.dataDir), !customDir.isEmpty {
             print("[AppConfigBridge] Using custom data directory: \(customDir)")
             return customDir
         }
         
         // Default to app's document directory with openlist_data subdirectory
+        // This follows iOS app data storage guidelines
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDirectory = paths[0]
         let openlistDataDir = documentsDirectory.appendingPathComponent("openlist_data")
@@ -78,8 +79,23 @@ class AppConfigBridge: NSObject, AppConfig {
     }
     
     func setDataDir(dir: String) throws {
-        defaults.set(dir, forKey: Keys.dataDir)
-        print("[AppConfigBridge] Data directory set to: \(dir)")
+        // On iOS, we should not allow users to change data directory arbitrarily
+        // But we keep the method for compatibility
+        if dir.isEmpty {
+            defaults.removeObject(forKey: Keys.dataDir)
+            print("[AppConfigBridge] Data directory reset to default")
+        } else {
+            // iOS: Only allow setting within app's container
+            let appDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].path
+            if dir.hasPrefix(appDir) {
+                defaults.set(dir, forKey: Keys.dataDir)
+                print("[AppConfigBridge] Data directory set to: \(dir)")
+            } else {
+                print("[AppConfigBridge] Rejected invalid data directory (outside app container): \(dir)")
+                throw NSError(domain: "AppConfigBridge", code: -2, 
+                            userInfo: [NSLocalizedDescriptionKey: "Data directory must be within app container"])
+            }
+        }
     }
     
     func isSilentJumpAppEnabled() throws -> Bool {
