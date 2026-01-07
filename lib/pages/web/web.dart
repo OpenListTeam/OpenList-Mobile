@@ -37,11 +37,16 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
     limitsNavigationsToAppBoundDomains: false,
     // Enable disk and memory cache for better state preservation
     cacheMode: CacheMode.LOAD_DEFAULT,
+    // Prevent WebView from being suspended in background
+    allowsBackForwardNavigationGestures: true,
+    // iOS: Suppress rendering until content is loaded
+    suppressesIncrementalRendering: false,
   );
 
   double _progress = 0;
   String _url = "http://localhost:5244";
   bool _canGoBack = false;
+  bool _isLoading = false;
 
   onClickNavigationBar() {
     log("onClickNavigationBar");
@@ -54,13 +59,26 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
     // Register lifecycle observer to handle app state changes
     WidgetsBinding.instance.addObserver(this);
     
+    // Get OpenList HTTP port
     Android()
         .getOpenListHttpPort()
-        .then((port) => {_url = "http://localhost:$port"});
+        .then((port) {
+          setState(() {
+            _url = "http://localhost:$port";
+          });
+          log("OpenList URL set to: $_url");
+        })
+        .catchError((error) {
+          log("Failed to get OpenList port: $error");
+        });
 
-    // NativeEvent().addServiceStatusListener((isRunning) {
-    //   if (isRunning) _webViewController?.reload();
-    // });
+    // Wait a bit for service to be ready before loading
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted && _webViewController == null) {
+        // Will be initialized when WebView is created
+        log("WebView will initialize with URL: $_url");
+      }
+    });
   }
 
   @override
@@ -113,11 +131,13 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
           _webViewController?.goBack();
         },
         child: Scaffold(
-          body: Column(children: <Widget>[
-            SizedBox(height: MediaQuery.of(context).padding.top),
-            LinearProgressIndicator(
-              value: _progress,
-              backgroundColor: Colors.grey[200],
+          body:   log("WebView created, loading URL: $_url");
+                },
+                onLoadStart: (InAppWebViewController controller, Uri? url) {
+                  log("onLoadStart $url");
+                  setState(() {
+                    _progress = 0;
+                    _isLoading = truelors.grey[200],
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
             Expanded(
@@ -236,8 +256,10 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
                     },
                   ));
                 },
-                onLoadStop:
-                    (InAppWebViewController controller, Uri? url) async {
+                onlog("onLoadStop $url");
+                  setState(() {
+                    _progress = 0;
+                    _isLoading = falseController controller, Uri? url) async {
                   setState(() {
                     _progress = 0;
                   });
