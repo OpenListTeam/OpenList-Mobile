@@ -9,6 +9,10 @@ class OpenListManager: NSObject {
     private var isServerRunning = false
     private var dataDir: String?
     
+    // Keep strong references to prevent deallocation
+    var eventHandler: OpenListEventHandler?
+    var logCallback: OpenListLogCallback?
+    
     private override init() {
         super.init()
     }
@@ -61,8 +65,13 @@ class OpenListManager: NSObject {
             let logCallback = OpenListLogCallback()
             
             // Set event API reference before initialization
-            eventHandler.eventAPI = (UIApplication.shared.delegate as? AppDelegate)?.eventAPI
-            logCallback.eventAPI = (UIApplication.shared.delegate as? AppDelegate)?.eventAPI
+            let appDelegate = UIApplication.shared.delegate as? AppDelegate
+            eventHandler.eventAPI = appDelegate?.eventAPI
+            logCallback.eventAPI = appDelegate?.eventAPI
+            
+            // Store references globally for persistence
+            OpenListManager.shared.eventHandler = eventHandler
+            OpenListManager.shared.logCallback = logCallback
             
             do {
                 try initialize(event: eventHandler, logger: logCallback)
@@ -161,7 +170,18 @@ class OpenListLogCallback: NSObject, OpenlistlibLogCallbackProtocol {
     weak var eventAPI: Event?
     
     func onLog(_ level: Int16, time: Int64, message: String?) {
+        let logMessage = message ?? ""
+        print("[OpenListLog] Level: \(level), Message: \(logMessage)")
+        
         // Forward logs to Flutter side
-        eventAPI?.onServerLog(level: Int64(level), time: "\(time)", log: message ?? "") { _ in }
+        if let api = eventAPI {
+            api.onServerLog(level: Int64(level), time: "\(time)", log: logMessage) { error in
+                if let err = error {
+                    print("[OpenListLog] Failed to send log to Flutter: \(err)")
+                }
+            }
+        } else {
+            print("[OpenListLog] Warning: eventAPI is nil, cannot forward log to Flutter")
+        }
     }
 }
