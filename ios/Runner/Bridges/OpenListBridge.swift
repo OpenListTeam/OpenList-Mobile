@@ -23,8 +23,7 @@ class OpenListBridge: NSObject, Android {
     
     func setAdminPwd(pwd: String) throws {
         print("[OpenListBridge] setAdminPwd called")
-        // Store admin password in UserDefaults or Keychain
-        UserDefaults.standard.set(pwd, forKey: "openlist_admin_pwd")
+        try OpenListManager.shared.setAdminPassword(pwd)
     }
     
     func getOpenListHttpPort() throws -> Int64 {

@@ -16,6 +16,24 @@ class OpenListManager: NSObject {
     private override init() {
         super.init()
     }
+
+    private func ensureInitializedForConfig() throws {
+        if isInitialized {
+            return
+        }
+
+        let eventHandler = OpenListEventHandler()
+        let logCallback = OpenListLogCallback()
+
+        let appDelegate = UIApplication.shared.delegate as? AppDelegate
+        eventHandler.eventAPI = appDelegate?.eventAPI
+        logCallback.eventAPI = appDelegate?.eventAPI
+
+        self.eventHandler = eventHandler
+        self.logCallback = logCallback
+
+        try initialize(event: eventHandler, logger: logCallback)
+    }
     
     // MARK: - Initialization
     
@@ -137,6 +155,17 @@ class OpenListManager: NSObject {
     func getHttpPort() -> Int {
         // Default port for OpenList
         return 5244
+    }
+
+    func setAdminPassword(_ pwd: String) throws {
+        try ensureInitializedForConfig()
+
+        if let dataDir = dataDir {
+            OpenlistlibSetConfigData(dataDir)
+        }
+
+        OpenlistlibSetAdminPassword(pwd)
+        print("[OpenListManager] Admin password updated")
     }
     
     func forceDBSync() {
