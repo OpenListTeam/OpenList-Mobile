@@ -116,7 +116,7 @@ class OpenListScreen extends StatelessWidget {
                 }
               }),
         ),
-        body: Obx(() => LogListView(logs: ui.logs.value)));
+        body: Obx(() => LogListView(logs: ui.logs, controller: ui.scrollController)));
   }
 }
 
@@ -138,7 +138,7 @@ class MyEventReceiver extends Event {
 }
 
 class OpenListController extends GetxController {
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController scrollController = ScrollController();
   var isSwitch = false.obs;
   var openlistVersion = "".obs;
 
@@ -150,7 +150,9 @@ class OpenListController extends GetxController {
 
   void addLog(Log log) {
     logs.add(log);
-    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    if (scrollController.hasClients) {
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    }
   }
 
   @override
@@ -166,8 +168,11 @@ class OpenListController extends GetxController {
     Android().getOpenListVersion().then((value) => openlistVersion.value = value);
     
     // 获取初始状态
-    ServiceManager.instance.checkServiceStatus().then((isRunning) {
+    ServiceManager.instance.checkServiceStatus().then((isRunning) async {
       isSwitch.value = isRunning;
+      if (Platform.isIOS && !isRunning) {
+        await ServiceManager.instance.startService();
+      }
     });
 
     // 只监听ServiceManager的状态变化
