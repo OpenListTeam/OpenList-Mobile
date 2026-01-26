@@ -55,6 +55,7 @@ dependencies:
   open_file_manager: ^2.0.1
   shared_preferences: ^2.3.2
   flutter_highlight: ^0.7.0
+  flutter_smooth_markdown: ^0.1.5
 
 
 dev_dependencies:

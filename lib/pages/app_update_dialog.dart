@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_smooth_markdown/flutter_smooth_markdown.dart';
 
 import '../generated/l10n.dart';
 import '../utils/update_checker.dart';
@@ -82,16 +83,8 @@ class AppUpdateDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  content,
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-            ),
+            SmoothMarkdown(data: content),
+            
             const SizedBox(height: 16),
             
             Text(
