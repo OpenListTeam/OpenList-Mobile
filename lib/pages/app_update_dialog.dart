@@ -82,9 +82,16 @@ class AppUpdateDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
-            SmoothMarkdown(data: content),
-            
+            Card(
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: SmoothMarkdown(
+                  data: content,
+                ),
+              ),
+            ),
+
             const SizedBox(height: 16),
             
             Text(
