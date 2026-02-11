@@ -213,7 +213,7 @@ jobs:
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
           security default-keychain -s "$KEYCHAIN_PATH"
 
           CERT_PATH="${RUNNER_TEMP}/ios_signing.pfx"
@@ -228,8 +228,13 @@ jobs:
             openssl pkcs12 -export -in "$CERT_PEM_PATH" -out "$CERT_P12_PATH" -passout pass:"$IOS_CERT_PASSWORD"
           fi
 
-          security import "$CERT_P12_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign -A
+          security import "$CERT_P12_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_CERT_PASSWORD" -A
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -n 1 | sed -E 's/.*"(.*)"/\1/')
+          echo "signing_identity=$SIGNING_IDENTITY" >> $GITHUB_ENV
+          echo "keychain_path=$KEYCHAIN_PATH" >> $GITHUB_ENV
 
           PROFILE_PATH="${RUNNER_TEMP}/openlist.mobileprovision"
           echo "$IOS_PROVISION_PROFILE" | base64 --decode > "$PROFILE_PATH"
@@ -266,15 +271,38 @@ jobs:
             BUNDLE_ID="org.oplist.app"
           fi
 
+          flutter build ios --release --no-codesign
+
           EXPORT_OPTIONS_PATH="${RUNNER_TEMP}/exportOptions.plist"
           /usr/libexec/PlistBuddy -c "Clear dict" "$EXPORT_OPTIONS_PATH" || true
           /usr/libexec/PlistBuddy -c "Add :method string app-store" "$EXPORT_OPTIONS_PATH"
           /usr/libexec/PlistBuddy -c "Add :signingStyle string manual" "$EXPORT_OPTIONS_PATH"
           /usr/libexec/PlistBuddy -c "Add :teamID string $team_id" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :signingCertificate string $signing_identity" "$EXPORT_OPTIONS_PATH"
           /usr/libexec/PlistBuddy -c "Add :provisioningProfiles dict" "$EXPORT_OPTIONS_PATH"
           /usr/libexec/PlistBuddy -c "Add :provisioningProfiles:$BUNDLE_ID string $profile_name" "$EXPORT_OPTIONS_PATH"
 
-          flutter build ipa --release --export-options-plist="$EXPORT_OPTIONS_PATH"
+          ARCHIVE_PATH="${RUNNER_TEMP}/OpenList.xcarchive"
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$ARCHIVE_PATH" \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$team_id" \
+            CODE_SIGN_IDENTITY="$signing_identity" \
+            PROVISIONING_PROFILE_SPECIFIER="$profile_name" \
+            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
+            OTHER_CODE_SIGN_FLAGS="--keychain $keychain_path"
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportOptionsPlist "$EXPORT_OPTIONS_PATH" \
+            -exportPath "${{ env.output }}" \
+            OTHER_CODE_SIGN_FLAGS="--keychain $keychain_path"
 
       - name: Create IPA
         if: ${{ env.testflight_ready != 'true' }}
