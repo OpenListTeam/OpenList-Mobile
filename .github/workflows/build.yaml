@@ -181,7 +181,7 @@ jobs:
     runs-on: macos-latest
     env:
       output: "${{ github.workspace }}/build/ios/ipa"
-      testflight_ready: ${{ secrets.TESTFLIGHT_UPLOAD_ENABLED == 'true' && secrets.APP_STORE_CONNECT_KEY_ID != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_KEY_P8 != '' && secrets.IOS_CERT_PFX != '' && secrets.IOS_CERT_PASSWORD != '' && secrets.IOS_PROVISION_PROFILE != '' }}
+      testflight_ready: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.TESTFLIGHT_UPLOAD_ENABLED == 'true' && secrets.APP_STORE_CONNECT_KEY_ID != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_KEY_P8 != '' && secrets.IOS_CERT_PFX != '' && secrets.IOS_CERT_PASSWORD != '' && secrets.IOS_PROVISION_PROFILE != '' }}
     steps:
       - uses: actions/checkout@v3
         with:
