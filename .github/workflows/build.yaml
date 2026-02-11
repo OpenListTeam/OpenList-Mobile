@@ -290,12 +290,8 @@ jobs:
             -sdk iphoneos \
             -archivePath "$ARCHIVE_PATH" \
             archive \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="$team_id" \
-            CODE_SIGN_IDENTITY="$signing_identity" \
-            PROVISIONING_PROFILE_SPECIFIER="$profile_name" \
-            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
-            OTHER_CODE_SIGN_FLAGS="--keychain $keychain_path"
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
 
           xcodebuild \
             -exportArchive \
