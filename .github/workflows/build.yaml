@@ -214,6 +214,7 @@ jobs:
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
 
           CERT_PATH="${RUNNER_TEMP}/ios_signing.pfx"
           CERT_PEM_PATH="${RUNNER_TEMP}/ios_signing.pem"
@@ -227,7 +228,8 @@ jobs:
             openssl pkcs12 -export -in "$CERT_PEM_PATH" -out "$CERT_P12_PATH" -passout pass:"$IOS_CERT_PASSWORD"
           fi
 
-          security import "$CERT_P12_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security import "$CERT_P12_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign -A
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
           PROFILE_PATH="${RUNNER_TEMP}/openlist.mobileprovision"
           echo "$IOS_PROVISION_PROFILE" | base64 --decode > "$PROFILE_PATH"
