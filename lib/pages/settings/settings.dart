@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/settings/preference_widgets.dart';
@@ -47,6 +48,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       () => ListView(
         children: [
           // SizedBox(height: MediaQuery.of(context).padding.top),
+          // Android-specific permission requests
+          if (Platform.isAndroid) ...[
           Visibility(
             visible: !controller._managerStorageGranted.value ||
                 !controller._notificationGranted.value ||
@@ -82,6 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Permission.notification.request();
                 },
               )),
+          ], // End of Android-specific permissions
 
           DividerPreference(title: S.of(context).general),
 
@@ -133,29 +137,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
 
-          BasicPreference(
-            title: S.of(context).dataDirectory,
-            subtitle: controller._dataDir.value,
-            leading: const Icon(Icons.folder),
-            onTap: () async {
-              final path = await FilePicker.platform.getDirectoryPath();
+          // Data directory setting - only for Android
+          if (Platform.isAndroid)
+            BasicPreference(
+              title: S.of(context).dataDirectory,
+              subtitle: controller._dataDir.value,
+              leading: const Icon(Icons.folder),
+              onTap: () async {
+                final path = await FilePicker.platform.getDirectoryPath();
 
-              if (path == null) {
-                Get.showSnackbar(GetSnackBar(
-                    message: S.current.setDefaultDirectory,
-                    duration: const Duration(seconds: 3),
-                    mainButton: TextButton(
-                      onPressed: () {
-                        controller.setDataDir("");
-                        Get.back();
-                      },
-                      child: Text(S.current.confirm),
-                    )));
-              } else {
-                controller.setDataDir(path);
-              }
-            },
-          ),
+                if (path == null) {
+                  Get.showSnackbar(GetSnackBar(
+                      message: S.current.setDefaultDirectory,
+                      duration: const Duration(seconds: 3),
+                      mainButton: TextButton(
+                        onPressed: () {
+                          controller.setDataDir("");
+                          Get.back();
+                        },
+                        child: Text(S.current.confirm),
+                      )));
+                } else {
+                  controller.setDataDir(path);
+                }
+              },
+            ),
           DividerPreference(title: S.of(context).uiSettings),
           SwitchPreference(
               icon: const Icon(Icons.pan_tool_alt_outlined),

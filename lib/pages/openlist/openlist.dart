@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/openlist/about_dialog.dart';
 import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
@@ -28,12 +29,19 @@ class OpenListScreen extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                       context: context,
-                      builder: (context) => PwdEditDialog(onConfirm: (pwd) {
-                            Get.showSnackbar(GetSnackBar(
-                                title: S.current.setAdminPassword,
-                                message: pwd,
-                                duration: const Duration(seconds: 1)));
-                            Android().setAdminPwd(pwd);
+                      builder: (context) => PwdEditDialog(onConfirm: (pwd) async {
+                            try {
+                              await Android().setAdminPwd(pwd);
+                              Get.showSnackbar(GetSnackBar(
+                                  title: S.current.setAdminPassword,
+                                  message: pwd,
+                                  duration: const Duration(seconds: 1)));
+                            } catch (e) {
+                              Get.showSnackbar(GetSnackBar(
+                                  title: S.current.setAdminPassword,
+                                  message: 'Error: $e',
+                                  duration: const Duration(seconds: 2)));
+                            }
                           }));
                 },
                 icon: const Icon(Icons.password),
@@ -45,13 +53,24 @@ class OpenListScreen extends StatelessWidget {
                 },
                 icon: const Icon(Icons.edit_note),
               ),
-              IconButton(
-                tooltip: S.of(context).desktopShortcut,
-                onPressed: () async  {
-                  Android().addShortcut();
-                },
-                icon: const Icon(Icons.add_home),
-              ),
+              // Desktop shortcut is only available on Android
+              if (Platform.isAndroid)
+                IconButton(
+                  tooltip: S.of(context).desktopShortcut,
+                  onPressed: () async  {
+                    try {
+                      await Android().addShortcut();
+                      Get.showSnackbar(GetSnackBar(
+                          message: S.of(context).desktopShortcut,
+                          duration: const Duration(seconds: 1)));
+                    } catch (e) {
+                      Get.showSnackbar(GetSnackBar(
+                          message: 'Error: $e',
+                          duration: const Duration(seconds: 2)));
+                    }
+                  },
+                  icon: const Icon(Icons.add_home),
+                ),
               PopupMenuButton(
                 tooltip: S.of(context).moreOptions,
                 itemBuilder: (context) {
@@ -97,7 +116,7 @@ class OpenListScreen extends StatelessWidget {
                 }
               }),
         ),
-        body: Obx(() => LogListView(logs: ui.logs.value)));
+        body: Obx(() => LogListView(logs: ui.logs, controller: ui.scrollController)));
   }
 }
 
@@ -119,7 +138,7 @@ class MyEventReceiver extends Event {
 }
 
 class OpenListController extends GetxController {
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController scrollController = ScrollController();
   var isSwitch = false.obs;
   var openlistVersion = "".obs;
 
@@ -131,13 +150,15 @@ class OpenListController extends GetxController {
 
   void addLog(Log log) {
     logs.add(log);
-    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    if (scrollController.hasClients) {
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    }
   }
 
   @override
   void onInit() {
     // 设置日志接收器，但状态变化只通过ServiceManager处理
-    Event.setup(MyEventReceiver(
+    Event.setUp(MyEventReceiver(
         (isRunning) {
           // 不在这里更新状态，避免冲突
           print('Event receiver status: $isRunning');
@@ -147,8 +168,11 @@ class OpenListController extends GetxController {
     Android().getOpenListVersion().then((value) => openlistVersion.value = value);
     
     // 获取初始状态
-    ServiceManager.instance.checkServiceStatus().then((isRunning) {
+    ServiceManager.instance.checkServiceStatus().then((isRunning) async {
       isSwitch.value = isRunning;
+      if (Platform.isIOS && !isRunning) {
+        await ServiceManager.instance.startService();
+      }
     });
 
     // 只监听ServiceManager的状态变化
