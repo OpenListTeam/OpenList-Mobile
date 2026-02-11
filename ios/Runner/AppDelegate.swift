@@ -5,6 +5,7 @@ import UIKit
 @objc class AppDelegate: FlutterAppDelegate {
   var eventAPI: Event?
   private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+  private var appStoreUpdateBridge: AppStoreUpdateBridge?
   
   override func application(
     _ application: UIApplication,
@@ -24,6 +25,21 @@ import UIKit
     AppConfigSetup.setUp(binaryMessenger: messenger, api: AppConfigBridge())
     AndroidSetup.setUp(binaryMessenger: messenger, api: OpenListBridge())
     NativeCommonSetup.setUp(binaryMessenger: messenger, api: CommonBridge(viewController: controller))
+
+    let appStoreChannel = FlutterMethodChannel(
+      name: "openlist/app_store_update",
+      binaryMessenger: messenger
+    )
+    let appStoreBridge = AppStoreUpdateBridge(viewController: controller)
+    appStoreUpdateBridge = appStoreBridge
+    appStoreChannel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "checkAndShowUpdate":
+        appStoreBridge.checkAndShowUpdate(result: result)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
     
     // Setup Event API for Flutter callbacks
     eventAPI = Event(binaryMessenger: messenger)
