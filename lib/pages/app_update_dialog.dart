@@ -4,6 +4,7 @@ import 'package:flutter_smooth_markdown/flutter_smooth_markdown.dart';
 
 import '../generated/l10n.dart';
 import '../utils/update_checker.dart';
+import '../utils/app_store_update.dart';
 import '../utils/intent_utils.dart';
 import '../utils/download_manager.dart';
 
@@ -22,6 +23,16 @@ class AppUpdateDialog extends StatelessWidget {
 
   static checkUpdateAndShowDialog(
       BuildContext context, ValueChanged<bool>? checkFinished) async {
+    if (Platform.isIOS) {
+      try {
+        final hasNewVersion = await AppStoreUpdate.checkAndShowUpdate();
+        checkFinished?.call(hasNewVersion);
+      } catch (_) {
+        checkFinished?.call(false);
+      }
+      return;
+    }
+
     final checker = UpdateChecker(owner: "openlistteam", repo: "OpenList-Mobile");
     await checker.downloadData();
     final hasNewVersion = await checker.hasNewVersion();
