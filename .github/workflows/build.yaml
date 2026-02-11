@@ -216,8 +216,14 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH"
 
           CERT_PATH="${RUNNER_TEMP}/ios_signing.pfx"
+          CERT_PEM_PATH="${RUNNER_TEMP}/ios_signing.pem"
+          CERT_P12_PATH="${RUNNER_TEMP}/ios_signing_mac.p12"
           echo "$IOS_CERT_PFX" | base64 --decode > "$CERT_PATH"
-          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
+
+          openssl pkcs12 -in "$CERT_PATH" -out "$CERT_PEM_PATH" -nodes -legacy -passin pass:"$IOS_CERT_PASSWORD"
+          openssl pkcs12 -export -in "$CERT_PEM_PATH" -out "$CERT_P12_PATH" -passout pass:"$IOS_CERT_PASSWORD" -legacy
+
+          security import "$CERT_P12_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
 
           PROFILE_PATH="${RUNNER_TEMP}/openlist.mobileprovision"
           echo "$IOS_PROVISION_PROFILE" | base64 --decode > "$PROFILE_PATH"
