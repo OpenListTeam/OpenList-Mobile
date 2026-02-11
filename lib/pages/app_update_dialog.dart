@@ -88,6 +88,9 @@ class AppUpdateDialog extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: SmoothMarkdown(
                   data: content,
+                  onTapLink: (url) {
+                    IntentUtils.getUrlIntent(url).launchChooser(url);
+                  },
                 ),
               ),
             ),
