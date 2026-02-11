@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
+import 'package:openlist_mobile/generated_api.dart';
 
-/// 服务管理器 - 管理OpenList后台服务的启动、停止和状态监控
+/// Service Manager - Manages OpenList backend service lifecycle
 class ServiceManager {
   static const String _channelName = 'com.openlist.mobile/service';
   static const MethodChannel _channel = MethodChannel(_channelName);
@@ -13,21 +14,20 @@ class ServiceManager {
   
   ServiceManager._();
   
-  // 服务状态流控制器
+  // Service status stream controller
   final StreamController<bool> _serviceStatusController = StreamController<bool>.broadcast();
   
-  /// 服务状态流
+  /// Service status stream
   Stream<bool> get serviceStatusStream => _serviceStatusController.stream;
   
   bool _isServiceRunning = false;
   Timer? _statusCheckTimer;
   
-  /// 当前服务是否运行
+  /// Current service running status
   bool get isServiceRunning => _isServiceRunning;
   
-  /// 初始化服务管理器
+  /// Initialize service manager
   Future<void> initialize() async {
-    if (!Platform.isAndroid) return;
     
     try {
       // 设置方法调用处理器
@@ -59,53 +59,77 @@ class ServiceManager {
     }
   }
   
-  /// 启动OpenList服务
+  /// Start OpenList service
   Future<bool> startService() async {
-    if (!Platform.isAndroid) return false;
-    
     try {
-      final bool result = await _channel.invokeMethod('startService');
-      debugPrint('Start service result: $result');
+      if (Platform.isAndroid) {
+        final bool result = await _channel.invokeMethod('startService');
+        debugPrint('Start service result (Android): $result');
+        
+        // Delay status check to give service startup time
+        Timer(const Duration(seconds: 2), () => checkServiceStatus());
+        
+        return result;
+      } else if (Platform.isIOS) {
+        // Use Pigeon API for iOS
+        await Android().startService();
+        debugPrint('Start service called (iOS)');
+        
+        // Delay status check
+        Timer(const Duration(seconds: 2), () => checkServiceStatus());
+        
+        return true;
+      }
       
-      // 延迟检查状态，给服务启动时间
-      Timer(const Duration(seconds: 2), () => checkServiceStatus());
-      
-      return result;
+      return false;
     } catch (e) {
       debugPrint('Failed to start service: $e');
       return false;
     }
   }
   
-  /// 停止OpenList服务
+  /// Stop OpenList service
   Future<bool> stopService() async {
-    if (!Platform.isAndroid) return false;
-    
     try {
-      final bool result = await _channel.invokeMethod('stopService');
-      debugPrint('Stop service result: $result');
-      
-      // 立即更新状态为停止
-      if (result) {
+      if (Platform.isAndroid) {
+        final bool result = await _channel.invokeMethod('stopService');
+        debugPrint('Stop service result (Android): $result');
+        
+        // Update status immediately
+        if (result) {
+          _updateServiceStatus(false);
+        }
+        
+        // Delay status check to confirm service stopped
+        Timer(const Duration(seconds: 1), () => checkServiceStatus());
+        
+        return result;
+      } else if (Platform.isIOS) {
+        // iOS does not need explicit stop - managed by OpenListManager
+        debugPrint('Stop service called (iOS) - managed by system');
         _updateServiceStatus(false);
+        return true;
       }
       
-      // 延迟检查状态，确认服务已停止
-      Timer(const Duration(seconds: 1), () => checkServiceStatus());
-      
-      return result;
+      return false;
     } catch (e) {
       debugPrint('Failed to stop service: $e');
       return false;
     }
   }
   
-  /// 检查服务状态
+  /// Check service status
   Future<bool> checkServiceStatus() async {
-    if (!Platform.isAndroid) return false;
-    
     try {
-      final bool isRunning = await _channel.invokeMethod('isServiceRunning');
+      bool isRunning = false;
+      
+      if (Platform.isAndroid) {
+        isRunning = await _channel.invokeMethod('isServiceRunning');
+      } else if (Platform.isIOS) {
+        // Use Pigeon API for iOS
+        isRunning = await Android().isRunning();
+      }
+      
       _updateServiceStatus(isRunning);
       return isRunning;
     } catch (e) {
@@ -114,10 +138,8 @@ class ServiceManager {
     }
   }
   
-  /// 重启服务
+  /// Restart service
   Future<bool> restartService() async {
-    if (!Platform.isAndroid) return false;
-    
     try {
       await stopService();
       await Future.delayed(const Duration(seconds: 2));

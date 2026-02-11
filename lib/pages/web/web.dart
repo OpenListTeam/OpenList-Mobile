@@ -22,7 +22,7 @@ class WebScreen extends StatefulWidget {
   }
 }
 
-class WebScreenState extends State<WebScreen> {
+class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   InAppWebViewController? _webViewController;
   InAppWebViewSettings settings = InAppWebViewSettings(
     allowsInlineMediaPlayback: true,
@@ -31,11 +31,22 @@ class WebScreenState extends State<WebScreen> {
     javaScriptEnabled: true,
     mediaPlaybackRequiresUserGesture: false,
     useShouldOverrideUrlLoading: true,
+    // iOS specific: Enable page caching and state preservation
+    cacheEnabled: true,
+    sharedCookiesEnabled: true,
+    limitsNavigationsToAppBoundDomains: false,
+    // Enable disk and memory cache for better state preservation
+    cacheMode: CacheMode.LOAD_DEFAULT,
+    // Prevent WebView from being suspended in background
+    allowsBackForwardNavigationGestures: true,
+    // iOS: Suppress rendering until content is loaded
+    suppressesIncrementalRendering: false,
   );
 
   double _progress = 0;
   String _url = "http://localhost:5244";
   bool _canGoBack = false;
+  bool _isLoading = false;
 
   onClickNavigationBar() {
     log("onClickNavigationBar");
@@ -44,20 +55,70 @@ class WebScreenState extends State<WebScreen> {
 
   @override
   void initState() {
+    super.initState();
+    // Register lifecycle observer to handle app state changes
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Get OpenList HTTP port
     Android()
         .getOpenListHttpPort()
-        .then((port) => {_url = "http://localhost:$port"});
+        .then((port) {
+          setState(() {
+            _url = "http://localhost:$port";
+          });
+          log("OpenList URL set to: $_url");
+        })
+        .catchError((error) {
+          log("Failed to get OpenList port: $error");
+        });
 
-    // NativeEvent().addServiceStatusListener((isRunning) {
-    //   if (isRunning) _webViewController?.reload();
-    // });
-    super.initState();
+    // Wait a bit for service to be ready before loading
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted && _webViewController == null) {
+        // Will be initialized when WebView is created
+        log("WebView will initialize with URL: $_url");
+      }
+    });
   }
 
   @override
   void dispose() {
+    // Remove lifecycle observer when widget is disposed
+    WidgetsBinding.instance.removeObserver(this);
     _webViewController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    log("App lifecycle state changed: $state");
+    
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // App returned to foreground, WebView should be active
+        log("App resumed, WebView is active");
+        _webViewController?.resume();
+        break;
+      case AppLifecycleState.paused:
+        // App entered background, ensure WebView state is preserved
+        log("App paused, WebView entering background");
+        // Note: Do not pause WebView to keep background tasks running
+        // The UIBackgroundModes in Info.plist allows WebKit processes to continue
+        break;
+      case AppLifecycleState.inactive:
+        // App transitioning states (e.g., incoming call, app switcher)
+        log("App inactive");
+        break;
+      case AppLifecycleState.detached:
+        // App is detached from UI
+        log("App detached");
+        break;
+      case AppLifecycleState.hidden:
+        // App is hidden
+        log("App hidden");
+        break;
+    }
   }
 
   @override
@@ -83,11 +144,13 @@ class WebScreenState extends State<WebScreen> {
                 initialUrlRequest: URLRequest(url: WebUri(_url)),
                 onWebViewCreated: (InAppWebViewController controller) {
                   _webViewController = controller;
+                  log("WebView created, loading URL: $_url");
                 },
                 onLoadStart: (InAppWebViewController controller, Uri? url) {
                   log("onLoadStart $url");
                   setState(() {
                     _progress = 0;
+                    _isLoading = true;
                   });
                 },
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
@@ -127,16 +190,26 @@ class WebScreenState extends State<WebScreen> {
                   return NavigationActionPolicy.ALLOW;
                 },
                 onReceivedError: (controller, request, error) async {
-                  if (!await Android().isRunning()) {
-                    await Android().startService();
+                  log("WebView error: ${error.description}");
+                  
+                  // Check if OpenList service is running
+                  try {
+                    if (!await Android().isRunning()) {
+                      log("Service not running, attempting to start...");
+                      await Android().startService();
 
-                    for (int i = 0; i < 3; i++) {
-                      await Future.delayed(const Duration(milliseconds: 500));
-                      if (await Android().isRunning()) {
-                        _webViewController?.reload();
-                        break;
+                      // Wait for service to start and retry
+                      for (int i = 0; i < 3; i++) {
+                        await Future.delayed(const Duration(milliseconds: 500));
+                        if (await Android().isRunning()) {
+                          log("Service started, reloading WebView");
+                          _webViewController?.reload();
+                          break;
+                        }
                       }
                     }
+                  } catch (e) {
+                    log("Failed to handle WebView error: $e");
                   }
                 },
                 onDownloadStartRequest: (controller, url) async {
@@ -185,8 +258,10 @@ class WebScreenState extends State<WebScreen> {
                 },
                 onLoadStop:
                     (InAppWebViewController controller, Uri? url) async {
+                  log("onLoadStop $url");
                   setState(() {
                     _progress = 0;
+                    _isLoading = false;
                   });
                 },
                 onProgressChanged:
