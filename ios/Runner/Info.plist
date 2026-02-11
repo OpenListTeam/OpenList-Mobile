@@ -97,7 +97,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
-		<string>processing</string>
 	</array>
 	<key>OpenListVersion</key>
 	<string>dev-ios-beta</string>
