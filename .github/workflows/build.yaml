@@ -181,7 +181,7 @@ jobs:
     runs-on: macos-latest
     env:
       output: "${{ github.workspace }}/build/ios/ipa"
-      testflight_ready: ${{ secrets.TESTFLIGHT_UPLOAD_ENABLED == 'true' && secrets.APP_STORE_CONNECT_KEY_ID != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_KEY_P8 != '' }}
+      testflight_ready: ${{ secrets.TESTFLIGHT_UPLOAD_ENABLED == 'true' && secrets.APP_STORE_CONNECT_KEY_ID != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_KEY_P8 != '' && secrets.IOS_CERT_PFX != '' && secrets.IOS_CERT_PASSWORD != '' && secrets.IOS_PROVISION_PROFILE != '' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -200,6 +200,41 @@ jobs:
         with:
           flutter-version: '3.32.7'
 
+      - name: Install iOS Signing Assets
+        if: ${{ env.testflight_ready == 'true' }}
+        env:
+          IOS_CERT_PFX: ${{ secrets.IOS_CERT_PFX }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          IOS_PROVISION_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE }}
+        run: |
+          KEYCHAIN_PATH="${RUNNER_TEMP}/openlist.keychain-db"
+          KEYCHAIN_PASSWORD="temp_keychain_password"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+
+          CERT_PATH="${RUNNER_TEMP}/ios_signing.pfx"
+          echo "$IOS_CERT_PFX" | base64 --decode > "$CERT_PATH"
+          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
+
+          PROFILE_PATH="${RUNNER_TEMP}/openlist.mobileprovision"
+          echo "$IOS_PROVISION_PROFILE" | base64 --decode > "$PROFILE_PATH"
+
+          PROFILE_PLIST="${RUNNER_TEMP}/profile.plist"
+          security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$PROFILE_PLIST")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" "$PROFILE_PLIST")
+          TEAM_ID=$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" "$PROFILE_PLIST")
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
+
+          echo "profile_name=$PROFILE_NAME" >> $GITHUB_ENV
+          echo "team_id=$TEAM_ID" >> $GITHUB_ENV
+
       - name: Build iOS App (No CodeSign)
         if: ${{ env.testflight_ready != 'true' }}
         env:
@@ -214,7 +249,20 @@ jobs:
           BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
         run: |
           echo "Building signed iOS IPA for TestFlight..."
-          flutter build ipa --release
+          BUNDLE_ID="${{ secrets.IOS_BUNDLE_ID }}"
+          if [ -z "$BUNDLE_ID" ]; then
+            BUNDLE_ID="org.oplist.app"
+          fi
+
+          EXPORT_OPTIONS_PATH="${RUNNER_TEMP}/exportOptions.plist"
+          /usr/libexec/PlistBuddy -c "Clear dict" "$EXPORT_OPTIONS_PATH" || true
+          /usr/libexec/PlistBuddy -c "Add :method string app-store" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :signingStyle string manual" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :teamID string $team_id" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :provisioningProfiles dict" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :provisioningProfiles:$BUNDLE_ID string $profile_name" "$EXPORT_OPTIONS_PATH"
+
+          flutter build ipa --release --export-options-plist="$EXPORT_OPTIONS_PATH"
 
       - name: Create IPA
         if: ${{ env.testflight_ready != 'true' }}
