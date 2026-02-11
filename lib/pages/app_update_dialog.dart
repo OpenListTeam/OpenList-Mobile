@@ -106,7 +106,10 @@ class AppUpdateDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             
-            if (Platform.isAndroid) ...[
+            final hasValidApkUrl = apkUrl.trim().isNotEmpty &&
+              Uri.tryParse(apkUrl) != null;
+
+            if (Platform.isAndroid && hasValidApkUrl) ...[
               Card(
                 margin: EdgeInsets.zero,
                 child: ListTile(
