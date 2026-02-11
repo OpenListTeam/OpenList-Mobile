@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'package:flutter_smooth_markdown/flutter_smooth_markdown.dart';
 
 import '../generated/l10n.dart';
@@ -47,6 +48,8 @@ class AppUpdateDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasValidApkUrl = apkUrl.trim().isNotEmpty &&
+        Uri.tryParse(apkUrl) != null;
     
     return AlertDialog(
       title: Row(
@@ -105,45 +108,47 @@ class AppUpdateDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             
-            Card(
-              margin: EdgeInsets.zero,
-              child: ListTile(
-                leading: Icon(
-                  Icons.download,
-                  color: theme.colorScheme.primary,
+            if (Platform.isAndroid && hasValidApkUrl) ...[
+              Card(
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.download,
+                    color: theme.colorScheme.primary,
+                  ),
+                  title: Text(S.of(context).directDownloadApk),
+                  subtitle: Text(S.of(context).directDownloadMethodDesc),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    DownloadManager.downloadFileInBackground(
+                      url: apkUrl,
+                      filename: 'OpenList_$version.apk',
+                    );
+                  },
                 ),
-                title: Text(S.of(context).directDownloadApk),
-                subtitle: Text(S.of(context).directDownloadMethodDesc),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  Navigator.pop(context);
-                  DownloadManager.downloadFileInBackground(
-                    url: apkUrl,
-                    filename: 'OpenList_$version.apk',
-                  );
-                },
               ),
-            ),
-            const SizedBox(height: 8),
-            
-            Card(
-              margin: EdgeInsets.zero,
-              child: ListTile(
-                leading: Icon(
-                  Icons.open_in_browser,
-                  color: theme.colorScheme.secondary,
+              const SizedBox(height: 8),
+
+              Card(
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.open_in_browser,
+                    color: theme.colorScheme.secondary,
+                  ),
+                  title: Text(S.of(context).downloadApk),
+                  subtitle: Text(S.of(context).browserDownloadMethodDesc),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.pop(context);
+                    IntentUtils.getUrlIntent(apkUrl)
+                        .launchChooser(S.of(context).downloadApk);
+                  },
                 ),
-                title: Text(S.of(context).downloadApk),
-                subtitle: Text(S.of(context).browserDownloadMethodDesc),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.pop(context);
-                  IntentUtils.getUrlIntent(apkUrl)
-                      .launchChooser(S.of(context).downloadApk);
-                },
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
+            ],
 
             Card(
               margin: EdgeInsets.zero,
