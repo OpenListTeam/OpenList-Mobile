@@ -181,6 +181,7 @@ jobs:
     runs-on: macos-latest
     env:
       output: "${{ github.workspace }}/build/ios/ipa"
+      testflight_ready: ${{ secrets.TESTFLIGHT_UPLOAD_ENABLED == 'true' && secrets.APP_STORE_CONNECT_KEY_ID != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_KEY_P8 != '' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -199,20 +200,60 @@ jobs:
         with:
           flutter-version: '3.32.7'
 
-      - name: Build iOS App
+      - name: Build iOS App (No CodeSign)
+        if: ${{ env.testflight_ready != 'true' }}
         env:
           BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
         run: |
           echo "Building iOS app with CocoaPods..."
           flutter build ios --release --no-codesign
 
+      - name: Build iOS App (Signed for TestFlight)
+        if: ${{ env.testflight_ready == 'true' }}
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
+        run: |
+          echo "Building signed iOS IPA for TestFlight..."
+          flutter build ipa --release
+
       - name: Create IPA
+        if: ${{ env.testflight_ready != 'true' }}
         run: |
           mkdir -p ${{ env.output }}
           cd build/ios/iphoneos
           mkdir Payload
           cp -r Runner.app Payload/
           zip -r ${{ env.output }}/OpenList-Mobile.ipa Payload/
+
+      - name: Normalize IPA Name
+        if: ${{ env.testflight_ready == 'true' }}
+        run: |
+          mkdir -p ${{ env.output }}
+          IPA_PATH=$(ls ${{ env.output }}/*.ipa | head -n 1)
+          cp "$IPA_PATH" "${{ env.output }}/OpenList-Mobile.ipa"
+
+      - name: Install Fastlane
+        if: ${{ env.testflight_ready == 'true' }}
+        run: sudo gem install fastlane -N
+
+      - name: Prepare App Store Connect API Key
+        if: ${{ env.testflight_ready == 'true' }}
+        run: |
+          mkdir -p ${{ runner.temp }}/asc_key
+          echo "${{ secrets.APP_STORE_CONNECT_KEY_P8 }}" | base64 --decode > ${{ runner.temp }}/asc_key/AuthKey.p8
+
+      - name: Upload to TestFlight
+        if: ${{ env.testflight_ready == 'true' }}
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          fastlane pilot upload \
+            --api_key_path "${{ runner.temp }}/asc_key/AuthKey.p8" \
+            --api_key_id "$APP_STORE_CONNECT_KEY_ID" \
+            --api_key_issuer_id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --ipa "${{ env.output }}/OpenList-Mobile.ipa" \
+            --skip_waiting_for_build_processing true
 
       - name: Set iOS Version
         run: |
