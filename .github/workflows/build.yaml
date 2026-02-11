@@ -322,16 +322,30 @@ jobs:
 
       - name: Prepare App Store Connect API Key
         if: ${{ env.testflight_ready == 'true' }}
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         run: |
           mkdir -p ${{ runner.temp }}/asc_key
           echo "${{ secrets.APP_STORE_CONNECT_KEY_P8 }}" | base64 --decode > ${{ runner.temp }}/asc_key/AuthKey.p8
-          cat > ${{ runner.temp }}/asc_key/api_key.json <<EOF
-          {
-            "key_id": "${{ secrets.APP_STORE_CONNECT_KEY_ID }}",
-            "issuer_id": "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}",
-            "key_filepath": "${{ runner.temp }}/asc_key/AuthKey.p8"
+          python3 - <<'PY'
+          import json
+          import os
+
+          key_path = os.path.join(os.environ['RUNNER_TEMP'], 'asc_key', 'AuthKey.p8')
+          with open(key_path, 'r', encoding='utf-8') as f:
+            key_content = f.read().strip()
+
+          data = {
+            'key_id': os.environ.get('APP_STORE_CONNECT_KEY_ID', ''),
+            'issuer_id': os.environ.get('APP_STORE_CONNECT_ISSUER_ID', ''),
+            'key': key_content,
           }
-          EOF
+
+          out_path = os.path.join(os.environ['RUNNER_TEMP'], 'asc_key', 'api_key.json')
+          with open(out_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f)
+          PY
 
       - name: Upload to TestFlight
         if: ${{ env.testflight_ready == 'true' }}
