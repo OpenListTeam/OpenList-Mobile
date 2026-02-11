@@ -16,6 +16,7 @@
 		AA1234561234567890ABCDE5 /* OpenListBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1234561234567890ABCDE4 /* OpenListBridge.swift */; };
 		AA1234561234567890ABCDE7 /* AppConfigBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1234561234567890ABCDE6 /* AppConfigBridge.swift */; };
 		AA1234561234567890ABCDE9 /* CommonBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1234561234567890ABCDE8 /* CommonBridge.swift */; };
+		AA1234561234567890ABCDEF /* AppStoreUpdateBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1234561234567890ABCDEE /* AppStoreUpdateBridge.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -57,6 +58,7 @@
 		AA1234561234567890ABCDE4 /* OpenListBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenListBridge.swift; sourceTree = "<group>"; };
 		AA1234561234567890ABCDE6 /* AppConfigBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfigBridge.swift; sourceTree = "<group>"; };
 		AA1234561234567890ABCDE8 /* CommonBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonBridge.swift; sourceTree = "<group>"; };
+		AA1234561234567890ABCDEE /* AppStoreUpdateBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreUpdateBridge.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 		AA1234561234567890ABCDEA /* Bridges */ = {
 			isa = PBXGroup;
 			children = (
+				AA1234561234567890ABCDEE /* AppStoreUpdateBridge.swift */,
 				AA1234561234567890ABCDE4 /* OpenListBridge.swift */,
 				AA1234561234567890ABCDE6 /* AppConfigBridge.swift */,
 				AA1234561234567890ABCDE8 /* CommonBridge.swift */,
@@ -295,6 +298,7 @@
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				AA1234561234567890ABCDE1 /* PigeonApi.swift in Sources */,
 				AA1234561234567890ABCDE3 /* OpenListManager.swift in Sources */,
+				AA1234561234567890ABCDEF /* AppStoreUpdateBridge.swift in Sources */,
 				AA1234561234567890ABCDE5 /* OpenListBridge.swift in Sources */,
 				AA1234561234567890ABCDE7 /* AppConfigBridge.swift in Sources */,
 				AA1234561234567890ABCDE9 /* CommonBridge.swift in Sources */,
