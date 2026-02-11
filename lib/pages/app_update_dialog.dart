@@ -48,6 +48,8 @@ class AppUpdateDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasValidApkUrl = apkUrl.trim().isNotEmpty &&
+        Uri.tryParse(apkUrl) != null;
     
     return AlertDialog(
       title: Row(
@@ -106,9 +108,6 @@ class AppUpdateDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             
-            final hasValidApkUrl = apkUrl.trim().isNotEmpty &&
-              Uri.tryParse(apkUrl) != null;
-
             if (Platform.isAndroid && hasValidApkUrl) ...[
               Card(
                 margin: EdgeInsets.zero,
