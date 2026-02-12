@@ -113,6 +113,11 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.7'
+
+      - name: Generate iOS Build Number
+        run: |
+          IOS_BUILD_NUMBER=$(date +%y%m%d%H)
+          echo "ios_build_number=$IOS_BUILD_NUMBER" >> $GITHUB_ENV
       
       - name: Build Release APK
         if: github.event_name != 'pull_request'
@@ -258,7 +263,7 @@ jobs:
           BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
         run: |
           echo "Building iOS app with CocoaPods..."
-          flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign --build-number "$ios_build_number"
 
       - name: Build iOS App (Signed for TestFlight)
         if: ${{ env.testflight_ready == 'true' }}
@@ -271,7 +276,7 @@ jobs:
             BUNDLE_ID="org.oplist.app"
           fi
 
-          flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign --build-number "$ios_build_number"
 
           EXPORT_OPTIONS_PATH="${RUNNER_TEMP}/exportOptions.plist"
           /usr/libexec/PlistBuddy -c "Clear dict" "$EXPORT_OPTIONS_PATH" || true
