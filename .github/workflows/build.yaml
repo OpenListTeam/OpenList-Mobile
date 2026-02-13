@@ -292,7 +292,7 @@ jobs:
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
-            -sdk iphoneos \
+            -sdk iphoneos26.2 \
             -archivePath "$ARCHIVE_PATH" \
             archive \
             CODE_SIGNING_ALLOWED=NO \
