@@ -2,8 +2,39 @@
 
 GIT_REPO="https://github.com/OpenListTeam/OpenList.git"
 
-function to_int() {
-    echo $(echo "$1" | grep -oE '[0-9]+' | tr -d '\n')
+function compare_versions() {
+  local v1="${1#v}"
+  local v2="${2#v}"
+  local max_len=0
+
+  IFS='.' read -r -a v1_parts <<< "$v1"
+  IFS='.' read -r -a v2_parts <<< "$v2"
+
+  if [ "${#v1_parts[@]}" -gt "${#v2_parts[@]}" ]; then
+    max_len="${#v1_parts[@]}"
+  else
+    max_len="${#v2_parts[@]}"
+  fi
+
+  for ((i=0; i<max_len; i++)); do
+    local p1="${v1_parts[i]:-0}"
+    local p2="${v2_parts[i]:-0}"
+
+    p1=$(echo "$p1" | grep -oE '^[0-9]+' || echo 0)
+    p2=$(echo "$p2" | grep -oE '^[0-9]+' || echo 0)
+
+    if ((10#$p1 > 10#$p2)); then
+      echo 1
+      return
+    fi
+
+    if ((10#$p1 < 10#$p2)); then
+      echo -1
+      return
+    fi
+  done
+
+  echo 0
 }
 
 function get_latest_version() {
@@ -28,8 +59,7 @@ do
 
 done
 
-LATEST_VER_INT=$(to_int "$LATEST_VER")
-echo "Latest OpenList version $LATEST_VER ${LATEST_VER_INT}"
+echo "Latest OpenList version $LATEST_VER"
 
 echo "openlist_version=$LATEST_VER" >> "$GITHUB_ENV"
 # VERSION_FILE="$GITHUB_WORKSPACE/openlist_version.txt"
@@ -41,12 +71,11 @@ if [ -z "$VER" ]; then
   echo "No version file, use default version ${VER}"
 fi
 
-VER_INT=$(to_int $VER)
+echo "Current OpenList version: $VER"
 
-echo "Current OpenList version: $VER ${VER_INT}"
+COMPARE_RESULT=$(compare_versions "$VER" "$LATEST_VER")
 
-
-if [ "$VER_INT" -ge "$LATEST_VER_INT" ]; then
+if [ "$COMPARE_RESULT" -ge 0 ]; then
     echo "Current >= Latest"
     echo "openlist_update=0" >> "$GITHUB_ENV"
 else
