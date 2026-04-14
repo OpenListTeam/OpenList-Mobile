@@ -192,6 +192,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Select Xcode 26.3.0
+        run: |
+          XCODE_APP="/Applications/Xcode_26.3.0.app"
+          if [ ! -d "$XCODE_APP" ]; then
+            echo "Xcode_26.3.0 not found at $XCODE_APP"
+            echo "Installed Xcode apps:"
+            ls -1 /Applications | grep '^Xcode' || true
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          xcodebuild -version
+
       - name: Download OpenList iOS Framework from latest build
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -297,7 +309,7 @@ jobs:
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
-            -sdk iphoneos26.2 \
+            -sdk iphoneos \
             -archivePath "$ARCHIVE_PATH" \
             archive \
             CODE_SIGNING_ALLOWED=NO \
