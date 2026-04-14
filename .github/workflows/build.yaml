@@ -205,6 +205,11 @@ jobs:
         with:
           flutter-version: '3.32.7'
 
+      - name: Generate iOS Build Number
+        run: |
+          IOS_BUILD_NUMBER=$(date +%y%m%d%H)
+          echo "ios_build_number=$IOS_BUILD_NUMBER" >> $GITHUB_ENV
+
       - name: Install iOS Signing Assets
         if: ${{ env.testflight_ready == 'true' }}
         env:
@@ -309,10 +314,34 @@ jobs:
         if: ${{ env.testflight_ready != 'true' }}
         run: |
           mkdir -p ${{ env.output }}
-          cd build/ios/iphoneos
-          mkdir Payload
-          cp -r Runner.app Payload/
-          zip -r ${{ env.output }}/OpenList-Mobile.ipa Payload/
+
+          APP_PATH=""
+          for candidate in \
+            "build/ios/iphoneos/Runner.app" \
+            "build/ios/Release-iphoneos/Runner.app" \
+            "build/ios/Release-unknown/Runner.app" \
+            "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app"
+          do
+            if [ -d "$candidate" ]; then
+              APP_PATH="$candidate"
+              break
+            fi
+          done
+
+          if [ -z "$APP_PATH" ]; then
+            echo "Runner.app not found in expected locations."
+            echo "Available build/ios directories for diagnostics:"
+            find build/ios -maxdepth 5 -type d || true
+            exit 1
+          fi
+
+          TMP_DIR=$(mktemp -d)
+          mkdir -p "$TMP_DIR/Payload"
+          cp -R "$APP_PATH" "$TMP_DIR/Payload/"
+          (
+            cd "$TMP_DIR"
+            zip -qry "${{ env.output }}/OpenList-Mobile.ipa" Payload/
+          )
 
       - name: Normalize IPA Name
         if: ${{ env.testflight_ready == 'true' }}
