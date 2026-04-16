@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io' show Platform;
 
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
@@ -34,7 +35,7 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
     // iOS specific: Enable page caching and state preservation
     cacheEnabled: true,
     sharedCookiesEnabled: true,
-    limitsNavigationsToAppBoundDomains: false,
+    limitsNavigationsToAppBoundDomains: Platform.isIOS,
     // Enable disk and memory cache for better state preservation
     cacheMode: CacheMode.LOAD_DEFAULT,
     // Prevent WebView from being suspended in background
@@ -47,6 +48,56 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   String _url = "http://localhost:5244";
   bool _canGoBack = false;
   bool _isLoading = false;
+
+  static const Set<String> _inAppSafeSchemes = {
+    "about",
+    "data",
+    "file",
+  };
+
+  bool _isLoopbackHost(String host) {
+    final normalized = host.toLowerCase();
+    return normalized == "localhost" ||
+        normalized == "127.0.0.1" ||
+        normalized == "::1";
+  }
+
+  bool _isAllowedInAppNavigation(Uri uri) {
+    final scheme = uri.scheme.toLowerCase();
+
+    if (_inAppSafeSchemes.contains(scheme)) {
+      return true;
+    }
+
+    if (scheme == "http" || scheme == "https") {
+      if (!Platform.isIOS) {
+        return true;
+      }
+      return _isLoopbackHost(uri.host);
+    }
+
+    return false;
+  }
+
+  Future<void> _openExternalUri(String uriString) async {
+    final silentMode = await NativeBridge.appConfig.isSilentJumpAppEnabled();
+    if (silentMode) {
+      NativeCommon().startActivityFromUri(uriString);
+      return;
+    }
+
+    if (!mounted) return;
+
+    Get.showSnackbar(GetSnackBar(
+        message: S.current.jumpToOtherApp,
+        duration: const Duration(seconds: 5),
+        mainButton: TextButton(
+          onPressed: () {
+            NativeCommon().startActivityFromUri(uriString);
+          },
+          child: Text(S.current.goTo),
+        )));
+  }
 
   onClickNavigationBar() {
     log("onClickNavigationBar");
@@ -156,38 +207,23 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
                   log("shouldOverrideUrlLoading ${navigationAction.request.url}");
 
-                  var uri = navigationAction.request.url!;
-                  if (![
-                    "http",
-                    "https",
-                    "file",
-                    "chrome",
-                    "data",
-                    "javascript",
-                    "about"
-                  ].contains(uri.scheme)) {
-                    log("shouldOverrideUrlLoading ${uri.toString()}");
-                    final silentMode =
-                        await NativeBridge.appConfig.isSilentJumpAppEnabled();
-                    if (silentMode) {
-                      NativeCommon().startActivityFromUri(uri.toString());
-                    } else {
-                      Get.showSnackbar(GetSnackBar(
-                          message: S.current.jumpToOtherApp,
-                          duration: const Duration(seconds: 5),
-                          mainButton: TextButton(
-                            onPressed: () {
-                              NativeCommon()
-                                  .startActivityFromUri(uri.toString());
-                            },
-                            child: Text(S.current.goTo),
-                          )));
-                    }
-
+                  final uri = navigationAction.request.url;
+                  if (uri == null) {
                     return NavigationActionPolicy.CANCEL;
                   }
 
-                  return NavigationActionPolicy.ALLOW;
+                  if (_isAllowedInAppNavigation(uri)) {
+                    return NavigationActionPolicy.ALLOW;
+                  }
+
+                  final scheme = uri.scheme.toLowerCase();
+                  if (Platform.isIOS && scheme == "javascript") {
+                    log("Blocked javascript navigation on iOS: ${uri.toString()}");
+                    return NavigationActionPolicy.CANCEL;
+                  }
+
+                  await _openExternalUri(uri.toString());
+                  return NavigationActionPolicy.CANCEL;
                 },
                 onReceivedError: (controller, request, error) async {
                   log("WebView error: ${error.description}");
