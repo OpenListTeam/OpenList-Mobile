@@ -1,0 +1,449 @@
+name: Build (Self-contained)
+
+on:
+  push:
+    branches:
+      - "main"
+    paths-ignore:
+      - "*.md"
+      - "*.sh"
+      - "release.yaml"
+  pull_request:
+    branches: ["main"]
+
+  workflow_dispatch:
+
+jobs:
+  version:
+    name: Get OpenList Version Information
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.generate.outputs.version_name }}
+      openlist_version: ${{ steps.openlist_version.outputs.openlist_version }}
+      openlist_git_commit: ${{ steps.openlist_version.outputs.openlist_git_commit }}
+      openlist_web_version: ${{ steps.openlist_version.outputs.openlist_web_version }}
+      openlist_built_at: ${{ steps.openlist_version.outputs.openlist_built_at }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Generate Version Name
+        id: generate
+        run: |
+          BASE_VERSION=$(cat openlist_version)
+          TIMESTAMP=$(date +%y%m%d%H)
+          VERSION_NAME="${BASE_VERSION}.${TIMESTAMP}"
+          echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Download OpenList Source Code
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_openlist.sh
+
+      - name: Extract OpenList Version Info
+        id: openlist_version
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          
+          GIT_REPO="https://github.com/OpenListTeam/OpenList.git"
+          OPENLIST_VERSION=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags $GIT_REPO | tail -n 1 | cut -d'/' -f3)
+          OPENLIST_GIT_COMMIT=$(git ls-remote $GIT_REPO "refs/tags/${OPENLIST_VERSION}" | cut -f1 | cut -c1-7)
+          OPENLIST_WEB_VERSION=$(curl -fsSL --max-time 10 "https://api.github.com/repos/OpenListTeam/OpenList-Frontend/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/"//g;s/,//g;s/ //g' || echo "rolling")
+          OPENLIST_BUILT_AT=$(date +'%F %T %z')
+          
+          echo "openlist_version=${OPENLIST_VERSION}" >> $GITHUB_OUTPUT
+          echo "openlist_git_commit=${OPENLIST_GIT_COMMIT}" >> $GITHUB_OUTPUT
+          echo "openlist_web_version=${OPENLIST_WEB_VERSION}" >> $GITHUB_OUTPUT
+          echo "openlist_built_at=${OPENLIST_BUILT_AT}" >> $GITHUB_OUTPUT
+
+  android:
+    name: Build OpenList Android APK (Dev)
+    needs: [version]
+    runs-on: ubuntu-latest
+    env:
+      release_output: "${{ github.workspace }}/build/app/outputs/apk/release"
+      debug_output: "${{ github.workspace }}/build/app/outputs/flutter-apk"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # ========== 直接构建OpenList AAR，不依赖预先构建的artifact ==========
+
+      - name: Download OpenList Source Code
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_openlist.sh
+          ./init_web.sh
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.25.0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r25c
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+
+      - name: Build OpenList Android AAR
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_gomobile.sh
+          ./gobind.sh
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          OPENLIST_VERSION: ${{ needs.version.outputs.openlist_version }}
+          OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
+          OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
+          OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
+          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
+
+      # ========== 继续原有的Flutter构建流程 ==========
+
+      - name: Init Signature (Release only)
+        if: github.event_name != 'pull_request'
+        run: |
+          touch local.properties
+          cd android
+          echo ALIAS_NAME='${{ secrets.ALIAS_NAME }}' >> local.properties
+          echo ALIAS_PASSWORD='${{ secrets.ALIAS_PASSWORD }}' >> local.properties
+          echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}' >> local.properties
+          echo KEY_PATH='./key.jks' >> local.properties
+          echo ${{ secrets.KEY_STORE }} | base64 --decode > $GITHUB_WORKSPACE/android/app/key.jks
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.7'
+
+      - name: Generate iOS Build Number
+        run: |
+          IOS_BUILD_NUMBER=$(date +%y%m%d%H)
+          echo "ios_build_number=$IOS_BUILD_NUMBER" >> $GITHUB_ENV
+      
+      - name: Build Release APK
+        if: github.event_name != 'pull_request'
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
+        run: flutter build apk --split-per-abi --release --target-platform android-arm,android-arm64,android-x64
+      
+      - name: Build Debug APK
+        if: github.event_name == 'pull_request'
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
+        run: flutter build apk --split-per-abi --debug --target-platform android-arm,android-arm64,android-x64
+
+      - name: Upload missing_rules.txt
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "missing_rules"
+          path: "${{ github.workspace }}/build/app/outputs/mapping/release/missing_rules.txt"
+
+      - name: Set Build Paths and Version
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            OUTPUT_DIR="${{ env.debug_output }}"
+            BUILD_TYPE="debug"
+            echo "ver_name=${{ needs.version.outputs.version_name }}-debug" >> $GITHUB_ENV
+          else
+            OUTPUT_DIR="${{ env.release_output }}"
+            BUILD_TYPE="release"
+            echo "ver_name=${{ needs.version.outputs.version_name }}" >> $GITHUB_ENV
+          fi
+          
+          echo "output_path=$OUTPUT_DIR" >> $GITHUB_ENV
+          echo "build_type=$BUILD_TYPE" >> $GITHUB_ENV
+
+      - name: Upload App To Artifact arm64-v8a
+        if: success () || failure ()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "OpenList-Mobile-${{ env.ver_name }}_arm64-v8a"
+          path: |
+            ${{ env.output_path }}/*arm64-v8a*.apk
+            ${{ env.output_path }}/*v8a.apk
+
+      - name: Upload App To Artifact arm-v7a
+        if: success () || failure ()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "OpenList-Mobile-${{ env.ver_name }}_arm-v7a"
+          path: |
+            ${{ env.output_path }}/*armeabi-v7a*.apk
+            ${{ env.output_path }}/*v7a.apk
+
+      - name: Upload App To Artifact x86_64
+        if: success () || failure ()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "OpenList-Mobile-${{ env.ver_name }}_x86_64"
+          path: |
+            ${{ env.output_path }}/*x86_64*.apk
+            ${{ env.output_path }}/*x64*.apk
+
+  ios:
+    name: Build OpenList iOS App (Dev)
+    needs: [version]
+    runs-on: macos-latest
+    env:
+      output: "${{ github.workspace }}/build/ios/ipa"
+      testflight_ready: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.TESTFLIGHT_UPLOAD_ENABLED == 'true' && secrets.APP_STORE_CONNECT_KEY_ID != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_KEY_P8 != '' && secrets.IOS_CERT_PFX != '' && secrets.IOS_CERT_PASSWORD != '' && secrets.IOS_PROVISION_PROFILE != '' }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # ========== 直接构建OpenList iOS Framework ==========
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.25.0
+
+      - name: Download OpenList Source Code
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_openlist.sh
+          ./init_web_ios.sh
+
+      - name: Build OpenList iOS Framework
+        run: |
+          cd $GITHUB_WORKSPACE/openlist-lib/scripts
+          chmod +x *.sh
+          ./init_gomobile.sh
+          ./gobind_ios.sh
+        env:
+          OPENLIST_VERSION: ${{ needs.version.outputs.openlist_version }}
+          OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
+          OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
+          OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
+          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
+
+      # ========== 继续原有的iOS构建流程 ==========
+
+      - name: Select Xcode 26.3.0
+        run: |
+          XCODE_APP="/Applications/Xcode_26.3.0.app"
+          if [ ! -d "$XCODE_APP" ]; then
+            echo "Xcode_26.3.0 not found at $XCODE_APP"
+            echo "Installed Xcode apps:"
+            ls -1 /Applications | grep '^Xcode' || true
+            exit 1
+          fi
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          xcodebuild -version
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.7'
+
+      - name: Generate iOS Build Number
+        run: |
+          IOS_BUILD_NUMBER=$(date +%y%m%d%H)
+          echo "ios_build_number=$IOS_BUILD_NUMBER" >> $GITHUB_ENV
+
+      - name: Install iOS Signing Assets
+        if: ${{ env.testflight_ready == 'true' }}
+        env:
+          IOS_CERT_PFX: ${{ secrets.IOS_CERT_PFX }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          IOS_PROVISION_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE }}
+        run: |
+          KEYCHAIN_PATH="${RUNNER_TEMP}/openlist.keychain-db"
+          KEYCHAIN_PASSWORD="temp_keychain_password"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          security default-keychain -s "$KEYCHAIN_PATH"
+
+          CERT_PATH="${RUNNER_TEMP}/ios_signing.pfx"
+          CERT_PEM_PATH="${RUNNER_TEMP}/ios_signing.pem"
+          CERT_P12_PATH="${RUNNER_TEMP}/ios_signing_mac.p12"
+          echo "$IOS_CERT_PFX" | base64 --decode > "$CERT_PATH"
+
+          if openssl pkcs12 -in "$CERT_PATH" -out "$CERT_PEM_PATH" -nodes -legacy -passin pass:"$IOS_CERT_PASSWORD"; then
+            openssl pkcs12 -export -in "$CERT_PEM_PATH" -out "$CERT_P12_PATH" -passout pass:"$IOS_CERT_PASSWORD" -legacy
+          else
+            openssl pkcs12 -in "$CERT_PATH" -out "$CERT_PEM_PATH" -nodes -passin pass:"$IOS_CERT_PASSWORD"
+            openssl pkcs12 -export -in "$CERT_PEM_PATH" -out "$CERT_P12_PATH" -passout pass:"$IOS_CERT_PASSWORD"
+          fi
+
+          security import "$CERT_P12_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_CERT_PASSWORD" -A
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | head -n 1 | sed -E 's/.*"(.*)"/\1/')
+          echo "signing_identity=$SIGNING_IDENTITY" >> $GITHUB_ENV
+          echo "keychain_path=$KEYCHAIN_PATH" >> $GITHUB_ENV
+
+          PROFILE_PATH="${RUNNER_TEMP}/openlist.mobileprovision"
+          echo "$IOS_PROVISION_PROFILE" | base64 --decode > "$PROFILE_PATH"
+
+          PROFILE_PLIST="${RUNNER_TEMP}/profile.plist"
+          security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$PROFILE_PLIST")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" "$PROFILE_PLIST")
+          TEAM_ID=$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" "$PROFILE_PLIST")
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
+
+          echo "profile_name=$PROFILE_NAME" >> $GITHUB_ENV
+          echo "team_id=$TEAM_ID" >> $GITHUB_ENV
+
+      - name: Build iOS App (No CodeSign)
+        if: ${{ env.testflight_ready != 'true' }}
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
+        run: |
+          echo "Building iOS app with CocoaPods..."
+          flutter build ios --release --no-codesign --build-number "$ios_build_number"
+
+      - name: Build iOS App (Signed for TestFlight)
+        if: ${{ env.testflight_ready == 'true' }}
+        env:
+          BUILD_VERSION_NAME: ${{ needs.version.outputs.version_name }}
+        run: |
+          echo "Building signed iOS IPA for TestFlight..."
+          BUNDLE_ID="${{ secrets.IOS_BUNDLE_ID }}"
+          if [ -z "$BUNDLE_ID" ]; then
+            BUNDLE_ID="org.oplist.app"
+          fi
+
+          flutter build ios --release --no-codesign --build-number "$ios_build_number"
+
+          EXPORT_OPTIONS_PATH="${RUNNER_TEMP}/exportOptions.plist"
+          /usr/libexec/PlistBuddy -c "Clear dict" "$EXPORT_OPTIONS_PATH" || true
+          /usr/libexec/PlistBuddy -c "Add :method string app-store" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :signingStyle string manual" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :teamID string $team_id" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :signingCertificate string $signing_identity" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :provisioningProfiles dict" "$EXPORT_OPTIONS_PATH"
+          /usr/libexec/PlistBuddy -c "Add :provisioningProfiles:$BUNDLE_ID string $profile_name" "$EXPORT_OPTIONS_PATH"
+
+          ARCHIVE_PATH="${RUNNER_TEMP}/OpenList.xcarchive"
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath "$ARCHIVE_PATH" \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportOptionsPlist "$EXPORT_OPTIONS_PATH" \
+            -exportPath "${{ env.output }}" \
+            OTHER_CODE_SIGN_FLAGS="--keychain $keychain_path"
+
+      - name: Create IPA
+        if: ${{ env.testflight_ready != 'true' }}
+        run: |
+          mkdir -p ${{ env.output }}
+
+          APP_PATH=""
+          for candidate in \
+            "build/ios/iphoneos/Runner.app" \
+            "build/ios/Release-iphoneos/Runner.app" \
+            "build/ios/Release-unknown/Runner.app" \
+            "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app"
+          do
+            if [ -d "$candidate" ]; then
+              APP_PATH="$candidate"
+              break
+            fi
+          done
+
+          if [ -z "$APP_PATH" ]; then
+            echo "Runner.app not found in expected locations."
+            echo "Available build/ios directories for diagnostics:"
+            find build/ios -maxdepth 5 -type d || true
+            exit 1
+          fi
+
+          TMP_DIR=$(mktemp -d)
+          mkdir -p "$TMP_DIR/Payload"
+          cp -R "$APP_PATH" "$TMP_DIR/Payload/"
+          (
+            cd "$TMP_DIR"
+            zip -qry "${{ env.output }}/OpenList-Mobile.ipa" Payload/
+          )
+
+      - name: Normalize IPA Name
+        if: ${{ env.testflight_ready == 'true' }}
+        run: |
+          mkdir -p ${{ env.output }}
+          IPA_PATH=$(ls ${{ env.output }}/*.ipa | head -n 1)
+          cp "$IPA_PATH" "${{ env.output }}/OpenList-Mobile.ipa"
+
+      - name: Install Fastlane
+        if: ${{ env.testflight_ready == 'true' }}
+        run: sudo gem install fastlane -N
+
+      - name: Prepare App Store Connect API Key
+        if: ${{ env.testflight_ready == 'true' }}
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          mkdir -p ${{ runner.temp }}/asc_key
+          echo "${{ secrets.APP_STORE_CONNECT_KEY_P8 }}" | base64 --decode > ${{ runner.temp }}/asc_key/AuthKey.p8
+          python3 - <<'PY'
+          import json
+          import os
+
+          key_path = os.path.join(os.environ['RUNNER_TEMP'], 'asc_key', 'AuthKey.p8')
+          with open(key_path, 'r', encoding='utf-8') as f:
+            key_content = f.read().strip()
+
+          data = {
+            'key_id': os.environ.get('APP_STORE_CONNECT_KEY_ID', ''),
+            'issuer_id': os.environ.get('APP_STORE_CONNECT_ISSUER_ID', ''),
+            'key': key_content,
+          }
+
+          out_path = os.path.join(os.environ['RUNNER_TEMP'], 'asc_key', 'api_key.json')
+          with open(out_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f)
+          PY
+
+      - name: Upload to TestFlight
+        if: ${{ env.testflight_ready == 'true' }}
+        run: |
+          fastlane pilot upload \
+            --api_key_path "${{ runner.temp }}/asc_key/api_key.json" \
+            --ipa "${{ env.output }}/OpenList-Mobile.ipa" \
+            --skip_waiting_for_build_processing true
+
+      - name: Set iOS Version
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "ver_name=${{ needs.version.outputs.version_name }}-debug" >> $GITHUB_ENV
+          else
+            echo "ver_name=${{ needs.version.outputs.version_name }}" >> $GITHUB_ENV
+          fi
+
+      - name: Upload iOS App To Artifact
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "OpenList-Mobile-iOS-${{ env.ver_name }}"
+          path: "${{ env.output }}/OpenList-Mobile.ipa"
