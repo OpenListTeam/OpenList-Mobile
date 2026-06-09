@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GIT_REPO="https://github.com/OpenListTeam/OpenList.git"
+GIT_REPO="https://github.com/koljs/OpenList.git"
 TAG_NAME=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags $GIT_REPO | tail -n 1 | cut -d'/' -f3)
 
 echo "OpenList - ${TAG_NAME}"
