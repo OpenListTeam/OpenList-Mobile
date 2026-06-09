@@ -93,12 +93,30 @@ jobs:
         run: |
           touch local.properties
           cd android
+          
+          # Decode the keystore from secrets
+          echo ${{ secrets.KEY_STORE }} | base64 --decode > $GITHUB_WORKSPACE/android/app/key.jks
+          
+          # Convert JKS to PKCS12 format for JDK 17+ compatibility
+          keytool -importkeystore \
+            -srckeystore $GITHUB_WORKSPACE/android/app/key.jks \
+            -destkeystore $GITHUB_WORKSPACE/android/app/key.p12 \
+            -deststoretype PKCS12 \
+            -srcstorepass '${{ secrets.KEY_PASSWORD }}' \
+            -deststorepass '${{ secrets.KEY_PASSWORD }}' \
+            -srcalias '${{ secrets.ALIAS_NAME }}' \
+            -destalias '${{ secrets.ALIAS_NAME }}' \
+            -srckeypass '${{ secrets.ALIAS_PASSWORD }}' \
+            -destkeypass '${{ secrets.ALIAS_PASSWORD }}' \
+            || {
+              echo "JKS conversion failed, using original format"
+              cp $GITHUB_WORKSPACE/android/app/key.jks $GITHUB_WORKSPACE/android/app/key.p12
+            }
+          
           echo ALIAS_NAME='${{ secrets.ALIAS_NAME }}' >> local.properties
           echo ALIAS_PASSWORD='${{ secrets.ALIAS_PASSWORD }}' >> local.properties
           echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}' >> local.properties
-          echo KEY_PATH='./key.jks' >> local.properties
-          # 从Secrets读取无换行符Base64解码, 然后保存到到app/key.jks
-          echo ${{ secrets.KEY_STORE }} | base64 --decode > $GITHUB_WORKSPACE/android/app/key.jks
+          echo KEY_PATH='./key.p12' >> local.properties
 
       - uses: subosito/flutter-action@v2
         with:
