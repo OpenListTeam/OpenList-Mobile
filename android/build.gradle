@@ -39,3 +39,10 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+buildTypes {
+    release {
+        // 临时使用debug签名
+        signingConfig signingConfigs.debug
+    }
+}
