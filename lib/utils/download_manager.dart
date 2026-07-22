@@ -83,6 +83,8 @@ class DownloadManager {
   static final Map<String, DownloadTask> _activeTasks = {};
   static final List<DownloadTask> _completedTasks = [];
   static final Set<String> _cancelledTaskIds = {};
+  static final Set<String> _reservedFilePaths = {};
+  static int _nextTaskId = 0;
   
   /// 获取所有活跃的下载任务
   static List<DownloadTask> get activeTasks => _activeTasks.values.toList();
@@ -118,6 +120,7 @@ class DownloadManager {
     String finalFilename = filename ?? _getFilenameFromUrl(url);
     String filePath = '${downloadDir.path}/$finalFilename';
     filePath = _getUniqueFilePath(filePath);
+    _reservedFilePaths.add(filePath);
     finalFilename = filePath.split('/').last;
 
     // 创建下载任务
@@ -228,6 +231,8 @@ class DownloadManager {
       }
       
       return false;
+    } finally {
+      _reservedFilePaths.remove(filePath);
     }
   }
 
@@ -268,7 +273,7 @@ class DownloadManager {
 
     await NotificationManager.initialize();
 
-    final taskId = DateTime.now().millisecondsSinceEpoch.toString();
+    final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
     final downloadDir = await _getOpenListDownloadDirectory();
     if (downloadDir == null) {
       getx.Get.showSnackbar(getx.GetSnackBar(
@@ -280,8 +285,9 @@ class DownloadManager {
 
     var finalFilename = filename ?? _getFilenameFromUrl(source);
     var filePath = _getUniqueFilePath('${downloadDir.path}/$finalFilename');
+    _reservedFilePaths.add(filePath);
     finalFilename = filePath.split('/').last;
-    final temporaryFile = File('$filePath.part');
+    final temporaryFile = File('$filePath.$taskId.part');
     final task = DownloadTask(
       id: taskId,
       url: source,
@@ -322,9 +328,19 @@ class DownloadManager {
         await NotificationManager.showDownloadProgressNotification();
       }
 
+      if (_cancelledTaskIds.contains(taskId)) {
+        throw const FileSystemException('Download cancelled');
+      }
       await output.close();
       output = null;
+      if (_cancelledTaskIds.contains(taskId)) {
+        throw const FileSystemException('Download cancelled');
+      }
       await temporaryFile.rename(filePath);
+      if (_cancelledTaskIds.contains(taskId)) {
+        await File(filePath).delete();
+        throw const FileSystemException('Download cancelled');
+      }
 
       task.status = DownloadStatus.completed;
       task.endTime = DateTime.now();
@@ -353,9 +369,17 @@ class DownloadManager {
       _activeTasks.remove(taskId);
       _completedTasks.insert(0, task);
 
-      await output?.close();
-      if (await temporaryFile.exists()) {
-        await temporaryFile.delete();
+      try {
+        await output?.close();
+      } catch (closeError) {
+        log('关闭临时下载文件失败: $closeError');
+      }
+      try {
+        if (await temporaryFile.exists()) {
+          await temporaryFile.delete();
+        }
+      } catch (deleteError) {
+        log('删除临时下载文件失败: $deleteError');
       }
 
       if (task.status == DownloadStatus.failed) {
@@ -375,6 +399,7 @@ class DownloadManager {
       return false;
     } finally {
       _cancelledTaskIds.remove(taskId);
+      _reservedFilePaths.remove(filePath);
     }
   }
 
@@ -474,7 +499,7 @@ class DownloadManager {
   /// 获取唯一的文件路径（避免重名）
   static String _getUniqueFilePath(String originalPath) {
     File file = File(originalPath);
-    if (!file.existsSync()) {
+    if (!file.existsSync() && !_reservedFilePaths.contains(originalPath)) {
       return originalPath;
     }
 
@@ -489,7 +514,7 @@ class DownloadManager {
     do {
       newPath = '$directory/${nameWithoutExtension}_$counter$extension';
       counter++;
-    } while (File(newPath).existsSync());
+    } while (File(newPath).existsSync() || _reservedFilePaths.contains(newPath));
 
     return newPath;
   }

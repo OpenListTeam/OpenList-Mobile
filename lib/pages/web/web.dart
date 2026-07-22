@@ -50,6 +50,7 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   String _url = "http://localhost:5244";
   bool _canGoBack = false;
   bool _isLoading = false;
+  int _activeBlobDownloads = 0;
 
   static const int _blobChunkSize = 128 * 1024;
   static final UnmodifiableListView<UserScript> _blobDownloadScripts =
@@ -115,6 +116,13 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
 
   bool _isAllowedInAppNavigation(Uri uri) {
     final scheme = uri.scheme.toLowerCase();
+
+    if (scheme == "blob") {
+      final source = Uri.tryParse(uri.toString().substring("blob:".length));
+      return source != null &&
+          (source.scheme == "http" || source.scheme == "https") &&
+          _isLoopbackHost(source.host);
+    }
 
     if (_inAppSafeSchemes.contains(scheme)) {
       return true;
@@ -232,6 +240,9 @@ window.__openListReleaseBlobDownload?.(url);
     DownloadStartRequest request,
   ) async {
     final url = request.url.toString();
+    setState(() {
+      _activeBlobDownloads++;
+    });
     try {
       final metadata = await _initializeBlobTransfer(controller, url);
       final size = (metadata["size"] as num).toInt();
@@ -252,6 +263,13 @@ window.__openListReleaseBlobDownload?.(url);
         backgroundColor: Colors.red,
       ));
     } finally {
+      if (mounted) {
+        setState(() {
+          _activeBlobDownloads--;
+        });
+      } else {
+        _activeBlobDownloads--;
+      }
       try {
         await _releaseBlobTransfer(controller, url);
       } catch (error) {
@@ -262,7 +280,9 @@ window.__openListReleaseBlobDownload?.(url);
 
   onClickNavigationBar() {
     log("onClickNavigationBar");
-    _webViewController?.reload();
+    if (_activeBlobDownloads == 0) {
+      _webViewController?.reload();
+    }
   }
 
   @override
@@ -336,11 +356,13 @@ window.__openListReleaseBlobDownload?.(url);
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: !_canGoBack,
+        canPop: _activeBlobDownloads == 0 && !_canGoBack,
         onPopInvoked: (didPop) async {
           log("onPopInvoked $didPop");
           if (didPop) return;
-          _webViewController?.goBack();
+          if (_activeBlobDownloads == 0) {
+            _webViewController?.goBack();
+          }
         },
         child: Scaffold(
           body: Column(children: <Widget>[
@@ -374,6 +396,10 @@ window.__openListReleaseBlobDownload?.(url);
                     return NavigationActionPolicy.CANCEL;
                   }
 
+                  if (_activeBlobDownloads > 0 && uri.scheme != "blob") {
+                    return NavigationActionPolicy.CANCEL;
+                  }
+
                   if (_isAllowedInAppNavigation(uri)) {
                     return NavigationActionPolicy.ALLOW;
                   }
@@ -401,7 +427,9 @@ window.__openListReleaseBlobDownload?.(url);
                         await Future.delayed(const Duration(milliseconds: 500));
                         if (await Android().isRunning()) {
                           log("Service started, reloading WebView");
-                          _webViewController?.reload();
+                          if (_activeBlobDownloads == 0) {
+                            _webViewController?.reload();
+                          }
                           break;
                         }
                       }
