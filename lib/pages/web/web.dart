@@ -377,8 +377,12 @@ window.__openListReleaseBlobDownload?.(url);
   void dispose() {
     // Remove lifecycle observer when widget is disposed
     WidgetsBinding.instance.removeObserver(this);
+    _browserRequested = false;
+    _browserGeneration++;
+    final controller = _webViewController;
+    _webViewController = null;
     WebBrowserManager.instance.unregister();
-    _webViewController?.dispose();
+    controller?.dispose();
     super.dispose();
   }
 

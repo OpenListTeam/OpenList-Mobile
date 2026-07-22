@@ -71,8 +71,14 @@ class WebBrowserManager {
 
   Future<bool> _setEnabled(bool value) async {
     if (!value && !await _stop()) return false;
+    try {
+      if (!await _preferences.setBool('web_browser_enabled', value)) {
+        return false;
+      }
+    } catch (_) {
+      return false;
+    }
     enabled.value = value;
-    await _preferences.setBool('web_browser_enabled', value);
     return true;
   }
 
