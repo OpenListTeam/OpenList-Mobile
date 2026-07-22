@@ -83,13 +83,13 @@ class DownloadManager {
   static final Map<String, DownloadTask> _activeTasks = {};
   static final List<DownloadTask> _completedTasks = [];
   static final Set<String> _cancelledTaskIds = {};
-
+  
   /// 获取所有活跃的下载任务
   static List<DownloadTask> get activeTasks => _activeTasks.values.toList();
-
+  
   /// 获取所有已完成的下载任务
   static List<DownloadTask> get completedTasks => _completedTasks;
-
+  
   /// 获取所有下载任务
   static List<DownloadTask> get allTasks => [..._activeTasks.values, ..._completedTasks];
 
@@ -100,10 +100,10 @@ class DownloadManager {
   }) async {
     // 初始化通知管理器
     await NotificationManager.initialize();
-
+    
     // 生成任务ID
     String taskId = DateTime.now().millisecondsSinceEpoch.toString();
-
+    
     // 获取下载目录
     Directory? downloadDir = await _getOpenListDownloadDirectory();
     if (downloadDir == null) {
@@ -144,10 +144,10 @@ class DownloadManager {
     try {
       // 更新任务状态
       task.status = DownloadStatus.downloading;
-
+      
       // 显示初始通知
       await NotificationManager.showDownloadProgressNotification();
-
+      
       // 执行下载
       await _dio.download(
         url,
@@ -155,16 +155,16 @@ class DownloadManager {
         cancelToken: cancelToken,
         onReceiveProgress: (received, total) {
           if (task.status == DownloadStatus.cancelled) return;
-
+          
           task.receivedBytes = received;
           task.totalBytes = total;
           if (total > 0) {
             task.progress = received / total;
           }
-
+          
           // 更新通知进度
           NotificationManager.showDownloadProgressNotification();
-
+          
           log('下载进度: ${(task.progress * 100).toStringAsFixed(1)}%');
         },
       );
@@ -208,7 +208,7 @@ class DownloadManager {
         task.errorMessage = e.toString();
         task.endTime = DateTime.now();
         log('下载失败: $e');
-
+        
         getx.Get.showSnackbar(getx.GetSnackBar(
           message: S.current.downloadFailedFile(finalFilename),
           duration: const Duration(seconds: 3),
@@ -219,14 +219,14 @@ class DownloadManager {
       // 移动到已完成列表
       _activeTasks.remove(taskId);
       _completedTasks.insert(0, task);
-
+      
       // 更新通知状态
       if (_activeTasks.isEmpty) {
         await NotificationManager.cancelDownloadNotification();
       } else {
         await NotificationManager.showDownloadProgressNotification();
       }
-
+      
       return false;
     }
   }
@@ -383,7 +383,7 @@ class DownloadManager {
     DownloadTask? task = _activeTasks[taskId];
     if (task != null) {
       if (task.cancelToken != null) {
-        task.cancelToken!.cancel(S.current.userCancelledDownloadError);
+      task.cancelToken!.cancel(S.current.userCancelledDownloadError);
       } else {
         _cancelledTaskIds.add(taskId);
       }
@@ -405,7 +405,7 @@ class DownloadManager {
   static Future<Directory?> _getOpenListDownloadDirectory() async {
     try {
       Directory? baseDir;
-
+      
       if (Platform.isAndroid) {
         // Android: 优先使用公共下载目录
         baseDir = Directory('/storage/emulated/0/Download');
@@ -432,7 +432,7 @@ class DownloadManager {
 
       // 创建OpenList专用文件夹
       Directory openListDir = Directory('${baseDir.path}/OpenList');
-
+      
       if (!await openListDir.exists()) {
         try {
           await openListDir.create(recursive: true);
@@ -466,7 +466,7 @@ class DownloadManager {
     } catch (e) {
       log('解析文件名失败: $e');
     }
-
+    
     // 如果无法从URL提取文件名，使用时间戳
     return 'download_${DateTime.now().millisecondsSinceEpoch}';
   }
@@ -480,8 +480,8 @@ class DownloadManager {
 
     String directory = file.parent.path;
     String nameWithoutExtension = file.path.split('/').last.split('.').first;
-    String extension = file.path.contains('.')
-        ? '.${file.path.split('.').last}'
+    String extension = file.path.contains('.') 
+        ? '.${file.path.split('.').last}' 
         : '';
 
     int counter = 1;
@@ -502,15 +502,15 @@ class DownloadManager {
   /// 检查和请求安装权限
   static Future<bool> _checkInstallPermission() async {
     if (!Platform.isAndroid) return true;
-
+    
     try {
       // 检查是否有安装权限
       bool hasPermission = await Permission.requestInstallPackages.isGranted;
-
+      
       if (!hasPermission) {
         // 请求安装权限
         PermissionStatus status = await Permission.requestInstallPackages.request();
-
+        
         if (status.isGranted) {
           return true;
         } else if (status.isPermanentlyDenied) {
@@ -543,7 +543,7 @@ class DownloadManager {
           return false;
         }
       }
-
+      
       return true;
     } catch (e) {
       log('检查安装权限失败: $e');
@@ -555,7 +555,7 @@ class DownloadManager {
   static Future<void> _openFile(String filePath) async {
     try {
       log('尝试打开文件: $filePath');
-
+      
       // 如果是 APK 文件，先检查安装权限
       if (_isApkFile(filePath)) {
         bool hasPermission = await _checkInstallPermission();
@@ -563,12 +563,12 @@ class DownloadManager {
           return; // 没有权限，不继续打开
         }
       }
-
+      
       // 使用 open_filex 插件打开文件
       final result = await OpenFilex.open(filePath);
-
+      
       log('打开文件结果: ${result.type} - ${result.message}');
-
+      
       // 根据结果显示相应的提示
       switch (result.type) {
         case ResultType.done:
@@ -749,7 +749,7 @@ class DownloadController extends getx.GetxController {
 
   void updateProgress(double progress, int received, int total) {
     if (_isCancelled) return;
-
+    
     _progress = progress;
     _statusText = '${_formatBytes(received)} / ${_formatBytes(total)}';
     update();

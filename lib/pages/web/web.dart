@@ -270,7 +270,7 @@ window.__openListReleaseBlobDownload?.(url);
     super.initState();
     // Register lifecycle observer to handle app state changes
     WidgetsBinding.instance.addObserver(this);
-
+    
     // Get OpenList HTTP port
     Android()
         .getOpenListHttpPort()
@@ -305,7 +305,7 @@ window.__openListReleaseBlobDownload?.(url);
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     log("App lifecycle state changed: $state");
-
+    
     switch (state) {
       case AppLifecycleState.resumed:
         // App returned to foreground, WebView should be active
@@ -389,7 +389,7 @@ window.__openListReleaseBlobDownload?.(url);
                 },
                 onReceivedError: (controller, request, error) async {
                   log("WebView error: ${error.description}");
-
+                  
                   // Check if OpenList service is running
                   try {
                     if (!await Android().isRunning()) {
@@ -425,29 +425,29 @@ window.__openListReleaseBlobDownload?.(url);
                           if (isBlob) {
                             await _downloadBlob(controller, request);
                           } else {
-                            DownloadManager.downloadFileInBackground(
+                          DownloadManager.downloadFileInBackground(
                               url: request.url.toString(),
                               filename: request.suggestedFilename,
-                            );
+                          );
                           }
                         },
                         child: Text(S.of(context).directDownload),
                       ),
                       if (!isBlob) ...[
-                        TextButton(
-                          onPressed: () {
+                      TextButton(
+                        onPressed: () {
                             IntentUtils.getUrlIntent(request.url.toString())
-                                .launchChooser(S.of(context).selectAppToOpen);
-                          },
-                          child: Text(S.of(context).selectAppToOpen),
-                        ),
-                        TextButton(
-                          onPressed: () {
+                              .launchChooser(S.of(context).selectAppToOpen);
+                        },
+                        child: Text(S.of(context).selectAppToOpen),
+                      ),
+                      TextButton(
+                        onPressed: () {
                             IntentUtils.getUrlIntent(request.url.toString())
                                 .launch();
-                          },
-                          child: Text(S.of(context).browserDownload),
-                        ),
+                        },
+                        child: Text(S.of(context).browserDownload),
+                      ),
                       ],
                     ]),
                     onTap: isBlob
@@ -456,12 +456,12 @@ window.__openListReleaseBlobDownload?.(url);
                             Clipboard.setData(ClipboardData(
                               text: request.url.toString(),
                             ));
-                            Get.closeCurrentSnackbar();
-                            Get.showSnackbar(GetSnackBar(
-                              message: S.of(context).copiedToClipboard,
-                              duration: const Duration(seconds: 1),
-                            ));
-                          },
+                      Get.closeCurrentSnackbar();
+                      Get.showSnackbar(GetSnackBar(
+                        message: S.of(context).copiedToClipboard,
+                        duration: const Duration(seconds: 1),
+                      ));
+                    },
                   ));
                 },
                 onLoadStop:
