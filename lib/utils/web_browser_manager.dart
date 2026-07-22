@@ -15,6 +15,7 @@ class WebBrowserManager {
   WebBrowserAction? _stopAction;
   WebBrowserStartAction? _startAction;
   late SharedPreferences _preferences;
+  int _operationVersion = 0;
 
   Future<void> initialize() async {
     _preferences = await SharedPreferences.getInstance();
@@ -44,11 +45,21 @@ class WebBrowserManager {
   }
 
   Future<void> enableAndStart() async {
-    await setEnabled(true);
+    final operationVersion = ++_operationVersion;
+    if (!await _setEnabled(true) ||
+        operationVersion != _operationVersion ||
+        !enabled.value) {
+      return;
+    }
     await _startAction?.call();
   }
 
   Future<bool> setEnabled(bool value) async {
+    _operationVersion++;
+    return _setEnabled(value);
+  }
+
+  Future<bool> _setEnabled(bool value) async {
     if (!value && !await stop()) return false;
     enabled.value = value;
     await _preferences.setBool('web_browser_enabled', value);

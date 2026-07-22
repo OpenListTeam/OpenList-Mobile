@@ -48,7 +48,7 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   );
 
   double _progress = 0;
-  String _url = "http://localhost:5244";
+  String? _url;
   bool _canGoBack = false;
   bool _isLoading = false;
   bool _browserRequested = WebBrowserManager.instance.enabled.value;
@@ -280,6 +280,18 @@ window.__openListReleaseBlobDownload?.(url);
     }
   }
 
+  void _handleWebProcessTermination(InAppWebViewController controller) {
+    if (!mounted || !identical(_webViewController, controller)) return;
+    setState(() {
+      _browserRequested = false;
+      _webViewController = null;
+      _progress = 0;
+      _canGoBack = false;
+      _isLoading = false;
+    });
+    WebBrowserManager.instance.running.value = false;
+  }
+
   Future<void> _startBrowser() async {
     if (!mounted || _browserRequested) return;
     setState(() {
@@ -328,12 +340,17 @@ window.__openListReleaseBlobDownload?.(url);
     Android()
         .getOpenListHttpPort()
         .then((port) {
+          if (!mounted) return;
           setState(() {
             _url = "http://localhost:$port";
           });
           log("OpenList URL set to: $_url");
         })
         .catchError((error) {
+          if (!mounted) return;
+          setState(() {
+            _url = "http://localhost:5244";
+          });
           log("Failed to get OpenList port: $error");
         });
 
@@ -407,11 +424,11 @@ window.__openListReleaseBlobDownload?.(url);
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
             Expanded(
-              child: _browserRequested
+              child: _browserRequested && _url != null
                   ? InAppWebView(
                 initialSettings: settings,
                 initialUserScripts: _blobDownloadScripts,
-                initialUrlRequest: URLRequest(url: WebUri(_url)),
+                initialUrlRequest: URLRequest(url: WebUri(_url!)),
                 onWebViewCreated: (InAppWebViewController controller) {
                   if (!_browserRequested) {
                     controller.dispose();
@@ -452,6 +469,12 @@ window.__openListReleaseBlobDownload?.(url);
 
                   await _openExternalUri(uri.toString());
                   return NavigationActionPolicy.CANCEL;
+                },
+                onRenderProcessGone: (controller, detail) {
+                  _handleWebProcessTermination(controller);
+                },
+                onWebContentProcessDidTerminate: (controller) {
+                  _handleWebProcessTermination(controller);
                 },
                 onReceivedError: (controller, request, error) async {
                   log("WebView error: ${error.description}");
@@ -570,10 +593,15 @@ window.__openListReleaseBlobDownload?.(url);
                 },
                 onUpdateVisitedHistory: (InAppWebViewController controller,
                     WebUri? url, bool? isReload) {
-                  _url = url.toString();
+                  if (_browserRequested &&
+                      identical(_webViewController, controller)) {
+                    _url = url.toString();
+                  }
                 },
               )
-                  : Center(
+                  : _browserRequested
+                      ? const Center(child: CircularProgressIndicator())
+                      : Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
