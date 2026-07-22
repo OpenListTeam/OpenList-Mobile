@@ -78,6 +78,29 @@ void main() {
     expect(preferences.getBool('web_browser_enabled'), isTrue);
   });
 
+  test('operation queue continues after a failed callback', () async {
+    SharedPreferences.setMockInitialValues({'web_browser_enabled': true});
+    await manager.initialize();
+    manager.running.value = true;
+    var shouldThrow = true;
+    manager.register(
+      stop: () async {
+        if (shouldThrow) {
+          shouldThrow = false;
+          throw StateError('stop failed');
+        }
+        return true;
+      },
+      start: () async {},
+    );
+
+    await expectLater(manager.stop(), throwsStateError);
+    final stopped = await manager.stop();
+
+    expect(stopped, isTrue);
+    expect(manager.running.value, isFalse);
+  });
+
   test('newer disable cancels an in-flight restart', () async {
     SharedPreferences.setMockInitialValues({'web_browser_enabled': false});
     await manager.initialize();
