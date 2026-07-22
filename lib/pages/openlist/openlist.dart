@@ -116,7 +116,7 @@ class OpenListScreen extends StatelessWidget {
                 }
               }),
         ),
-        body: Obx(() => LogListView(logs: ui.logs, controller: ui.scrollController)));
+        body: Obx(() => LogListView(logs: ui.logs.toList(), controller: ui.scrollController)));
   }
 }
 
