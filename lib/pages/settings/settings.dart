@@ -4,6 +4,7 @@ import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/settings/preference_widgets.dart';
 import 'package:openlist_mobile/pages/settings/troubleshooting_page.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
+import 'package:openlist_mobile/utils/web_browser_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -135,6 +136,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (value) {
               controller.autoStartWebPage = value;
             },
+          ),
+          BasicPreference(
+            title: S.of(context).webBrowserStatus,
+            subtitle: WebBrowserManager.instance.running.value
+                ? S.of(context).running
+                : S.of(context).stopped,
+            leading: const Icon(Icons.web),
+            trailing: WebBrowserManager.instance.running.value
+                ? TextButton(
+                    onPressed: WebBrowserManager.instance.stop,
+                    child: Text(S.of(context).stopWebBrowser),
+                  )
+                : null,
+          ),
+          SwitchPreference(
+            title: S.of(context).enableWebBrowser,
+            subtitle: S.of(context).enableWebBrowserDesc,
+            icon: const Icon(Icons.web_asset),
+            value: WebBrowserManager.instance.enabled.value,
+            onChanged: WebBrowserManager.instance.setEnabled,
           ),
 
           // Data directory setting - only for Android

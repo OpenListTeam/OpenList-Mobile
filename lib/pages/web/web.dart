@@ -7,6 +7,7 @@ import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/utils/intent_utils.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
+import 'package:openlist_mobile/utils/web_browser_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -50,6 +51,7 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   String _url = "http://localhost:5244";
   bool _canGoBack = false;
   bool _isLoading = false;
+  bool _browserRequested = WebBrowserManager.instance.enabled.value;
   int _activeBlobDownloads = 0;
 
   static const int _blobChunkSize = 128 * 1024;
@@ -278,6 +280,32 @@ window.__openListReleaseBlobDownload?.(url);
     }
   }
 
+  Future<void> _startBrowser() async {
+    if (!mounted || _browserRequested) return;
+    setState(() {
+      _browserRequested = true;
+    });
+  }
+
+  Future<bool> _stopBrowser() async {
+    if (_activeBlobDownloads > 0) {
+      Get.showSnackbar(GetSnackBar(
+        message: S.current.webBrowserDownloadInProgress,
+        duration: const Duration(seconds: 3),
+      ));
+      return false;
+    }
+    if (!_browserRequested) return true;
+    setState(() {
+      _browserRequested = false;
+      _webViewController = null;
+      _progress = 0;
+      _canGoBack = false;
+      _isLoading = false;
+    });
+    return true;
+  }
+
   onClickNavigationBar() {
     log("onClickNavigationBar");
     if (_activeBlobDownloads == 0) {
@@ -288,6 +316,11 @@ window.__openListReleaseBlobDownload?.(url);
   @override
   void initState() {
     super.initState();
+    WebBrowserManager.instance.register(
+      stop: _stopBrowser,
+      start: _startBrowser,
+    );
+    _browserRequested = WebBrowserManager.instance.enabled.value;
     // Register lifecycle observer to handle app state changes
     WidgetsBinding.instance.addObserver(this);
     
@@ -317,6 +350,7 @@ window.__openListReleaseBlobDownload?.(url);
   void dispose() {
     // Remove lifecycle observer when widget is disposed
     WidgetsBinding.instance.removeObserver(this);
+    WebBrowserManager.instance.unregister();
     _webViewController?.dispose();
     super.dispose();
   }
@@ -373,12 +407,18 @@ window.__openListReleaseBlobDownload?.(url);
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
             Expanded(
-              child: InAppWebView(
+              child: _browserRequested
+                  ? InAppWebView(
                 initialSettings: settings,
                 initialUserScripts: _blobDownloadScripts,
                 initialUrlRequest: URLRequest(url: WebUri(_url)),
                 onWebViewCreated: (InAppWebViewController controller) {
+                  if (!_browserRequested) {
+                    controller.dispose();
+                    return;
+                  }
                   _webViewController = controller;
+                  WebBrowserManager.instance.running.value = true;
                   log("WebView created, loading URL: $_url");
                 },
                 onLoadStart: (InAppWebViewController controller, Uri? url) {
@@ -415,20 +455,32 @@ window.__openListReleaseBlobDownload?.(url);
                 },
                 onReceivedError: (controller, request, error) async {
                   log("WebView error: ${error.description}");
-                  
+                  if (!_browserRequested ||
+                      !identical(_webViewController, controller)) {
+                    return;
+                  }
+
                   // Check if OpenList service is running
                   try {
                     if (!await Android().isRunning()) {
+                      if (!_browserRequested ||
+                          !identical(_webViewController, controller)) {
+                        return;
+                      }
                       log("Service not running, attempting to start...");
                       await Android().startService();
 
                       // Wait for service to start and retry
                       for (int i = 0; i < 3; i++) {
                         await Future.delayed(const Duration(milliseconds: 500));
+                        if (!_browserRequested ||
+                            !identical(_webViewController, controller)) {
+                          return;
+                        }
                         if (await Android().isRunning()) {
                           log("Service started, reloading WebView");
                           if (_activeBlobDownloads == 0) {
-                            _webViewController?.reload();
+                            controller.reload();
                           }
                           break;
                         }
@@ -506,15 +558,37 @@ window.__openListReleaseBlobDownload?.(url);
                     _progress = progress / 100;
                     if (_progress == 1) _progress = 0;
                   });
-                  controller.canGoBack().then((value) => setState(() {
+                  controller.canGoBack().then((value) {
+                    if (mounted &&
+                        _browserRequested &&
+                        identical(_webViewController, controller)) {
+                      setState(() {
                         _canGoBack = value;
-                      }));
+                      });
+                    }
+                  });
                 },
                 onUpdateVisitedHistory: (InAppWebViewController controller,
                     WebUri? url, bool? isReload) {
                   _url = url.toString();
                 },
-              ),
+              )
+                  : Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.web_asset_off, size: 64),
+                          const SizedBox(height: 16),
+                          Text(S.of(context).webBrowserStopped),
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            onPressed: WebBrowserManager.instance.enableAndStart,
+                            icon: const Icon(Icons.play_arrow),
+                            label: Text(S.of(context).startWebBrowser),
+                          ),
+                        ],
+                      ),
+                    ),
             ),
           ]),
         ));

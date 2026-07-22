@@ -314,6 +314,76 @@ class S {
     );
   }
 
+  /// `内置网页浏览器`
+  String get webBrowserStatus {
+    return Intl.message(
+      '内置网页浏览器',
+      name: 'webBrowserStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `运行中`
+  String get running {
+    return Intl.message('运行中', name: 'running', desc: '', args: []);
+  }
+
+  /// `已停止`
+  String get stopped {
+    return Intl.message('已停止', name: 'stopped', desc: '', args: []);
+  }
+
+  /// `停止`
+  String get stopWebBrowser {
+    return Intl.message('停止', name: 'stopWebBrowser', desc: '', args: []);
+  }
+
+  /// `启用内置网页浏览器`
+  String get enableWebBrowser {
+    return Intl.message(
+      '启用内置网页浏览器',
+      name: 'enableWebBrowser',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `允许网页页面运行内置浏览器`
+  String get enableWebBrowserDesc {
+    return Intl.message(
+      '允许网页页面运行内置浏览器',
+      name: 'enableWebBrowserDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `内置网页浏览器已停止`
+  String get webBrowserStopped {
+    return Intl.message(
+      '内置网页浏览器已停止',
+      name: 'webBrowserStopped',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `启动网页浏览器`
+  String get startWebBrowser {
+    return Intl.message('启动网页浏览器', name: 'startWebBrowser', desc: '', args: []);
+  }
+
+  /// `下载进行中，无法停止浏览器`
+  String get webBrowserDownloadInProgress {
+    return Intl.message(
+      '下载进行中，无法停止浏览器',
+      name: 'webBrowserDownloadInProgress',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `data 文件夹路径`
   String get dataDirectory {
     return Intl.message(

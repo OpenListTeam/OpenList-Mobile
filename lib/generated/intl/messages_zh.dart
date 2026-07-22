@@ -264,6 +264,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "editOpenListConfig": MessageLookupByLibrary.simpleMessage(
       "修改OpenList配置文件",
     ),
+    "enableWebBrowser": MessageLookupByLibrary.simpleMessage("启用内置网页浏览器"),
+    "enableWebBrowserDesc": MessageLookupByLibrary.simpleMessage(
+      "允许网页页面运行内置浏览器",
+    ),
     "english": MessageLookupByLibrary.simpleMessage("English"),
     "failed": MessageLookupByLibrary.simpleMessage("失败"),
     "fileDeleted": MessageLookupByLibrary.simpleMessage("文件已删除"),
@@ -385,6 +389,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "restoreBackup": MessageLookupByLibrary.simpleMessage("恢复备份"),
     "restoreBackupFailed": m38,
+    "running": MessageLookupByLibrary.simpleMessage("运行中"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveAndRestart": MessageLookupByLibrary.simpleMessage("保存并重启"),
     "saveFailed": m39,
@@ -419,6 +424,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "startDownload": m43,
     "startDownloadFile": m44,
     "startTime": MessageLookupByLibrary.simpleMessage("开始时间"),
+    "startWebBrowser": MessageLookupByLibrary.simpleMessage("启动网页浏览器"),
+    "stopWebBrowser": MessageLookupByLibrary.simpleMessage("停止"),
+    "stopped": MessageLookupByLibrary.simpleMessage("已停止"),
     "testDirectDownloadFunction": MessageLookupByLibrary.simpleMessage(
       "测试直接下载功能",
     ),
@@ -445,6 +453,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "wakeLockDesc": MessageLookupByLibrary.simpleMessage(
       "开启防止锁屏后CPU休眠，保持进程在后台运行。（部分系统可能导致杀后台）",
     ),
+    "webBrowserDownloadInProgress": MessageLookupByLibrary.simpleMessage(
+      "下载进行中，无法停止浏览器",
+    ),
+    "webBrowserStatus": MessageLookupByLibrary.simpleMessage("内置网页浏览器"),
+    "webBrowserStopped": MessageLookupByLibrary.simpleMessage("内置网页浏览器已停止"),
     "webPage": MessageLookupByLibrary.simpleMessage("网页"),
   };
 }
