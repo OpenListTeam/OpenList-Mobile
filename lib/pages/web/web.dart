@@ -52,6 +52,8 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   bool _canGoBack = false;
   bool _isLoading = false;
   bool _browserRequested = WebBrowserManager.instance.enabled.value;
+  int _browserGeneration = 0;
+  Future<void>? _urlLoad;
   int _activeBlobDownloads = 0;
 
   static const int _blobChunkSize = 128 * 1024;
@@ -280,10 +282,17 @@ window.__openListReleaseBlobDownload?.(url);
     }
   }
 
+  bool _isCurrentController(InAppWebViewController controller) {
+    return mounted &&
+        _browserRequested &&
+        identical(_webViewController, controller);
+  }
+
   void _handleWebProcessTermination(InAppWebViewController controller) {
-    if (!mounted || !identical(_webViewController, controller)) return;
+    if (!_isCurrentController(controller)) return;
     setState(() {
       _browserRequested = false;
+      _browserGeneration++;
       _webViewController = null;
       _progress = 0;
       _canGoBack = false;
@@ -292,11 +301,36 @@ window.__openListReleaseBlobDownload?.(url);
     WebBrowserManager.instance.running.value = false;
   }
 
+  void _loadUrl() {
+    _urlLoad ??= _resolveUrl().whenComplete(() {
+      _urlLoad = null;
+    });
+  }
+
+  Future<void> _resolveUrl() async {
+    try {
+      final port = await Android().getOpenListHttpPort();
+      if (!mounted) return;
+      setState(() {
+        _url = "http://localhost:$port";
+      });
+      log("OpenList URL set to: $_url");
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _url = "http://localhost:5244";
+      });
+      log("Failed to get OpenList port: $error");
+    }
+  }
+
   Future<void> _startBrowser() async {
     if (!mounted || _browserRequested) return;
     setState(() {
       _browserRequested = true;
+      _browserGeneration++;
     });
+    if (_url == null) _loadUrl();
   }
 
   Future<bool> _stopBrowser() async {
@@ -310,6 +344,7 @@ window.__openListReleaseBlobDownload?.(url);
     if (!_browserRequested) return true;
     setState(() {
       _browserRequested = false;
+      _browserGeneration++;
       _webViewController = null;
       _progress = 0;
       _canGoBack = false;
@@ -335,32 +370,7 @@ window.__openListReleaseBlobDownload?.(url);
     _browserRequested = WebBrowserManager.instance.enabled.value;
     // Register lifecycle observer to handle app state changes
     WidgetsBinding.instance.addObserver(this);
-    
-    // Get OpenList HTTP port
-    Android()
-        .getOpenListHttpPort()
-        .then((port) {
-          if (!mounted) return;
-          setState(() {
-            _url = "http://localhost:$port";
-          });
-          log("OpenList URL set to: $_url");
-        })
-        .catchError((error) {
-          if (!mounted) return;
-          setState(() {
-            _url = "http://localhost:5244";
-          });
-          log("Failed to get OpenList port: $error");
-        });
-
-    // Wait a bit for service to be ready before loading
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted && _webViewController == null) {
-        // Will be initialized when WebView is created
-        log("WebView will initialize with URL: $_url");
-      }
-    });
+    if (_browserRequested) _loadUrl();
   }
 
   @override
@@ -406,6 +416,7 @@ window.__openListReleaseBlobDownload?.(url);
 
   @override
   Widget build(BuildContext context) {
+    final browserGeneration = _browserGeneration;
     return PopScope(
         canPop: _activeBlobDownloads == 0 && !_canGoBack,
         onPopInvoked: (didPop) async {
@@ -426,11 +437,13 @@ window.__openListReleaseBlobDownload?.(url);
             Expanded(
               child: _browserRequested && _url != null
                   ? InAppWebView(
+                key: ValueKey(browserGeneration),
                 initialSettings: settings,
                 initialUserScripts: _blobDownloadScripts,
                 initialUrlRequest: URLRequest(url: WebUri(_url!)),
                 onWebViewCreated: (InAppWebViewController controller) {
-                  if (!_browserRequested) {
+                  if (!_browserRequested ||
+                      browserGeneration != _browserGeneration) {
                     controller.dispose();
                     return;
                   }
@@ -439,6 +452,7 @@ window.__openListReleaseBlobDownload?.(url);
                   log("WebView created, loading URL: $_url");
                 },
                 onLoadStart: (InAppWebViewController controller, Uri? url) {
+                  if (!_isCurrentController(controller)) return;
                   log("onLoadStart $url");
                   setState(() {
                     _progress = 0;
@@ -446,6 +460,9 @@ window.__openListReleaseBlobDownload?.(url);
                   });
                 },
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
+                  if (!_isCurrentController(controller)) {
+                    return NavigationActionPolicy.CANCEL;
+                  }
                   log("shouldOverrideUrlLoading ${navigationAction.request.url}");
 
                   final uri = navigationAction.request.url;
@@ -478,28 +495,19 @@ window.__openListReleaseBlobDownload?.(url);
                 },
                 onReceivedError: (controller, request, error) async {
                   log("WebView error: ${error.description}");
-                  if (!_browserRequested ||
-                      !identical(_webViewController, controller)) {
-                    return;
-                  }
+                  if (!_isCurrentController(controller)) return;
 
                   // Check if OpenList service is running
                   try {
                     if (!await Android().isRunning()) {
-                      if (!_browserRequested ||
-                          !identical(_webViewController, controller)) {
-                        return;
-                      }
+                      if (!_isCurrentController(controller)) return;
                       log("Service not running, attempting to start...");
                       await Android().startService();
 
                       // Wait for service to start and retry
                       for (int i = 0; i < 3; i++) {
                         await Future.delayed(const Duration(milliseconds: 500));
-                        if (!_browserRequested ||
-                            !identical(_webViewController, controller)) {
-                          return;
-                        }
+                        if (!_isCurrentController(controller)) return;
                         if (await Android().isRunning()) {
                           log("Service started, reloading WebView");
                           if (_activeBlobDownloads == 0) {
@@ -514,6 +522,7 @@ window.__openListReleaseBlobDownload?.(url);
                   }
                 },
                 onDownloadStartRequest: (controller, request) async {
+                  if (!_isCurrentController(controller)) return;
                   final isBlob = request.url.scheme == "blob";
                   Get.showSnackbar(GetSnackBar(
                     title: S.of(context).downloadThisFile,
@@ -525,6 +534,7 @@ window.__openListReleaseBlobDownload?.(url);
                       TextButton(
                         onPressed: () async {
                           Get.closeCurrentSnackbar();
+                          if (!_isCurrentController(controller)) return;
                           if (isBlob) {
                             await _downloadBlob(controller, request);
                           } else {
@@ -539,15 +549,17 @@ window.__openListReleaseBlobDownload?.(url);
                       if (!isBlob) ...[
                       TextButton(
                         onPressed: () {
-                            IntentUtils.getUrlIntent(request.url.toString())
+                          if (!_isCurrentController(controller)) return;
+                          IntentUtils.getUrlIntent(request.url.toString())
                               .launchChooser(S.of(context).selectAppToOpen);
                         },
                         child: Text(S.of(context).selectAppToOpen),
                       ),
                       TextButton(
                         onPressed: () {
-                            IntentUtils.getUrlIntent(request.url.toString())
-                                .launch();
+                          if (!_isCurrentController(controller)) return;
+                          IntentUtils.getUrlIntent(request.url.toString())
+                              .launch();
                         },
                         child: Text(S.of(context).browserDownload),
                       ),
@@ -556,6 +568,7 @@ window.__openListReleaseBlobDownload?.(url);
                     onTap: isBlob
                         ? null
                         : (_) {
+                            if (!_isCurrentController(controller)) return;
                             Clipboard.setData(ClipboardData(
                               text: request.url.toString(),
                             ));
@@ -569,6 +582,7 @@ window.__openListReleaseBlobDownload?.(url);
                 },
                 onLoadStop:
                     (InAppWebViewController controller, Uri? url) async {
+                  if (!_isCurrentController(controller)) return;
                   log("onLoadStop $url");
                   setState(() {
                     _progress = 0;
@@ -577,14 +591,13 @@ window.__openListReleaseBlobDownload?.(url);
                 },
                 onProgressChanged:
                     (InAppWebViewController controller, int progress) {
+                  if (!_isCurrentController(controller)) return;
                   setState(() {
                     _progress = progress / 100;
                     if (_progress == 1) _progress = 0;
                   });
                   controller.canGoBack().then((value) {
-                    if (mounted &&
-                        _browserRequested &&
-                        identical(_webViewController, controller)) {
+                    if (_isCurrentController(controller)) {
                       setState(() {
                         _canGoBack = value;
                       });
