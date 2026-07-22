@@ -400,11 +400,7 @@ class OpenListService : Service(), OpenList.Listener {
                 )
                 chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
                 chan.setShowBadge(false)
-                
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    chan.setBlockable(false)
-                }
-                
+
                 val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.createNotificationChannel(chan)
                 
