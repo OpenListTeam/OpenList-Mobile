@@ -82,6 +82,9 @@ class DownloadManager {
   static final Dio _dio = Dio();
   static final Map<String, DownloadTask> _activeTasks = {};
   static final List<DownloadTask> _completedTasks = [];
+  static final Set<String> _cancelledTaskIds = {};
+  static final Set<String> _reservedFilePaths = {};
+  static int _nextTaskId = 0;
   
   /// 获取所有活跃的下载任务
   static List<DownloadTask> get activeTasks => _activeTasks.values.toList();
@@ -117,6 +120,7 @@ class DownloadManager {
     String finalFilename = filename ?? _getFilenameFromUrl(url);
     String filePath = '${downloadDir.path}/$finalFilename';
     filePath = _getUniqueFilePath(filePath);
+    _reservedFilePaths.add(filePath);
     finalFilename = filePath.split('/').last;
 
     // 创建下载任务
@@ -195,7 +199,6 @@ class DownloadManager {
 
       log('文件下载完成: $filePath');
       return true;
-
     } catch (e) {
       if (e is DioException && e.type == DioExceptionType.cancel) {
         // 用户取消下载
@@ -228,6 +231,8 @@ class DownloadManager {
       }
       
       return false;
+    } finally {
+      _reservedFilePaths.remove(filePath);
     }
   }
 
@@ -242,11 +247,171 @@ class DownloadManager {
     );
   }
 
+  static Future<bool> saveFileInBackground({
+    required String source,
+    required int totalBytes,
+    required Future<List<int>> Function(int offset) readChunk,
+    String? filename,
+  }) async {
+    if (Platform.isAndroid) {
+      var storageStatus = await Permission.storage.status;
+      var manageStorageStatus = await Permission.manageExternalStorage.status;
+      if (!storageStatus.isGranted) {
+        storageStatus = await Permission.storage.request();
+      }
+      if (!manageStorageStatus.isGranted) {
+        manageStorageStatus = await Permission.manageExternalStorage.request();
+      }
+      if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
+        getx.Get.showSnackbar(getx.GetSnackBar(
+          message: S.current.grantStoragePermissionDesc,
+          duration: const Duration(seconds: 5),
+        ));
+        return false;
+      }
+    }
+
+    await NotificationManager.initialize();
+
+    final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
+    final downloadDir = await _getOpenListDownloadDirectory();
+    if (downloadDir == null) {
+      getx.Get.showSnackbar(getx.GetSnackBar(
+        message: S.current.cannotGetDownloadDirectory,
+        duration: const Duration(seconds: 3),
+      ));
+      return false;
+    }
+
+    var finalFilename = filename ?? _getFilenameFromUrl(source);
+    var filePath = _getUniqueFilePath('${downloadDir.path}/$finalFilename');
+    _reservedFilePaths.add(filePath);
+    finalFilename = filePath.split('/').last;
+    final temporaryFile = File('$filePath.$taskId.part');
+    final task = DownloadTask(
+      id: taskId,
+      url: source,
+      filename: finalFilename,
+      filePath: filePath,
+      totalBytes: totalBytes,
+    );
+    _activeTasks[taskId] = task;
+
+    getx.Get.showSnackbar(getx.GetSnackBar(
+      message: S.current.startDownloadFile(finalFilename),
+      duration: const Duration(seconds: 2),
+      backgroundColor: Colors.green,
+    ));
+
+    RandomAccessFile? output;
+    try {
+      task.status = DownloadStatus.downloading;
+      await NotificationManager.showDownloadProgressNotification();
+
+      output = await temporaryFile.open(mode: FileMode.write);
+      while (task.receivedBytes < totalBytes) {
+        if (_cancelledTaskIds.contains(taskId)) {
+          throw const FileSystemException('Download cancelled');
+        }
+
+        final chunk = await readChunk(task.receivedBytes);
+        if (_cancelledTaskIds.contains(taskId)) {
+          throw const FileSystemException('Download cancelled');
+        }
+        if (chunk.isEmpty || task.receivedBytes + chunk.length > totalBytes) {
+          throw const FormatException('Invalid Blob download data');
+        }
+
+        await output.writeFrom(chunk);
+        task.receivedBytes += chunk.length;
+        task.progress = totalBytes == 0 ? 1 : task.receivedBytes / totalBytes;
+        await NotificationManager.showDownloadProgressNotification();
+      }
+
+      if (_cancelledTaskIds.contains(taskId)) {
+        throw const FileSystemException('Download cancelled');
+      }
+      await output.close();
+      output = null;
+      if (_cancelledTaskIds.contains(taskId)) {
+        throw const FileSystemException('Download cancelled');
+      }
+      await temporaryFile.rename(filePath);
+      if (_cancelledTaskIds.contains(taskId)) {
+        await File(filePath).delete();
+        throw const FileSystemException('Download cancelled');
+      }
+
+      task.status = DownloadStatus.completed;
+      task.endTime = DateTime.now();
+      task.progress = 1.0;
+      _activeTasks.remove(taskId);
+      _completedTasks.insert(0, task);
+
+      await NotificationManager.showSingleFileCompleteNotification(task);
+      getx.Get.showSnackbar(getx.GetSnackBar(
+        message: S.current.downloadCompleteFile(finalFilename),
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.blue,
+        mainButton: TextButton(
+          onPressed: () => _openFile(filePath),
+          child: Text(S.current.open),
+        ),
+      ));
+      log('文件下载完成: $filePath');
+      return true;
+    } catch (error) {
+      task.status = _cancelledTaskIds.contains(taskId)
+          ? DownloadStatus.cancelled
+          : DownloadStatus.failed;
+      task.errorMessage = error.toString();
+      task.endTime = DateTime.now();
+      _activeTasks.remove(taskId);
+      _completedTasks.insert(0, task);
+
+      try {
+        await output?.close();
+      } catch (closeError) {
+        log('关闭临时下载文件失败: $closeError');
+      }
+      try {
+        if (await temporaryFile.exists()) {
+          await temporaryFile.delete();
+        }
+      } catch (deleteError) {
+        log('删除临时下载文件失败: $deleteError');
+      }
+
+      if (task.status == DownloadStatus.failed) {
+        log('下载失败: $error');
+        getx.Get.showSnackbar(getx.GetSnackBar(
+          message: S.current.downloadFailedFile(finalFilename),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.red,
+        ));
+      }
+
+      if (_activeTasks.isEmpty) {
+        await NotificationManager.cancelDownloadNotification();
+      } else {
+        await NotificationManager.showDownloadProgressNotification();
+      }
+      return false;
+    } finally {
+      _cancelledTaskIds.remove(taskId);
+      _reservedFilePaths.remove(filePath);
+    }
+  }
+
   /// 取消下载任务
   static void cancelDownload(String taskId) {
     DownloadTask? task = _activeTasks[taskId];
-    if (task != null && task.cancelToken != null) {
+    if (task != null) {
+      if (task.cancelToken != null) {
       task.cancelToken!.cancel(S.current.userCancelledDownloadError);
+      } else {
+        _cancelledTaskIds.add(taskId);
+      }
     }
   }
 
@@ -306,7 +471,6 @@ class DownloadManager {
 
       log('OpenList下载目录: ${openListDir.path}');
       return openListDir;
-      
     } catch (e) {
       log('获取下载目录失败: $e');
       return null;
@@ -335,7 +499,7 @@ class DownloadManager {
   /// 获取唯一的文件路径（避免重名）
   static String _getUniqueFilePath(String originalPath) {
     File file = File(originalPath);
-    if (!file.existsSync()) {
+    if (!file.existsSync() && !_reservedFilePaths.contains(originalPath)) {
       return originalPath;
     }
 
@@ -350,7 +514,7 @@ class DownloadManager {
     do {
       newPath = '$directory/${nameWithoutExtension}_$counter$extension';
       counter++;
-    } while (File(newPath).existsSync());
+    } while (File(newPath).existsSync() || _reservedFilePaths.contains(newPath));
 
     return newPath;
   }
