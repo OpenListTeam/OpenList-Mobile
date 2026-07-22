@@ -1,3 +1,5 @@
+import 'dart:collection';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show Platform;
 
@@ -49,6 +51,55 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   bool _canGoBack = false;
   bool _isLoading = false;
 
+  static const int _blobChunkSize = 128 * 1024;
+  static final UnmodifiableListView<UserScript> _blobDownloadScripts =
+      UnmodifiableListView([
+    UserScript(
+      source: r'''
+(() => {
+  if (!["localhost", "127.0.0.1", "::1"].includes(location.hostname)) return;
+  if (window.__openListBlobDownloads) return;
+
+  const downloads = new Map();
+  const originalClick = HTMLAnchorElement.prototype.click;
+  const originalRevokeObjectURL = URL.revokeObjectURL.bind(URL);
+
+  const release = (url) => {
+    const entry = downloads.get(url);
+    if (entry) clearTimeout(entry.timeout);
+    downloads.delete(url);
+    originalRevokeObjectURL(url);
+  };
+
+  HTMLAnchorElement.prototype.click = function() {
+    const url = this.href;
+    if (this.download && url.startsWith("blob:")) {
+      const previous = downloads.get(url);
+      if (previous) clearTimeout(previous.timeout);
+
+      const entry = {
+        blob: fetch(url).then((response) => response.blob()),
+        timeout: null,
+      };
+      entry.timeout = setTimeout(() => release(url), 30000);
+      downloads.set(url, entry);
+    }
+    return originalClick.call(this);
+  };
+
+  URL.revokeObjectURL = (url) => {
+    if (!downloads.has(url)) originalRevokeObjectURL(url);
+  };
+
+  window.__openListBlobDownloads = downloads;
+  window.__openListBlobTransfers = downloads;
+  window.__openListReleaseBlobDownload = release;
+})();
+''',
+      injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
+    ),
+  ]);
+
   static const Set<String> _inAppSafeSchemes = {
     "about",
     "data",
@@ -99,6 +150,116 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
         )));
   }
 
+  Future<Map<String, dynamic>> _initializeBlobTransfer(
+    InAppWebViewController controller,
+    String url,
+  ) async {
+    final result = await controller.callAsyncJavaScript(
+      functionBody: r'''
+const entry = window.__openListBlobDownloads?.get(url);
+if (!entry) throw "Blob download is no longer available";
+
+clearTimeout(entry.timeout);
+const blob = await entry.blob;
+window.__openListBlobTransfers.set(url, blob);
+return {size: blob.size, type: blob.type};
+''',
+      arguments: {"url": url},
+      contentWorld: ContentWorld.PAGE,
+    );
+
+    if (result?.error != null) {
+      throw StateError(result!.error!);
+    }
+    if (result?.value is! Map) {
+      throw StateError("Failed to initialize Blob download");
+    }
+    return Map<String, dynamic>.from(result!.value as Map);
+  }
+
+  Future<List<int>> _readBlobChunk(
+    InAppWebViewController controller,
+    String url,
+    int offset,
+  ) async {
+    final result = await controller.callAsyncJavaScript(
+      functionBody: r'''
+const blob = window.__openListBlobTransfers?.get(url);
+if (!blob) throw "Blob download is no longer available";
+
+const bytes = new Uint8Array(
+  await blob.slice(offset, offset + chunkSize).arrayBuffer(),
+);
+let binary = "";
+for (let i = 0; i < bytes.length; i += 0x8000) {
+  binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+}
+return btoa(binary);
+''',
+      arguments: {
+        "url": url,
+        "offset": offset,
+        "chunkSize": _blobChunkSize,
+      },
+      contentWorld: ContentWorld.PAGE,
+    );
+
+    if (result?.error != null) {
+      throw StateError(result!.error!);
+    }
+    if (result?.value is! String) {
+      throw StateError("Failed to read Blob download");
+    }
+    return base64Decode(result!.value as String);
+  }
+
+  Future<void> _releaseBlobTransfer(
+    InAppWebViewController controller,
+    String url,
+  ) async {
+    await controller.callAsyncJavaScript(
+      functionBody: r'''
+window.__openListBlobTransfers?.delete(url);
+window.__openListReleaseBlobDownload?.(url);
+''',
+      arguments: {"url": url},
+      contentWorld: ContentWorld.PAGE,
+    );
+  }
+
+  Future<void> _downloadBlob(
+    InAppWebViewController controller,
+    DownloadStartRequest request,
+  ) async {
+    final url = request.url.toString();
+    try {
+      final metadata = await _initializeBlobTransfer(controller, url);
+      final size = (metadata["size"] as num).toInt();
+      final saved = await DownloadManager.saveFileInBackground(
+        source: url,
+        filename: request.suggestedFilename,
+        totalBytes: size,
+        readChunk: (offset) => _readBlobChunk(controller, url, offset),
+      );
+      if (!saved) return;
+    } catch (error) {
+      log("Blob download failed: $error");
+      Get.showSnackbar(GetSnackBar(
+        message: S.current.downloadFailedFile(
+          request.suggestedFilename ?? "download",
+        ),
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.red,
+      ));
+    } finally {
+      try {
+        await _releaseBlobTransfer(controller, url);
+      } catch (error) {
+        log("Failed to release Blob download: $error");
+      }
+    }
+  }
+
   onClickNavigationBar() {
     log("onClickNavigationBar");
     _webViewController?.reload();
@@ -109,7 +270,7 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
     super.initState();
     // Register lifecycle observer to handle app state changes
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Get OpenList HTTP port
     Android()
         .getOpenListHttpPort()
@@ -144,7 +305,7 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     log("App lifecycle state changed: $state");
-    
+
     switch (state) {
       case AppLifecycleState.resumed:
         // App returned to foreground, WebView should be active
@@ -192,6 +353,7 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
             Expanded(
               child: InAppWebView(
                 initialSettings: settings,
+                initialUserScripts: _blobDownloadScripts,
                 initialUrlRequest: URLRequest(url: WebUri(_url)),
                 onWebViewCreated: (InAppWebViewController controller) {
                   _webViewController = controller;
@@ -227,7 +389,7 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
                 },
                 onReceivedError: (controller, request, error) async {
                   log("WebView error: ${error.description}");
-                  
+
                   // Check if OpenList service is running
                   try {
                     if (!await Android().isRunning()) {
@@ -248,48 +410,58 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
                     log("Failed to handle WebView error: $e");
                   }
                 },
-                onDownloadStartRequest: (controller, url) async {
+                onDownloadStartRequest: (controller, request) async {
+                  final isBlob = request.url.scheme == "blob";
                   Get.showSnackbar(GetSnackBar(
                     title: S.of(context).downloadThisFile,
-                    message: url.suggestedFilename ??
-                        url.contentDisposition ??
-                        url.toString(),
+                    message: request.suggestedFilename ??
+                        request.contentDisposition ??
+                        request.toString(),
                     duration: const Duration(seconds: 5),
                     mainButton: Column(children: [
                       TextButton(
                         onPressed: () async {
                           Get.closeCurrentSnackbar();
-                          // 使用内置下载管理器后台下载
-                          DownloadManager.downloadFileInBackground(
-                            url: url.url.toString(),
-                            filename: url.suggestedFilename,
-                          );
+                          if (isBlob) {
+                            await _downloadBlob(controller, request);
+                          } else {
+                            DownloadManager.downloadFileInBackground(
+                              url: request.url.toString(),
+                              filename: request.suggestedFilename,
+                            );
+                          }
                         },
                         child: Text(S.of(context).directDownload),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          IntentUtils.getUrlIntent(url.url.toString())
-                              .launchChooser(S.of(context).selectAppToOpen);
-                        },
-                        child: Text(S.of(context).selectAppToOpen),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          IntentUtils.getUrlIntent(url.url.toString()).launch();
-                        },
-                        child: Text(S.of(context).browserDownload),
-                      ),
+                      if (!isBlob) ...[
+                        TextButton(
+                          onPressed: () {
+                            IntentUtils.getUrlIntent(request.url.toString())
+                                .launchChooser(S.of(context).selectAppToOpen);
+                          },
+                          child: Text(S.of(context).selectAppToOpen),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            IntentUtils.getUrlIntent(request.url.toString())
+                                .launch();
+                          },
+                          child: Text(S.of(context).browserDownload),
+                        ),
+                      ],
                     ]),
-                    onTap: (_) {
-                      Clipboard.setData(
-                          ClipboardData(text: url.url.toString()));
-                      Get.closeCurrentSnackbar();
-                      Get.showSnackbar(GetSnackBar(
-                        message: S.of(context).copiedToClipboard,
-                        duration: const Duration(seconds: 1),
-                      ));
-                    },
+                    onTap: isBlob
+                        ? null
+                        : (_) {
+                            Clipboard.setData(ClipboardData(
+                              text: request.url.toString(),
+                            ));
+                            Get.closeCurrentSnackbar();
+                            Get.showSnackbar(GetSnackBar(
+                              message: S.of(context).copiedToClipboard,
+                              duration: const Duration(seconds: 1),
+                            ));
+                          },
                   ));
                 },
                 onLoadStop:
