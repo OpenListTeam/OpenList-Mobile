@@ -333,6 +333,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "editOpenListConfig": MessageLookupByLibrary.simpleMessage(
       "Edit OpenList Config",
     ),
+    "enableWebBrowser": MessageLookupByLibrary.simpleMessage(
+      "Enable embedded web browser",
+    ),
+    "enableWebBrowserDesc": MessageLookupByLibrary.simpleMessage(
+      "Allow the Web page to run the embedded browser",
+    ),
     "english": MessageLookupByLibrary.simpleMessage("English"),
     "failed": MessageLookupByLibrary.simpleMessage("Failed"),
     "fileDeleted": MessageLookupByLibrary.simpleMessage("File deleted"),
@@ -498,6 +504,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "restoreBackup": MessageLookupByLibrary.simpleMessage("Restore Backup"),
     "restoreBackupFailed": m38,
+    "running": MessageLookupByLibrary.simpleMessage("Running"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveAndRestart": MessageLookupByLibrary.simpleMessage("Save and Restart"),
     "saveFailed": m39,
@@ -548,6 +555,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "startDownload": m43,
     "startDownloadFile": m44,
     "startTime": MessageLookupByLibrary.simpleMessage("Start time"),
+    "startWebBrowser": MessageLookupByLibrary.simpleMessage(
+      "Start web browser",
+    ),
+    "stopWebBrowser": MessageLookupByLibrary.simpleMessage("Stop"),
+    "stopped": MessageLookupByLibrary.simpleMessage("Stopped"),
     "testDirectDownloadFunction": MessageLookupByLibrary.simpleMessage(
       "Test direct download function",
     ),
@@ -587,6 +599,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "wakeLock": MessageLookupByLibrary.simpleMessage("Wake lock"),
     "wakeLockDesc": MessageLookupByLibrary.simpleMessage(
       "Prevent CPU from sleeping when screen is off. (May cause app killed in background on some devices)",
+    ),
+    "webBrowserDownloadInProgress": MessageLookupByLibrary.simpleMessage(
+      "The browser cannot stop while a download is in progress",
+    ),
+    "webBrowserStatus": MessageLookupByLibrary.simpleMessage(
+      "Embedded web browser",
+    ),
+    "webBrowserStopped": MessageLookupByLibrary.simpleMessage(
+      "The embedded web browser is stopped",
     ),
     "webPage": MessageLookupByLibrary.simpleMessage("Web Page"),
   };
