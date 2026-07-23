@@ -70,16 +70,26 @@ class WebBrowserManager {
   }
 
   Future<bool> _setEnabled(bool value) async {
+    final wasRunning = running.value;
     if (!value && !await _stop()) return false;
     try {
       if (!await _preferences.setBool('web_browser_enabled', value)) {
+        await _restoreRunningBrowser(wasRunning);
         return false;
       }
     } catch (_) {
+      await _restoreRunningBrowser(wasRunning);
       return false;
     }
     enabled.value = value;
     return true;
+  }
+
+  Future<void> _restoreRunningBrowser(bool wasRunning) async {
+    if (!wasRunning) return;
+    try {
+      await _startAction?.call();
+    } catch (_) {}
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
