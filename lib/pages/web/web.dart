@@ -285,7 +285,7 @@ window.__openListReleaseBlobDownload?.(url);
   bool _isCurrentController(InAppWebViewController controller) {
     return mounted &&
         _browserRequested &&
-        identical(_webViewController, controller);
+        identical(_webViewController?.platform, controller.platform);
   }
 
   void _handleWebProcessTermination(InAppWebViewController controller) {
@@ -610,8 +610,7 @@ window.__openListReleaseBlobDownload?.(url);
                 },
                 onUpdateVisitedHistory: (InAppWebViewController controller,
                     WebUri? url, bool? isReload) {
-                  if (_browserRequested &&
-                      identical(_webViewController, controller)) {
+                  if (_isCurrentController(controller)) {
                     _url = url.toString();
                   }
                 },
