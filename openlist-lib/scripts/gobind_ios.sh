@@ -2,7 +2,7 @@
 
 # Build version information
 builtAt="${OPENLIST_BUILT_AT:-$(date +'%F %T %z')}"
-gitAuthor="${OPENLIST_GIT_AUTHOR:-The OpenList Projects Contributors <noreply@openlist.team>}"
+gitAuthor="${OPENLIST_GIT_AUTHOR:-The OpenList Projects Contributors <noreply@oplist.org>}"
 gitCommit="${OPENLIST_GIT_COMMIT:-$(git log --pretty=format:'%h' -1 2>/dev/null || echo 'unknown')}"
 version="${OPENLIST_VERSION:-dev}"
 webVersion="${OPENLIST_WEB_VERSION:-rolling}"

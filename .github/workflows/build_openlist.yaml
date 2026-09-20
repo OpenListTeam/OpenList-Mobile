@@ -88,7 +88,7 @@ jobs:
           OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
           OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
           OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
-          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
+          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@oplist.org>
 
       - name: Upload OpenList Android AAR
         uses: actions/upload-artifact@v4
@@ -128,7 +128,7 @@ jobs:
           OPENLIST_WEB_VERSION: ${{ needs.version.outputs.openlist_web_version }}
           OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
           OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
-          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@openlist.team>
+          OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@oplist.org>
 
       - name: Upload OpenList iOS Framework
         uses: actions/upload-artifact@v4
