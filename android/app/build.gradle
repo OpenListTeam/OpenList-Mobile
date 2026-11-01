@@ -57,7 +57,8 @@ android {
         versionCode gitCommits
         versionName version
 
-        
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
         buildConfigField("String", "OPENLIST_VERSION", "\"${openlistVersion}\"")
     }
 
@@ -167,6 +168,11 @@ dependencies {
 
     // WorkManager for background tasks
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
+
+    // Instrumented tests (android/app/src/androidTest)
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
 
     // Room
 //    implementation("androidx.room:room-runtime:$room_version")
