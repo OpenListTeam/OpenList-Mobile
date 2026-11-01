@@ -103,6 +103,12 @@ class _ServerPageState extends State<ServerPage> {
     if (mode == _mode) return;
     final report = _json(await _sm.getSecurityReport(mode));
     if (!mounted) return;
+    // Do not persist a mode the core would refuse to start with.
+    if (report['blocked'] == true) {
+      setState(() => _report = report);
+      showMessage(S.current.publicBlocked, seconds: 4);
+      return;
+    }
     if (mode == 'public' &&
         !await confirmDialog(context, S.current.publicModeWarning,
             title: S.current.modePublic)) {
@@ -114,9 +120,7 @@ class _ServerPageState extends State<ServerPage> {
         _mode = mode;
         _report = report;
       });
-      if (report['blocked'] == true) {
-        showMessage(S.current.publicBlocked, seconds: 4);
-      } else if (_status?.running ?? false) {
+      if (_status?.running ?? false) {
         showMessage(S.current.modeChangeRestart, seconds: 3);
       }
     } catch (e) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:openlist_mobile/api/session.dart';
 
 import '../../generated/l10n.dart';
@@ -33,7 +32,8 @@ class _ConnectPageState extends State<ConnectPage> {
     setState(() => _busy = true);
     try {
       await fn();
-      if (mounted) Get.back(result: true);
+      // Navigator.pop: Get.back only dismisses an open snackbar.
+      if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       showError(e, title: S.current.connectFailed);
     } finally {
@@ -103,7 +103,13 @@ class _ConnectPageState extends State<ConnectPage> {
           if (session.isConnected && session.kind == ConnectionKind.remote) ...[
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: () => _run(session.logout),
+              onPressed: () => _run(() async {
+                await session.logout();
+                // Fall back to the embedded core when it is available.
+                try {
+                  await session.connectLocal();
+                } catch (_) {}
+              }),
               child: Text(S.of(context).logout),
             ),
           ],

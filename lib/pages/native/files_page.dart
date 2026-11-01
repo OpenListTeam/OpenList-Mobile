@@ -214,6 +214,7 @@ class _FilesPageState extends State<FilesPage> {
         .pickFiles(allowMultiple: true, withReadStream: true);
     if (picked == null) return;
     final dir = _path;
+    var failed = false;
     for (final f in picked.files) {
       final stream = f.readStream;
       if (stream == null) continue;
@@ -234,12 +235,13 @@ class _FilesPageState extends State<FilesPage> {
         );
       } catch (e) {
         showError(e, title: S.current.uploadFailed);
+        failed = true;
         break;
       }
     }
     if (!mounted) return;
     setState(() => _uploadProgress = null);
-    showMessage(S.current.uploadDone);
+    if (!failed) showMessage(S.current.uploadDone);
     if (_path == dir) unawaited(_open(dir));
   }
 

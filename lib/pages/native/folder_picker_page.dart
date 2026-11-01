@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/openlist_client.dart';
 import 'package:openlist_mobile/api/session.dart';
@@ -80,7 +79,7 @@ class _FolderPickerPageState extends State<FolderPickerPage> {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: FilledButton(
-              onPressed: () => Get.back(result: _path),
+              onPressed: () => Navigator.of(context).pop(_path),
               child: Text(S.of(context).selectThisFolder),
             ),
           ),

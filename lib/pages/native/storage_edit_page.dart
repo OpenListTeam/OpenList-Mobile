@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 
@@ -141,8 +140,9 @@ class _StorageEditPageState extends State<StorageEditPage> {
       _isNew
           ? await admin.createStorage(_body())
           : await admin.updateStorage(_body());
+      // Pop before the snackbar; Get.back would only dismiss the snackbar.
+      if (mounted) Navigator.of(context).pop(true);
       showMessage(S.current.saved);
-      Get.back(result: true);
     } catch (e) {
       showMessage(S.current.saveFailed(errorText(e)), seconds: 3);
     }
