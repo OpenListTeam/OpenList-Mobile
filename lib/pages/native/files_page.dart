@@ -20,9 +20,11 @@ import 'file_preview_page.dart';
 import 'folder_picker_page.dart';
 import 'offline_download_dialog.dart';
 import 'search_page.dart';
+import 'settings_admin_page.dart';
 import 'storages_page.dart';
 import 'tasks_page.dart';
 import 'uploads_page.dart';
+import 'users_page.dart';
 
 /// Native file browser backed by the OpenList HTTP API.
 class FilesPage extends StatefulWidget {
@@ -304,6 +306,10 @@ class _FilesPageState extends State<FilesPage> {
         });
       case 'storages':
         Get.to(() => const StoragesPage())?.then((_) => _open(_path));
+      case 'users':
+        Get.to(() => const UsersPage());
+      case 'site_settings':
+        Get.to(() => const SettingsAdminPage());
       case 'connection':
         Get.to(() => const ConnectPage());
       case 'web':
@@ -380,6 +386,10 @@ class _FilesPageState extends State<FilesPage> {
                   PopupMenuItem(value: 'offline', child: Text(S.current.offlineDownload)),
                 if (connected && (_session.user?.isAdmin ?? false))
                   PopupMenuItem(value: 'storages', child: Text(S.current.storages)),
+                if (connected && (_session.user?.isAdmin ?? false))
+                  PopupMenuItem(value: 'users', child: Text(S.current.users)),
+                if (connected && (_session.user?.isAdmin ?? false))
+                  PopupMenuItem(value: 'site_settings', child: Text(S.current.siteSettings)),
                 PopupMenuItem(value: 'connection', child: Text(S.current.connection)),
                 PopupMenuItem(value: 'web', child: Text(S.current.openWebInterface)),
               ],
