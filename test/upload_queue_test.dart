@@ -1,0 +1,88 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:openlist_mobile/api/upload_queue.dart';
+
+/// A job whose single attempt is finished by the test.
+class _Job {
+  _Job(String name) {
+    job = UploadJob(
+      name: name,
+      dir: '/d',
+      size: 10,
+      run: (token, onProgress) {
+        attempts++;
+        final c = Completer<void>();
+        attempt = c;
+        token.whenCancel.then((e) {
+          if (!c.isCompleted) c.completeError(e);
+        });
+        onProgress(5, 10);
+        return c.future;
+      },
+    );
+  }
+
+  late final UploadJob job;
+  Completer<void>? attempt;
+  int attempts = 0;
+}
+
+void main() {
+  test('runs at most `concurrency` jobs and starts the next on finish',
+      () async {
+    final q = UploadQueue(concurrency: 2);
+    final jobs = [_Job('a'), _Job('b'), _Job('c')];
+    q.addAll(jobs.map((j) => j.job));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(jobs.map((j) => j.job.state),
+        [UploadState.running, UploadState.running, UploadState.queued]);
+    expect(jobs[0].job.sent, 5);
+
+    jobs[0].attempt!.complete();
+    await Future<void>.delayed(Duration.zero);
+    expect(jobs[0].job.state, UploadState.succeeded);
+    expect(jobs[0].job.sent, 10);
+    expect(jobs[2].job.state, UploadState.running);
+    expect(q.activeCount, 2);
+  });
+
+  test('cancel stops queued and running jobs; retry runs them again',
+      () async {
+    final q = UploadQueue(concurrency: 1);
+    final a = _Job('a'), b = _Job('b');
+    final finished = <String>[];
+    q.finished.listen((j) => finished.add('${j.name}:${j.state.name}'));
+    q.addAll([a.job, b.job]);
+    await Future<void>.delayed(Duration.zero);
+
+    q.cancel(b.job);
+    q.cancel(a.job);
+    await Future<void>.delayed(Duration.zero);
+    expect(a.job.state, UploadState.canceled);
+    expect(b.job.state, UploadState.canceled);
+    expect(b.attempts, 0);
+    expect(finished, ['b:canceled', 'a:canceled']);
+
+    q.retry(a.job);
+    await Future<void>.delayed(Duration.zero);
+    expect(a.job.state, UploadState.running);
+    expect(a.attempts, 2);
+  });
+
+  test('errors mark the job failed and keep the error', () async {
+    final q = UploadQueue();
+    final a = _Job('a');
+    q.add(a.job);
+    await Future<void>.delayed(Duration.zero);
+    a.attempt!.completeError(DioException(requestOptions: RequestOptions()));
+    await Future<void>.delayed(Duration.zero);
+    expect(a.job.state, UploadState.failed);
+    expect(a.job.error, isA<DioException>());
+
+    q.clearFinished();
+    expect(q.jobs, isEmpty);
+  });
+}

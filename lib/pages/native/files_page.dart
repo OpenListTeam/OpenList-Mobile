@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/openlist_client.dart';
 import 'package:openlist_mobile/api/session.dart';
+import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 
@@ -18,6 +20,7 @@ import 'file_preview_page.dart';
 import 'folder_picker_page.dart';
 import 'storages_page.dart';
 import 'tasks_page.dart';
+import 'uploads_page.dart';
 
 /// Native file browser backed by the OpenList HTTP API.
 class FilesPage extends StatefulWidget {
@@ -40,9 +43,8 @@ class _FilesPageState extends State<FilesPage> {
   /// Folder passwords entered in this session, keyed by path.
   final Map<String, String> _passwords = {};
 
-  /// Upload progress in [0, 1], or null when idle.
-  double? _uploadProgress;
-  String _uploadName = '';
+  StreamSubscription<UploadJob>? _uploadSub;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -54,13 +56,29 @@ class _FilesPageState extends State<FilesPage> {
         _connect();
       }
     });
+    _uploadSub = UploadQueue.instance.finished.listen(_onUploadFinished);
     _connect(restore: true);
+  }
+
+  void _onUploadFinished(UploadJob j) {
+    if (!mounted) return;
+    if (j.state == UploadState.failed) {
+      showError(j.error ?? S.current.uploadFailed, title: '${S.current.uploadFailed}: ${j.name}');
+    }
+    if (j.state != UploadState.succeeded || j.dir != _path || !_session.isConnected) return;
+    // Batch refreshes when many small files finish close together.
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted && _path == j.dir) _open(_path);
+    });
   }
 
   @override
   void dispose() {
     _session.removeListener(_onSession);
     _statusSub?.cancel();
+    _uploadSub?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
@@ -210,39 +228,32 @@ class _FilesPageState extends State<FilesPage> {
   }
 
   Future<void> _upload() async {
-    final picked = await FilePicker.platform
-        .pickFiles(allowMultiple: true, withReadStream: true);
+    final picked = await FilePicker.platform.pickFiles(allowMultiple: true);
     if (picked == null) return;
     final dir = _path;
-    var failed = false;
-    for (final f in picked.files) {
-      final stream = f.readStream;
-      if (stream == null) continue;
-      setState(() {
-        _uploadName = f.name;
-        _uploadProgress = 0;
-      });
-      try {
-        await _session.fs.upload(
-          OpenListClient.join(dir, f.name),
-          stream,
-          f.size,
-          password: _passwordFor(dir),
-          onProgress: (sent, total) {
-            final t = total > 0 ? total : f.size;
-            if (mounted && t > 0) setState(() => _uploadProgress = sent / t);
-          },
-        );
-      } catch (e) {
-        showError(e, title: S.current.uploadFailed);
-        failed = true;
-        break;
-      }
-    }
-    if (!mounted) return;
-    setState(() => _uploadProgress = null);
-    if (!failed) showMessage(S.current.uploadDone);
-    if (_path == dir) unawaited(_open(dir));
+    final fs = _session.fs;
+    final password = _passwordFor(dir);
+    UploadQueue.instance.addAll([
+      for (final f in picked.files)
+        if (f.path != null)
+          UploadJob(
+            name: f.name,
+            dir: dir,
+            size: f.size,
+            // Reopen the picked file on every attempt so retries work.
+            run: (token, onProgress) async {
+              final file = File(f.path!);
+              await fs.upload(
+                OpenListClient.join(dir, f.name),
+                file.openRead(),
+                await file.length(),
+                password: password,
+                onProgress: onProgress,
+                cancelToken: token,
+              );
+            },
+          ),
+    ]);
   }
 
   void _showActions(FsObject o) {
@@ -283,6 +294,8 @@ class _FilesPageState extends State<FilesPage> {
     switch (value) {
       case 'tasks':
         Get.to(() => const TasksPage());
+      case 'uploads':
+        Get.to(() => const UploadsPage());
       case 'storages':
         Get.to(() => const StoragesPage())?.then((_) => _open(_path));
       case 'connection':
@@ -327,7 +340,7 @@ class _FilesPageState extends State<FilesPage> {
                 icon: const Icon(Icons.refresh),
                 onPressed: () => _open(_path, refresh: true),
               ),
-            if (canWrite && _uploadProgress == null)
+            if (canWrite)
               IconButton(
                 tooltip: S.of(context).upload,
                 icon: const Icon(Icons.upload),
@@ -337,6 +350,7 @@ class _FilesPageState extends State<FilesPage> {
               onSelected: _menu,
               itemBuilder: (_) => [
                 if (connected) PopupMenuItem(value: 'tasks', child: Text(S.current.tasks)),
+                PopupMenuItem(value: 'uploads', child: Text(S.current.uploads)),
                 if (connected && (_session.user?.isAdmin ?? false))
                   PopupMenuItem(value: 'storages', child: Text(S.current.storages)),
                 PopupMenuItem(value: 'connection', child: Text(S.current.connection)),
@@ -353,13 +367,20 @@ class _FilesPageState extends State<FilesPage> {
               )
             : null,
         body: Column(children: [
-          if (_uploadProgress != null)
-            ListTile(
-              dense: true,
-              title: Text(S.of(context).uploadingFile(_uploadName),
-                  overflow: TextOverflow.ellipsis),
-              subtitle: LinearProgressIndicator(value: _uploadProgress),
-            ),
+          ListenableBuilder(
+            listenable: UploadQueue.instance,
+            builder: (context, _) {
+              final n = UploadQueue.instance.activeCount;
+              if (n == 0) return const SizedBox.shrink();
+              return ListTile(
+                dense: true,
+                leading: const Icon(Icons.cloud_upload_outlined),
+                title: Text(S.of(context).uploadsActive(n)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Get.to(() => const UploadsPage()),
+              );
+            },
+          ),
           if (_loading && _result != null) const LinearProgressIndicator(),
           Expanded(child: _body(context)),
         ]),
