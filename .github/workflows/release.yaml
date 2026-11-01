@@ -61,9 +61,15 @@ jobs:
           echo "openlist_web_version=${OPENLIST_WEB_VERSION}" >> $GITHUB_OUTPUT
           echo "openlist_built_at=${OPENLIST_BUILT_AT}" >> $GITHUB_OUTPUT
 
+  # Build the gomobile bindings from this checkout so the release links
+  # against the openlistlib API of the same commit.
+  libs:
+    name: Build OpenList Libraries
+    uses: ./.github/workflows/build_openlist.yaml
+
   android:
     name: Build OpenList Android APK
-    needs: [version]
+    needs: [version, libs]
     runs-on: ubuntu-latest
     env:
       output: "${{ github.workspace }}/build/app/outputs/apk/release"
@@ -72,14 +78,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download OpenList Android AAR from latest build
-        uses: dawidd6/action-download-artifact@v6
+      - name: Download OpenList Android AAR
+        uses: actions/download-artifact@v4
         with:
-          workflow: sync_openlist.yaml
           name: openlist-android-aar
           path: ${{ github.workspace }}/android/app/libs/
-          check_artifacts: true
-          search_artifacts: true
 
       - uses: actions/setup-java@v4
         with:
