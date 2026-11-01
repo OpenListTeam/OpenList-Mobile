@@ -60,6 +60,26 @@ class FsApi {
   Future<void> remove(String dir, List<String> names) =>
       client.post('/api/fs/remove', body: {'dir': dir, 'names': names});
 
+  static const uploadPath = '/api/fs/put';
+
+  /// `fs/put` headers except Content-Length, shared with the native uploader.
+  static Map<String, String> uploadHeaders(
+    String dstPath, {
+    bool asTask = false,
+    bool overwrite = false,
+    String password = '',
+    DateTime? lastModified,
+  }) =>
+      {
+        'File-Path': OpenListClient.encodePath(dstPath),
+        'As-Task': '$asTask',
+        'Overwrite': '$overwrite',
+        Headers.contentTypeHeader: 'application/octet-stream',
+        if (password.isNotEmpty) 'Password': password,
+        if (lastModified != null)
+          'Last-Modified': '${lastModified.millisecondsSinceEpoch}',
+      };
+
   /// Streams [data] to `dstPath` via `PUT /api/fs/put`.
   Future<void> upload(
     String dstPath,
@@ -73,17 +93,15 @@ class FsApi {
     CancelToken? cancelToken,
   }) =>
       client.put(
-        '/api/fs/put',
+        uploadPath,
         data: data,
         headers: {
-          'File-Path': OpenListClient.encodePath(dstPath),
-          'As-Task': '$asTask',
-          'Overwrite': '$overwrite',
+          ...uploadHeaders(dstPath,
+              asTask: asTask,
+              overwrite: overwrite,
+              password: password,
+              lastModified: lastModified),
           Headers.contentLengthHeader: '$length',
-          Headers.contentTypeHeader: 'application/octet-stream',
-          if (password.isNotEmpty) 'Password': password,
-          if (lastModified != null)
-            'Last-Modified': '${lastModified.millisecondsSinceEpoch}',
         },
         onSendProgress: onProgress,
         cancelToken: cancelToken,

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
+import 'package:openlist_mobile/api/native_upload.dart';
 import 'package:openlist_mobile/api/openlist_client.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/api/upload_queue.dart';
@@ -244,16 +245,29 @@ class _FilesPageState extends State<FilesPage> {
             name: f.name,
             dir: dir,
             size: f.size,
-            // Reopen the picked file on every attempt so retries work.
-            run: (token, onProgress) async {
-              final file = File(f.path!);
-              await fs.upload(
-                OpenListClient.join(dir, f.name),
-                file.openRead(),
-                await file.length(),
+            // Each attempt is a new native job, or reopens the file on the
+            // Dart path, so retries work.
+            run: (token, onProgress) {
+              final dstPath = OpenListClient.join(dir, f.name);
+              return NativeUploader.instance.upload(
+                fs.client,
+                filePath: f.path!,
+                dstPath: dstPath,
+                title: f.name,
                 password: password,
                 onProgress: onProgress,
                 cancelToken: token,
+                fallback: () async {
+                  final file = File(f.path!);
+                  await fs.upload(
+                    dstPath,
+                    file.openRead(),
+                    await file.length(),
+                    password: password,
+                    onProgress: onProgress,
+                    cancelToken: token,
+                  );
+                },
               );
             },
           ),
