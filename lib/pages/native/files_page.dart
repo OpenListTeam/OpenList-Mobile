@@ -330,6 +330,26 @@ class _FilesPageState extends State<FilesPage> {
     if (dir != null && mounted) unawaited(_open(dir));
   }
 
+  /// Thumbnail when the core provides one, otherwise the type icon. The
+  /// OpenList token is never sent with the image request.
+  Widget _leading(FsObject o) {
+    final icon = Icon(_icon(o));
+    if (o.isDir || o.thumb.isEmpty) return icon;
+    final base = _session.client?.baseUrl ?? '';
+    final url = o.thumb.startsWith('/') ? '$base${o.thumb}' : o.thumb;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: Image.network(
+        url,
+        width: 40,
+        height: 40,
+        cacheWidth: 120,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => icon,
+      ),
+    );
+  }
+
   IconData _icon(FsObject o) {
     if (o.isDir) return Icons.folder;
     return switch (o.type) {
@@ -470,7 +490,7 @@ class _FilesPageState extends State<FilesPage> {
             formatTime(o.modified),
           ].where((e) => e.isNotEmpty).join('  ');
           return ListTile(
-            leading: Icon(_icon(o)),
+            leading: _leading(o),
             title: Text(o.name, maxLines: 2, overflow: TextOverflow.ellipsis),
             subtitle: info.isEmpty ? null : Text(info),
             onTap: () => o.isDir
