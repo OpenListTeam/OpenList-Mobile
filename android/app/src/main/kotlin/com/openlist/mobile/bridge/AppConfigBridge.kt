@@ -1,6 +1,8 @@
 package com.openlist.mobile.bridge
 
 import com.openlist.mobile.config.AppConfig
+import com.openlist.mobile.server.ServerClient
+import com.openlist.mobile.server.ServerProtocol
 import com.openlist.pigeon.GeneratedApi
 
 
@@ -37,5 +39,6 @@ object AppConfigBridge : GeneratedApi.AppConfig {
 
     override fun setWakeLockEnabled(enabled: Boolean) {
         AppConfig.isWakeLockEnabled = enabled
+        ServerClient.notify(ServerProtocol.MSG_REFRESH_SETTINGS)
     }
 }

@@ -68,11 +68,244 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
   return value as! T?
 }
 
+func deepEqualsPigeonApi(_ lhs: Any?, _ rhs: Any?) -> Bool {
+  let cleanLhs = nilOrValue(lhs) as Any?
+  let cleanRhs = nilOrValue(rhs) as Any?
+  switch (cleanLhs, cleanRhs) {
+  case (nil, nil):
+    return true
+
+  case (nil, _), (_, nil):
+    return false
+
+  case is (Void, Void):
+    return true
+
+  case let (cleanLhsHashable, cleanRhsHashable) as (AnyHashable, AnyHashable):
+    return cleanLhsHashable == cleanRhsHashable
+
+  case let (cleanLhsArray, cleanRhsArray) as ([Any?], [Any?]):
+    guard cleanLhsArray.count == cleanRhsArray.count else { return false }
+    for (index, element) in cleanLhsArray.enumerated() {
+      if !deepEqualsPigeonApi(element, cleanRhsArray[index]) {
+        return false
+      }
+    }
+    return true
+
+  case let (cleanLhsDictionary, cleanRhsDictionary) as ([AnyHashable: Any?], [AnyHashable: Any?]):
+    guard cleanLhsDictionary.count == cleanRhsDictionary.count else { return false }
+    for (key, cleanLhsValue) in cleanLhsDictionary {
+      guard cleanRhsDictionary.index(forKey: key) != nil else { return false }
+      if !deepEqualsPigeonApi(cleanLhsValue, cleanRhsDictionary[key]!) {
+        return false
+      }
+    }
+    return true
+
+  default:
+    // Any other type shouldn't be able to be used with pigeon. File an issue if you find this to be untrue.
+    return false
+  }
+}
+
+func deepHashPigeonApi(value: Any?, hasher: inout Hasher) {
+  if let valueList = value as? [AnyHashable] {
+     for item in valueList { deepHashPigeonApi(value: item, hasher: &hasher) }
+     return
+  }
+
+  if let valueDict = value as? [AnyHashable: AnyHashable] {
+    for key in valueDict.keys { 
+      hasher.combine(key)
+      deepHashPigeonApi(value: valueDict[key]!, hasher: &hasher)
+    }
+    return
+  }
+
+  if let hashableValue = value as? AnyHashable {
+    hasher.combine(hashableValue.hashValue)
+  }
+
+  return hasher.combine(String(describing: value))
+}
+
+    
+
+/// Snapshot of the embedded server. On Android it is produced by the
+/// independent server process and delivered over IPC.
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct ServerStatus: Hashable {
+  var running: Bool
+  /// One of `local`, `lan`, `public`.
+  var mode: String
+  var httpPort: Int64
+  var httpsPort: Int64
+  var forceHttps: Bool
+  var addresses: [String]
+  var manuallyStopped: Bool
+  var lastError: String? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> ServerStatus? {
+    let running = pigeonVar_list[0] as! Bool
+    let mode = pigeonVar_list[1] as! String
+    let httpPort = pigeonVar_list[2] as! Int64
+    let httpsPort = pigeonVar_list[3] as! Int64
+    let forceHttps = pigeonVar_list[4] as! Bool
+    let addresses = pigeonVar_list[5] as! [String]
+    let manuallyStopped = pigeonVar_list[6] as! Bool
+    let lastError: String? = nilOrValue(pigeonVar_list[7])
+
+    return ServerStatus(
+      running: running,
+      mode: mode,
+      httpPort: httpPort,
+      httpsPort: httpsPort,
+      forceHttps: forceHttps,
+      addresses: addresses,
+      manuallyStopped: manuallyStopped,
+      lastError: lastError
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      running,
+      mode,
+      httpPort,
+      httpsPort,
+      forceHttps,
+      addresses,
+      manuallyStopped,
+      lastError,
+    ]
+  }
+  static func == (lhs: ServerStatus, rhs: ServerStatus) -> Bool {
+    return deepEqualsPigeonApi(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashPigeonApi(value: toList(), hasher: &hasher)
+  }
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct LogEntry: Hashable {
+  var level: Int64
+  var time: String
+  var message: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> LogEntry? {
+    let level = pigeonVar_list[0] as! Int64
+    let time = pigeonVar_list[1] as! String
+    let message = pigeonVar_list[2] as! String
+
+    return LogEntry(
+      level: level,
+      time: time,
+      message: message
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      level,
+      time,
+      message,
+    ]
+  }
+  static func == (lhs: LogEntry, rhs: LogEntry) -> Bool {
+    return deepEqualsPigeonApi(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashPigeonApi(value: toList(), hasher: &hasher)
+  }
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct BackgroundDiagnostics: Hashable {
+  var manufacturer: String
+  var brand: String
+  var sdkInt: Int64
+  var ignoringBatteryOptimizations: Bool
+  var backgroundRestricted: Bool
+  /// UsageStatsManager standby bucket, or -1 when unavailable.
+  var standbyBucket: Int64
+  var notificationsEnabled: Bool
+  var autoStartSettingsAvailable: Bool
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> BackgroundDiagnostics? {
+    let manufacturer = pigeonVar_list[0] as! String
+    let brand = pigeonVar_list[1] as! String
+    let sdkInt = pigeonVar_list[2] as! Int64
+    let ignoringBatteryOptimizations = pigeonVar_list[3] as! Bool
+    let backgroundRestricted = pigeonVar_list[4] as! Bool
+    let standbyBucket = pigeonVar_list[5] as! Int64
+    let notificationsEnabled = pigeonVar_list[6] as! Bool
+    let autoStartSettingsAvailable = pigeonVar_list[7] as! Bool
+
+    return BackgroundDiagnostics(
+      manufacturer: manufacturer,
+      brand: brand,
+      sdkInt: sdkInt,
+      ignoringBatteryOptimizations: ignoringBatteryOptimizations,
+      backgroundRestricted: backgroundRestricted,
+      standbyBucket: standbyBucket,
+      notificationsEnabled: notificationsEnabled,
+      autoStartSettingsAvailable: autoStartSettingsAvailable
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      manufacturer,
+      brand,
+      sdkInt,
+      ignoringBatteryOptimizations,
+      backgroundRestricted,
+      standbyBucket,
+      notificationsEnabled,
+      autoStartSettingsAvailable,
+    ]
+  }
+  static func == (lhs: BackgroundDiagnostics, rhs: BackgroundDiagnostics) -> Bool {
+    return deepEqualsPigeonApi(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashPigeonApi(value: toList(), hasher: &hasher)
+  }
+}
 
 private class PigeonApiPigeonCodecReader: FlutterStandardReader {
+  override func readValue(ofType type: UInt8) -> Any? {
+    switch type {
+    case 129:
+      return ServerStatus.fromList(self.readValue() as! [Any?])
+    case 130:
+      return LogEntry.fromList(self.readValue() as! [Any?])
+    case 131:
+      return BackgroundDiagnostics.fromList(self.readValue() as! [Any?])
+    default:
+      return super.readValue(ofType: type)
+    }
+  }
 }
 
 private class PigeonApiPigeonCodecWriter: FlutterStandardWriter {
+  override func writeValue(_ value: Any) {
+    if let value = value as? ServerStatus {
+      super.writeByte(129)
+      super.writeValue(value.toList())
+    } else if let value = value as? LogEntry {
+      super.writeByte(130)
+      super.writeValue(value.toList())
+    } else if let value = value as? BackgroundDiagnostics {
+      super.writeByte(131)
+      super.writeValue(value.toList())
+    } else {
+      super.writeValue(value)
+    }
+  }
 }
 
 private class PigeonApiPigeonCodecReaderWriter: FlutterStandardReaderWriter {
@@ -88,6 +321,7 @@ private class PigeonApiPigeonCodecReaderWriter: FlutterStandardReaderWriter {
 class PigeonApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
   static let shared = PigeonApiPigeonCodec(readerWriter: PigeonApiPigeonCodecReaderWriter())
 }
+
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol AppConfig {
@@ -401,7 +635,6 @@ class NativeCommonSetup {
 protocol Android {
   func addShortcut() throws
   func startService() throws
-  func setAdminPwd(pwd: String) throws
   func getOpenListHttpPort() throws -> Int64
   func isRunning() throws -> Bool
   func getOpenListVersion() throws -> String
@@ -438,21 +671,6 @@ class AndroidSetup {
       }
     } else {
       startServiceChannel.setMessageHandler(nil)
-    }
-    let setAdminPwdChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.Android.setAdminPwd\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      setAdminPwdChannel.setMessageHandler { message, reply in
-        let args = message as! [Any?]
-        let pwdArg = args[0] as! String
-        do {
-          try api.setAdminPwd(pwd: pwdArg)
-          reply(wrapResult(nil))
-        } catch {
-          reply(wrapError(error))
-        }
-      }
-    } else {
-      setAdminPwdChannel.setMessageHandler(nil)
     }
     let getOpenListHttpPortChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.Android.getOpenListHttpPort\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
@@ -495,9 +713,288 @@ class AndroidSetup {
     }
   }
 }
+/// Generated protocol from Pigeon that represents a handler of messages from Flutter.
+protocol ServerApi {
+  func start(completion: @escaping (Result<Void, Error>) -> Void)
+  func stop(completion: @escaping (Result<Void, Error>) -> Void)
+  func restart(completion: @escaping (Result<Void, Error>) -> Void)
+  func getStatus(completion: @escaping (Result<ServerStatus, Error>) -> Void)
+  func getMode() throws -> String
+  func setMode(mode: String) throws
+  func setAdminPassword(pwd: String, completion: @escaping (Result<Void, Error>) -> Void)
+  /// Admin token for the in-app client, issued over private IPC only.
+  func getLocalToken(completion: @escaping (Result<String, Error>) -> Void)
+  /// JSON produced by the Go core `RuntimeStatus`, plus process stats.
+  func getRuntimeStatus(completion: @escaping (Result<String, Error>) -> Void)
+  /// JSON produced by the Go core `SecurityReport` for the given mode.
+  func getSecurityReport(mode: String, completion: @escaping (Result<String, Error>) -> Void)
+  func getRecentLogs(completion: @escaping (Result<[LogEntry], Error>) -> Void)
+}
+
+/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
+class ServerApiSetup {
+  static var codec: FlutterStandardMessageCodec { PigeonApiPigeonCodec.shared }
+  /// Sets up an instance of `ServerApi` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: ServerApi?, messageChannelSuffix: String = "") {
+    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    let startChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.start\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      startChannel.setMessageHandler { _, reply in
+        api.start { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      startChannel.setMessageHandler(nil)
+    }
+    let stopChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.stop\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      stopChannel.setMessageHandler { _, reply in
+        api.stop { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      stopChannel.setMessageHandler(nil)
+    }
+    let restartChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.restart\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      restartChannel.setMessageHandler { _, reply in
+        api.restart { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      restartChannel.setMessageHandler(nil)
+    }
+    let getStatusChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.getStatus\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getStatusChannel.setMessageHandler { _, reply in
+        api.getStatus { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getStatusChannel.setMessageHandler(nil)
+    }
+    let getModeChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.getMode\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getModeChannel.setMessageHandler { _, reply in
+        do {
+          let result = try api.getMode()
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      getModeChannel.setMessageHandler(nil)
+    }
+    let setModeChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.setMode\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      setModeChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let modeArg = args[0] as! String
+        do {
+          try api.setMode(mode: modeArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      setModeChannel.setMessageHandler(nil)
+    }
+    let setAdminPasswordChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.setAdminPassword\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      setAdminPasswordChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let pwdArg = args[0] as! String
+        api.setAdminPassword(pwd: pwdArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      setAdminPasswordChannel.setMessageHandler(nil)
+    }
+    /// Admin token for the in-app client, issued over private IPC only.
+    let getLocalTokenChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.getLocalToken\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getLocalTokenChannel.setMessageHandler { _, reply in
+        api.getLocalToken { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getLocalTokenChannel.setMessageHandler(nil)
+    }
+    /// JSON produced by the Go core `RuntimeStatus`, plus process stats.
+    let getRuntimeStatusChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.getRuntimeStatus\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getRuntimeStatusChannel.setMessageHandler { _, reply in
+        api.getRuntimeStatus { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getRuntimeStatusChannel.setMessageHandler(nil)
+    }
+    /// JSON produced by the Go core `SecurityReport` for the given mode.
+    let getSecurityReportChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.getSecurityReport\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getSecurityReportChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let modeArg = args[0] as! String
+        api.getSecurityReport(mode: modeArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getSecurityReportChannel.setMessageHandler(nil)
+    }
+    let getRecentLogsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.ServerApi.getRecentLogs\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getRecentLogsChannel.setMessageHandler { _, reply in
+        api.getRecentLogs { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getRecentLogsChannel.setMessageHandler(nil)
+    }
+  }
+}
+/// Generated protocol from Pigeon that represents a handler of messages from Flutter.
+protocol BackgroundApi {
+  func getDiagnostics() throws -> BackgroundDiagnostics
+  func requestIgnoreBatteryOptimizations() throws -> Bool
+  func openBatteryOptimizationSettings() throws -> Bool
+  func openAutoStartSettings() throws -> Bool
+  func openAppDetailsSettings() throws -> Bool
+}
+
+/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
+class BackgroundApiSetup {
+  static var codec: FlutterStandardMessageCodec { PigeonApiPigeonCodec.shared }
+  /// Sets up an instance of `BackgroundApi` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: BackgroundApi?, messageChannelSuffix: String = "") {
+    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    let getDiagnosticsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.BackgroundApi.getDiagnostics\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getDiagnosticsChannel.setMessageHandler { _, reply in
+        do {
+          let result = try api.getDiagnostics()
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      getDiagnosticsChannel.setMessageHandler(nil)
+    }
+    let requestIgnoreBatteryOptimizationsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.BackgroundApi.requestIgnoreBatteryOptimizations\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      requestIgnoreBatteryOptimizationsChannel.setMessageHandler { _, reply in
+        do {
+          let result = try api.requestIgnoreBatteryOptimizations()
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      requestIgnoreBatteryOptimizationsChannel.setMessageHandler(nil)
+    }
+    let openBatteryOptimizationSettingsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.BackgroundApi.openBatteryOptimizationSettings\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      openBatteryOptimizationSettingsChannel.setMessageHandler { _, reply in
+        do {
+          let result = try api.openBatteryOptimizationSettings()
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      openBatteryOptimizationSettingsChannel.setMessageHandler(nil)
+    }
+    let openAutoStartSettingsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.BackgroundApi.openAutoStartSettings\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      openAutoStartSettingsChannel.setMessageHandler { _, reply in
+        do {
+          let result = try api.openAutoStartSettings()
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      openAutoStartSettingsChannel.setMessageHandler(nil)
+    }
+    let openAppDetailsSettingsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.BackgroundApi.openAppDetailsSettings\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      openAppDetailsSettingsChannel.setMessageHandler { _, reply in
+        do {
+          let result = try api.openAppDetailsSettings()
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      openAppDetailsSettingsChannel.setMessageHandler(nil)
+    }
+  }
+}
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
 protocol EventProtocol {
   func onServiceStatusChanged(isRunning isRunningArg: Bool, completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func onServerStatus(status statusArg: ServerStatus, completion: @escaping (Result<Void, PigeonError>) -> Void)
   func onServerLog(level levelArg: Int64, time timeArg: String, log logArg: String, completion: @escaping (Result<Void, PigeonError>) -> Void)
 }
 class Event: EventProtocol {
@@ -514,6 +1011,24 @@ class Event: EventProtocol {
     let channelName: String = "dev.flutter.pigeon.openlist_mobile.Event.onServiceStatusChanged\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
     channel.sendMessage([isRunningArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(()))
+      }
+    }
+  }
+  func onServerStatus(status statusArg: ServerStatus, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.openlist_mobile.Event.onServerStatus\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([statusArg] as [Any?]) { response in
       guard let listResponse = response as? [Any?] else {
         completion(.failure(createConnectionError(withChannelName: channelName)))
         return

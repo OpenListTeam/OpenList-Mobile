@@ -3,7 +3,8 @@
 
     <!-- 前台服务权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- specialUse: dataSync cannot start from BOOT_COMPLETED and is time-limited on Android 15 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     
     <!-- 开机启动权限 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -33,6 +34,7 @@
     <!-- 电池优化和唤醒锁权限 -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     
     <!-- 安装权限 -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
@@ -53,6 +55,7 @@
         <activity
             android:name=".SwitchServerActivity"
             android:exported="true"
+            android:process=":server"
             android:launchMode="singleTask"
             android:taskAffinity="openlist.switch"
             android:theme="@android:style/Theme.NoDisplay" />
@@ -82,18 +85,25 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- OpenList background service -->
+        <!-- OpenList server: separate process, independent of the Flutter engine -->
         <service
             android:name=".OpenListService"
-            android:exported="false"
             android:enabled="true"
-            android:foregroundServiceType="dataSync" />
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:process=":server"
+            android:stopWithTask="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-started local file server (HTTP/WebDAV/FTP) that serves files to other devices and must keep listening while the app UI is closed." />
+        </service>
 
         <!-- Boot receiver -->
         <receiver
             android:name=".BootReceiver"
+            android:enabled="true"
             android:exported="true"
-            android:enabled="true">
+            android:process=":server">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -106,7 +116,8 @@
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
             android:label="OpenList"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:process=":server">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>

@@ -23,7 +23,9 @@ import UIKit
     
     // Register Pigeon API implementations
     AppConfigSetup.setUp(binaryMessenger: messenger, api: AppConfigBridge())
-    AndroidSetup.setUp(binaryMessenger: messenger, api: OpenListBridge())
+    let openListBridge = OpenListBridge()
+    AndroidSetup.setUp(binaryMessenger: messenger, api: openListBridge)
+    ServerApiSetup.setUp(binaryMessenger: messenger, api: openListBridge)
     NativeCommonSetup.setUp(binaryMessenger: messenger, api: CommonBridge(viewController: controller))
 
     let appStoreChannel = FlutterMethodChannel(
@@ -71,7 +73,7 @@ import UIKit
   
   override func applicationWillTerminate(_ application: UIApplication) {
     // Cleanup OpenList core
-    OpenListManager.shared.stopServer()
+    OpenListManager.shared.stopServerSync()
     
     // End background task if still active
     endBackgroundTask()

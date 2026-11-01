@@ -2,19 +2,18 @@ package com.openlist.mobile.bridge
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.util.Log
-import com.openlist.mobile.OpenListService
 import com.openlist.mobile.BuildConfig
+import com.openlist.mobile.OpenListService
 import com.openlist.mobile.R
 import com.openlist.mobile.SwitchServerActivity
-import com.openlist.mobile.config.AppConfig
-import com.openlist.mobile.model.openlist.OpenList
+import com.openlist.mobile.model.openlist.OpenListConfigManager
+import com.openlist.mobile.server.ServerClient
 import com.openlist.mobile.utils.MyTools
-import com.openlist.mobile.utils.ToastUtils.longToast
-import com.openlist.mobile.utils.ToastUtils.toast
 import com.openlist.pigeon.GeneratedApi
+import com.openlist.mobile.server.ServerProtocol as P
 
+/** Legacy Android API kept for existing Dart callers; runs in the UI process. */
 class AndroidBridge(private val context: Context) : GeneratedApi.Android {
     companion object {
         private const val TAG = "AndroidBridge"
@@ -31,22 +30,18 @@ class AndroidBridge(private val context: Context) : GeneratedApi.Android {
     }
 
     override fun startService() {
-        // 清除手动停止标志，表示用户手动启动了服务
-        AppConfig.isManuallyStoppedByUser = false
-        Log.d(TAG, "Starting service via AndroidBridge, manual stop flag cleared")
-        context.startService(Intent(context, OpenListService::class.java))
+        try {
+            OpenListService.sendAction(context, OpenListService.ACTION_START)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start service", e)
+        }
     }
 
-    override fun setAdminPwd(pwd: String) {
-        OpenList.setAdminPassword(pwd)
-    }
+    // Reads config.json directly so the UI process never loads the Go core.
+    override fun getOpenListHttpPort(): Long =
+        (OpenListConfigManager.configOrNull()?.scheme?.httpPort ?: 5244).toLong()
 
-    override fun getOpenListHttpPort(): Long {
-        return OpenList.getHttpPort().toLong()
-    }
-
-    override fun isRunning() = OpenListService.isRunning
-
+    override fun isRunning() = ServerClient.lastStatus.getBoolean(P.KEY_RUNNING)
 
     override fun getOpenListVersion() = BuildConfig.OPENLIST_VERSION
 }

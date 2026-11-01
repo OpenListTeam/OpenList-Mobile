@@ -10,6 +10,7 @@ import com.openlist.mobile.app
 import com.openlist.mobile.config.AppConfig
 import com.openlist.mobile.constant.LogLevel
 import com.openlist.mobile.utils.ToastUtils.longToast
+import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -26,18 +27,29 @@ object OpenList : Event, LogCallback {
         get() = "$dataDir${File.separator}config.json"
 
 
+    @Volatile
+    private var initialized = false
+
+    /** Re-reads config.json and reopens the core; called before every start. */
     fun init() {
         runCatching {
             Openlistlib.setConfigData(dataDir)
             Openlistlib.setConfigLogStd(true)
             Openlistlib.init(this, this)
+            initialized = true
         }.onFailure {
             Log.e(TAG, "init:", it)
         }
     }
 
+    /** Initializes once for config-only operations while the server is stopped. */
+    fun ensureInit() {
+        if (!initialized) init()
+    }
+
     interface Listener {
         fun onShutdown(type: String)
+        fun onStartError(type: String, msg: String) {}
     }
 
     private val mListeners = mutableListOf<Listener>()
@@ -58,6 +70,7 @@ object OpenList : Event, LogCallback {
     override fun onStartError(type: String, msg: String) {
         Log.e(TAG, "onStartError: $type, $msg")
         Logger.log(LogLevel.FATAL, type, msg)
+        mListeners.forEach { it.onStartError(type, msg) }
     }
 
     private val mDateFormatter by lazy  { SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault())}
@@ -76,7 +89,7 @@ object OpenList : Event, LogCallback {
     }
 
     fun setAdminPassword(pwd: String) {
-        if (!isRunning()) init()
+        if (!isRunning()) ensureInit()
 
         Log.d(TAG, "setAdminPassword: $dataDir")
         Openlistlib.setConfigData(dataDir)
@@ -109,8 +122,8 @@ object OpenList : Event, LogCallback {
 
     @SuppressLint("SdCardPath")
     @Synchronized
-    fun startup() {
-        Log.d(TAG, "startup: $dataDir")
+    fun startup(mode: String) {
+        Log.d(TAG, "startup: $dataDir, mode=$mode")
         try {
             // 确保数据目录存在
             val dataDirFile = File(dataDir)
@@ -136,7 +149,7 @@ object OpenList : Event, LogCallback {
             }
             
             Log.d(TAG, "Starting OpenList...")
-            Openlistlib.start()
+            Openlistlib.startWithOptions(JSONObject().put("mode", mode).toString())
             
             // 验证启动是否成功
             Thread.sleep(1000) // 等待1秒让服务完全启动
@@ -156,5 +169,14 @@ object OpenList : Event, LogCallback {
 
     fun getHttpPort(): Int {
         return OpenListConfigManager.config().scheme.httpPort
+    }
+
+    fun adminToken(): String = Openlistlib.adminToken()
+
+    fun runtimeStatus(): String = Openlistlib.runtimeStatus()
+
+    fun securityReport(mode: String): String {
+        if (!isRunning()) ensureInit()
+        return Openlistlib.securityReport(mode)
     }
 }

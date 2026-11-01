@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/openlist/about_dialog.dart';
@@ -31,7 +32,7 @@ class OpenListScreen extends StatelessWidget {
                       context: context,
                       builder: (context) => PwdEditDialog(onConfirm: (pwd) async {
                             try {
-                              await Android().setAdminPwd(pwd);
+                              await ServiceManager.instance.setAdminPassword(pwd);
                               Get.showSnackbar(GetSnackBar(
                                   title: S.current.setAdminPassword,
                                   message: pwd,
@@ -120,29 +121,13 @@ class OpenListScreen extends StatelessWidget {
   }
 }
 
-class MyEventReceiver extends Event {
-  Function(Log log) logCb;
-  Function(bool isRunning) statusCb;
-
-  MyEventReceiver(this.statusCb, this.logCb);
-
-  @override
-  void onServiceStatusChanged(bool isRunning) {
-    statusCb(isRunning);
-  }
-
-  @override
-  void onServerLog(int level, String time, String log) {
-    logCb(Log(level, time, log));
-  }
-}
-
 class OpenListController extends GetxController {
   final ScrollController scrollController = ScrollController();
   var isSwitch = false.obs;
   var openlistVersion = "".obs;
 
   var logs = <Log>[].obs;
+  final List<StreamSubscription> _subs = [];
 
   void clearLog() {
     logs.clear();
@@ -157,13 +142,15 @@ class OpenListController extends GetxController {
 
   @override
   void onInit() {
-    // 设置日志接收器，但状态变化只通过ServiceManager处理
-    Event.setUp(MyEventReceiver(
-        (isRunning) {
-          // 不在这里更新状态，避免冲突
-          print('Event receiver status: $isRunning');
-        }, 
-        (log) => addLog(log)));
+    // ServiceManager owns the Event channel; subscribe to its streams.
+    _subs.add(ServiceManager.instance.logStream
+        .listen((e) => addLog(Log(e.level, e.time, e.message))));
+    // Logs emitted before this page opened (e.g. after a boot start).
+    ServiceManager.instance.getRecentLogs().then((list) {
+      for (final e in list) {
+        addLog(Log(e.level, e.time, e.message));
+      }
+    });
     
     Android().getOpenListVersion().then((value) => openlistVersion.value = value);
     
@@ -176,11 +163,18 @@ class OpenListController extends GetxController {
     });
 
     // 只监听ServiceManager的状态变化
-    ServiceManager.instance.serviceStatusStream.listen((isRunning) {
-      print('ServiceManager status changed: $isRunning');
+    _subs.add(ServiceManager.instance.serviceStatusStream.listen((isRunning) {
       isSwitch.value = isRunning;
-    });
+    }));
 
     super.onInit();
+  }
+
+  @override
+  void onClose() {
+    for (final s in _subs) {
+      s.cancel();
+    }
+    super.onClose();
   }
 }

@@ -72,4 +72,8 @@
     <string name="start_at_boot">Auto Start Service at Boot</string>
     <string name="start_at_boot_desc">Automatically start OpenList service at boot.</string>
     <string name="shutdown_failed">Shutdown Failed</string>
+    <string name="server_start_failed">Start failed: %1$s</string>
+    <string name="server_mode_local">Local only</string>
+    <string name="server_mode_lan">LAN</string>
+    <string name="server_mode_public">Public</string>
 </resources>
