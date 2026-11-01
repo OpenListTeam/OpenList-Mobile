@@ -56,6 +56,7 @@ dependencies:
   shared_preferences: ^2.3.2
   flutter_highlight: ^0.7.0
   flutter_smooth_markdown: ^0.1.5
+  flutter_secure_storage: ^9.2.4
 
 
 dev_dependencies:

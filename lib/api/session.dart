@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,15 @@ class OpenListSession extends ChangeNotifier {
   static const _kKind = 'session_kind';
   static const _kUrl = 'session_remote_url';
   static const _kToken = 'session_remote_token';
+
+  /// Remote tokens live in the Keystore/Keychain. A token that can no longer
+  /// be decrypted (e.g. restored from backup) is dropped; the user signs in
+  /// again instead of the app failing.
+  static const _secure = FlutterSecureStorage(
+    aOptions: AndroidOptions(resetOnError: true),
+    iOptions: IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock_this_device),
+  );
 
   OpenListClient? _client;
   UserInfo? _user;
@@ -57,7 +67,7 @@ class OpenListSession extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getString(_kKind) == ConnectionKind.remote.name) {
       final url = prefs.getString(_kUrl) ?? '';
-      final token = prefs.getString(_kToken) ?? '';
+      final token = await _readToken(prefs);
       if (url.isNotEmpty && token.isNotEmpty) {
         try {
           await _activate(ConnectionKind.remote, url, token);
@@ -95,7 +105,32 @@ class OpenListSession extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kKind, ConnectionKind.remote.name);
     await prefs.setString(_kUrl, client.baseUrl);
-    await prefs.setString(_kToken, token);
+    await _secure.write(key: _kToken, value: token);
+    await prefs.remove(_kToken);
+  }
+
+  /// Reads the remote token, moving a legacy plaintext copy from
+  /// SharedPreferences into secure storage on first use.
+  Future<String> _readToken(SharedPreferences prefs) async {
+    String? token;
+    try {
+      token = await _secure.read(key: _kToken);
+    } catch (e) {
+      debugPrint('Secure token read failed: $e');
+    }
+    final legacy = prefs.getString(_kToken);
+    if (legacy != null) {
+      if (token == null || token.isEmpty) {
+        token = legacy;
+        try {
+          await _secure.write(key: _kToken, value: legacy);
+        } catch (e) {
+          debugPrint('Secure token migration failed: $e');
+        }
+      }
+      await prefs.remove(_kToken);
+    }
+    return token ?? '';
   }
 
   Future<void> logout() async {
@@ -105,6 +140,11 @@ class OpenListSession extends ChangeNotifier {
       } catch (_) {}
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_kToken);
+      try {
+        await _secure.delete(key: _kToken);
+      } catch (e) {
+        debugPrint('Secure token delete failed: $e');
+      }
       await prefs.setString(_kKind, ConnectionKind.local.name);
     }
     _reset(ConnectionKind.local);
