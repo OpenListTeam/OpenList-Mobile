@@ -30,6 +30,8 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLException
 
 /**
  * Streams one local file to an HTTP endpoint as a foreground WorkManager job.
@@ -38,6 +40,7 @@ import java.net.URL
  * The body is sent in fixed-length streaming mode, so the file is never
  * buffered in memory. The response status and body are returned as output
  * data; deciding success from the OpenList envelope is left to Dart.
+ * HTTPS to loopback is pinned to the core's certificate ([LoopbackTls]).
  */
 class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     companion object {
@@ -118,9 +121,25 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
             }
         }
         try {
-            withContext(Dispatchers.IO) { send(conn, file, total) }
+            withContext(Dispatchers.IO) { secure(conn) { send(conn, file, total) } }
         } finally {
             abort.cancel()
+        }
+    }
+
+    /**
+     * Pins loopback HTTPS to the embedded core's certificate; any other URL
+     * keeps the system trust. Throws [IOException] if the pin cannot be set.
+     */
+    private fun <T> secure(conn: HttpURLConnection, block: () -> T): T {
+        if (conn !is HttpsURLConnection || !LoopbackTls.isLoopbackHost(conn.url.host)) return block()
+        var rejected: String? = null
+        LoopbackTls.pin(conn) { rejected = it }
+        return try {
+            block()
+        } catch (e: SSLException) {
+            // Report the pin mismatch rather than a generic handshake error.
+            throw rejected?.let { IOException(it, e) } ?: e
         }
     }
 

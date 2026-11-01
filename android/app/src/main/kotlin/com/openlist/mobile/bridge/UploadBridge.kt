@@ -1,6 +1,8 @@
 package com.openlist.mobile.bridge
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.Observer
 import androidx.work.Data
@@ -11,6 +13,7 @@ import androidx.work.WorkManager
 import com.openlist.mobile.upload.UploadWorker
 import com.openlist.pigeon.GeneratedApi
 import java.util.UUID
+import java.util.concurrent.Executor
 
 /**
  * Hands uploads to WorkManager and forwards each job's [WorkInfo] to Dart.
@@ -25,6 +28,10 @@ class UploadBridge(context: Context, private val events: GeneratedApi.UploadEven
 
     /** Removes the WorkInfo observer of each tracked job. */
     private val observers = mutableMapOf<UUID, () -> Unit>()
+
+    /** Runs future listeners on the main thread, like the other callbacks here. */
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val mainExecutor = Executor { mainHandler.post(it) }
 
     private val ignoreResult = object : GeneratedApi.VoidResult {
         override fun success() {}
@@ -53,6 +60,40 @@ class UploadBridge(context: Context, private val events: GeneratedApi.UploadEven
     override fun cancel(id: String) {
         val uuid = runCatching { UUID.fromString(id) }.getOrNull() ?: return
         workManager.cancelWorkById(uuid)
+    }
+
+    /**
+     * Reports the stored WorkInfo of each id and re-observes unfinished jobs.
+     * Ids WorkManager no longer has (pruned or never stored) are left out.
+     */
+    override fun restore(ids: List<String>, result: GeneratedApi.Result<List<GeneratedApi.UploadEvent>>) {
+        val uuids = ids.mapNotNull { runCatching { UUID.fromString(it) }.getOrNull() }.distinct()
+        if (uuids.isEmpty()) {
+            result.success(emptyList())
+            return
+        }
+        val events = mutableListOf<GeneratedApi.UploadEvent>()
+        var pending = uuids.size
+        var failed = false
+        uuids.forEach { id ->
+            val future = workManager.getWorkInfoById(id)
+            future.addListener({
+                if (failed) return@addListener
+                val info = try {
+                    future.get()
+                } catch (e: Exception) {
+                    failed = true
+                    Log.w(TAG, "restore failed: ${e.message}")
+                    result.error(e)
+                    return@addListener
+                }
+                if (info != null) {
+                    events.add(toEvent(info))
+                    if (!info.state.isFinished && !observers.containsKey(id)) observe(id)
+                }
+                if (--pending == 0) result.success(events)
+            }, mainExecutor)
+        }
     }
 
     fun dispose() {
