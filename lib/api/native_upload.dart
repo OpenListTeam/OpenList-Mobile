@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,6 +46,12 @@ class NativeUploader {
   @visibleForTesting
   static const recordPrefix = 'native_upload_job.';
 
+  /// SharedPreferences key prefix for finished job results.
+  static const _resultPrefix = 'native_upload_result.';
+
+  /// Secure storage key prefix for folder passwords.
+  static const _passwordPrefix = 'native_upload_pwd.';
+
   final UploadApi _api;
   final TargetPlatform _platform;
   final OpenListClient? Function() _currentClient;
@@ -56,7 +63,11 @@ class NativeUploader {
 
   /// Latest event per id that arrived before `enqueue` returned that id.
   final Map<String, UploadEvent> _early = {};
-  static const _maxEarly = 32;
+  static const _maxEarly = 256;
+
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
 
   bool _listening = false;
   bool _unavailable = false;
@@ -133,6 +144,12 @@ class NativeUploader {
       size: size,
       baseUrl: client.baseUrl,
     ));
+
+    // Encrypt and save the folder password for retry.
+    if (password.isNotEmpty) {
+      unawaited(_savePassword(id, password));
+    }
+
     final attempt = _track(id, onProgress, cancelToken);
     final early = _early.remove(id);
     if (early != null) _onEvent(early);
@@ -144,8 +161,8 @@ class NativeUploader {
   /// Unfinished jobs show as running and keep reporting progress; finished
   /// ones get their final state. Cancel cancels the native job. Retry starts
   /// a new upload of the same file with the current session client, only if
-  /// it still points at the job's base URL. Folder passwords are not stored,
-  /// so a retried upload sends none.
+  /// it still points at the job's base URL. Folder passwords are encrypted
+  /// and stored in secure storage; retries read them back.
   ///
   /// Safe to call more than once; later calls return the first result.
   Future<void> restore({UploadQueue? queue}) =>
@@ -160,8 +177,10 @@ class NativeUploader {
     _listen();
     final List<_Record> records;
     final List<UploadEvent> events;
+    final Map<String, Map<String, dynamic>> savedResults;
     try {
       records = await _loadRecords();
+      savedResults = await _loadResults();
       // Also called with no records: iOS drops stored results it no longer
       // needs to keep.
       events = await _api.restore([for (final r in records) r.id]);
@@ -176,6 +195,30 @@ class NativeUploader {
     for (final r in records) {
       // Already tracked: a new upload got the id while this was loading.
       if (_attempts.containsKey(r.id)) continue;
+
+      // Check if we have a saved result for this job (process died after completion)
+      final savedResult = savedResults[r.id];
+      if (savedResult != null) {
+        final job = UploadJob(
+          name: r.name,
+          dir: r.dir,
+          size: r.size,
+          run: (token, onProgress) => _retry(r, token, onProgress),
+        );
+        // Replay the saved result
+        if (savedResult['success'] == true) {
+          job.state = UploadState.succeeded;
+          job.sent = r.size;
+        } else if (savedResult['error'] != null) {
+          job.state = UploadState.failed;
+          final err = savedResult['error'] as Map<String, dynamic>;
+          job.error = err['message'] ?? 'Upload failed';
+        }
+        queue.adopt(job, (_, __) => Future.value());
+        _forget(r.id);
+        continue;
+      }
+
       final job = UploadJob(
         name: r.name,
         dir: r.dir,
@@ -213,6 +256,10 @@ class NativeUploader {
       throw ApiException(
           -1, 'not connected to ${r.baseUrl}; reconnect to it to retry');
     }
+
+    // Read the encrypted folder password for retry.
+    final password = await _loadPassword(r.id);
+
     await upload(
       client,
       filePath: r.filePath,
@@ -220,6 +267,7 @@ class NativeUploader {
       title: r.name,
       dir: r.dir,
       size: r.size,
+      password: password,
       onProgress: onProgress,
       cancelToken: token,
       fallback: () async {
@@ -228,6 +276,7 @@ class NativeUploader {
           r.dstPath,
           file.openRead(),
           await file.length(),
+          password: password,
           onProgress: onProgress,
           cancelToken: token,
         );
@@ -299,8 +348,13 @@ class NativeUploader {
     final attempt = _attempts.remove(id);
     if (attempt == null || attempt.done) return;
     attempt.done = true;
-    // The result is handled; the job no longer needs restoring.
+
+    // Persist the result so it survives process death.
+    _saveResult(id, error: error);
+
+    // The job record is no longer needed for restore.
     _forget(id);
+
     if (error == null) {
       attempt.completer.complete();
     } else {
@@ -311,8 +365,71 @@ class NativeUploader {
   void _save(_Record r) => _writeRecords(
       (prefs) => prefs.setString('$recordPrefix${r.id}', jsonEncode(r.toJson())));
 
-  void _forget(String id) =>
-      _writeRecords((prefs) => prefs.remove('$recordPrefix$id'));
+  void _forget(String id) {
+    _writeRecords((prefs) => prefs.remove('$recordPrefix$id'));
+    _clearResult(id);
+    _clearPassword(id);
+  }
+
+  /// Saves the upload result (success or error) so it survives process death.
+  void _saveResult(String id, {Object? error}) {
+    _writeRecords((prefs) async {
+      final result = <String, dynamic>{
+        'id': id,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      };
+      if (error != null) {
+        if (error is ApiException) {
+          result['error'] = {
+            'code': error.code,
+            'message': error.message,
+          };
+        } else if (error is DioException) {
+          result['error'] = {
+            'type': error.type.name,
+            'message': error.message ?? 'Upload failed',
+          };
+        } else {
+          result['error'] = {
+            'message': error.toString(),
+          };
+        }
+      } else {
+        result['success'] = true;
+      }
+      await prefs.setString('$_resultPrefix$id', jsonEncode(result));
+    });
+  }
+
+  void _clearResult(String id) {
+    _writeRecords((prefs) => prefs.remove('$_resultPrefix$id'));
+  }
+
+  /// Encrypts and stores the folder password for this upload.
+  Future<void> _savePassword(String id, String password) async {
+    if (password.isEmpty) return;
+    try {
+      await _secureStorage.write(key: '$_passwordPrefix$id', value: password);
+    } catch (e) {
+      debugPrint('Failed to save upload password: $e');
+    }
+  }
+
+  /// Reads the encrypted folder password for retry.
+  Future<String> _loadPassword(String id) async {
+    try {
+      return await _secureStorage.read(key: '$_passwordPrefix$id') ?? '';
+    } catch (e) {
+      debugPrint('Failed to read upload password: $e');
+      return '';
+    }
+  }
+
+  void _clearPassword(String id) {
+    _secureStorage.delete(key: '$_passwordPrefix$id').catchError((e) {
+      debugPrint('Failed to delete upload password: $e');
+    });
+  }
 
   void _writeRecords(Future<void> Function(SharedPreferences prefs) write) {
     _records = _records.then((_) async {
@@ -341,6 +458,29 @@ class NativeUploader {
         await prefs.remove(key);
       } else {
         out.add(r);
+      }
+    }
+    return out;
+  }
+
+  /// Loads saved upload results (success or error) that survived process death.
+  Future<Map<String, Map<String, dynamic>>> _loadResults() async {
+    await _records;
+    final SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } on MissingPluginException {
+      return {};
+    }
+    final out = <String, Map<String, dynamic>>{};
+    for (final key in prefs.getKeys()) {
+      if (!key.startsWith(_resultPrefix)) continue;
+      try {
+        final data = jsonDecode(prefs.getString(key)!) as Map<String, dynamic>;
+        final id = data['id'] as String;
+        out[id] = data;
+      } catch (e) {
+        await prefs.remove(key);
       }
     }
     return out;
