@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:openlist_mobile/api/loopback_http.dart';
+import 'package:openlist_mobile/api/native_upload.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/files_page.dart';
 import 'package:openlist_mobile/pages/openlist/openlist.dart';
@@ -28,6 +29,7 @@ import 'contant/native_bridge.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = LoopbackHttpOverrides();
+  unawaited(NativeUploader.instance.restore());
 
   // Initialize language controller
   Get.put(LanguageController());

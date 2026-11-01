@@ -30,6 +30,9 @@ class UploadJob {
   Object? error;
   CancelToken? _cancelToken;
 
+  /// Running through [UploadQueue.adopt], outside the concurrency limit.
+  bool _adopted = false;
+
   double? get progress =>
       size > 0 ? (sent / size).clamp(0.0, 1.0).toDouble() : null;
 
@@ -74,6 +77,16 @@ class UploadQueue extends ChangeNotifier {
     _pump();
   }
 
+  /// Adds a job whose transfer is already in progress elsewhere, such as a
+  /// background upload restored after a relaunch. [attach] follows that
+  /// transfer like [UploadJob.run] would. The job shows as running at once
+  /// and does not take a concurrency slot; a later retry runs [job]'s `run`
+  /// through the queue like any other job.
+  void adopt(UploadJob job, UploadRunner attach) {
+    _jobs.add(job);
+    unawaited(_start(job, runner: attach));
+  }
+
   void cancel(UploadJob job) {
     switch (job.state) {
       case UploadState.queued:
@@ -105,7 +118,9 @@ class UploadQueue extends ChangeNotifier {
   }
 
   void _pump() {
-    var running = _jobs.where((j) => j.state == UploadState.running).length;
+    var running = _jobs
+        .where((j) => j.state == UploadState.running && !j._adopted)
+        .length;
     for (final job in _jobs) {
       if (running >= concurrency) break;
       if (job.state != UploadState.queued) continue;
@@ -114,16 +129,17 @@ class UploadQueue extends ChangeNotifier {
     }
   }
 
-  Future<void> _start(UploadJob job) async {
+  Future<void> _start(UploadJob job, {UploadRunner? runner}) async {
     final token = CancelToken();
     job
       ..state = UploadState.running
       ..sent = 0
-      .._cancelToken = token;
+      .._cancelToken = token
+      .._adopted = runner != null;
     notifyListeners();
     var lastNotify = DateTime.fromMillisecondsSinceEpoch(0);
     try {
-      await job.run(token, (sent, _) {
+      await (runner ?? job.run)(token, (sent, _) {
         job.sent = sent;
         final now = DateTime.now();
         if (now.difference(lastNotify) >= _progressInterval) {
@@ -138,7 +154,9 @@ class UploadQueue extends ChangeNotifier {
       job.state = token.isCancelled ? UploadState.canceled : UploadState.failed;
       job.error = token.isCancelled ? null : e;
     }
-    job._cancelToken = null;
+    job
+      .._cancelToken = null
+      .._adopted = false;
     notifyListeners();
     _finished.add(job);
     _pump();

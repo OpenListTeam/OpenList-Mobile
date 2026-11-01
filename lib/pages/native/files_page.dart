@@ -254,6 +254,8 @@ class _FilesPageState extends State<FilesPage> {
                 filePath: f.path!,
                 dstPath: dstPath,
                 title: f.name,
+                dir: dir,
+                size: f.size,
                 password: password,
                 onProgress: onProgress,
                 cancelToken: token,
