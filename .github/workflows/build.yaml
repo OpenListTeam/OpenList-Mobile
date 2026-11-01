@@ -114,11 +114,16 @@ jobs:
         with:
           flutter-version: '3.32.7'
 
+      - name: Run Dart Unit Tests
+        run: |
+          flutter test test/api_client_test.dart test/web_browser_manager_test.dart \
+            test/web_screen_stopped_test.dart
+
       - name: Generate iOS Build Number
         run: |
           IOS_BUILD_NUMBER=$(date +%y%m%d%H)
           echo "ios_build_number=$IOS_BUILD_NUMBER" >> $GITHUB_ENV
-      
+
       - name: Build Release APK
         if: github.event_name != 'pull_request'
         env:
