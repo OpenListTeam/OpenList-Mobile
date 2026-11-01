@@ -66,6 +66,9 @@ jobs:
   libs:
     name: Build OpenList Libraries
     uses: ./.github/workflows/build_openlist.yaml
+    # Releases always build and test the bindings from scratch.
+    with:
+      use_cache: false
 
   android:
     name: Build OpenList Android APK
