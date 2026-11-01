@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:openlist_mobile/api/loopback_http.dart';
@@ -181,7 +182,8 @@ class _MainController extends GetxController {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       // The web interface is a secondary route on top of the native UI.
       if (webPage) Get.to(() => WebScreen(key: webGlobalKey));
-      await AdminPassword.promptOnFirstLaunch();
+      // Waits for the core, so it must not hold up the update check.
+      unawaited(AdminPassword.promptOnFirstLaunch());
       if (await NativeBridge.appConfig.isAutoCheckUpdateEnabled()) {
         AppUpdateDialog.checkUpdateAndShowDialog(Get.context!, null);
       }

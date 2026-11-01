@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -108,10 +110,28 @@ class AdminPassword {
       builder: (context) => PwdEditDialog(onConfirm: apply));
 
   /// The core creates the admin with a random password the user never sees,
-  /// so ask once for a real one. "Later" also counts as answered.
+  /// so ask once for a real one. "Later" also counts as answered. Only asks
+  /// while the core reports that generated password, so upgrades and users
+  /// who already set one from the web UI are left alone.
   static Future<void> promptOnFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(_promptedKey) ?? false) return;
+    final sm = ServiceManager.instance;
+    if (!sm.isServiceRunning) {
+      await sm.serviceStatusStream.firstWhere((running) => running);
+    }
+    final bool generated;
+    try {
+      final status = jsonDecode(await sm.getRuntimeStatus());
+      generated = status is Map && status['admin_password_generated'] == true;
+    } catch (e) {
+      debugPrint('Admin password check failed: $e');
+      return;
+    }
+    if (!generated) {
+      await prefs.setBool(_promptedKey, true);
+      return;
+    }
     String? pwd;
     await Get.dialog(
       PwdEditDialog(
