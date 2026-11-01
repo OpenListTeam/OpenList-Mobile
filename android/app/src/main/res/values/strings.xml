@@ -76,4 +76,7 @@
     <string name="server_mode_local">仅本机</string>
     <string name="server_mode_lan">局域网</string>
     <string name="server_mode_public">公网</string>
+    <string name="upload_notification_channel">文件上传</string>
+    <string name="upload_notification_title">正在上传 %1$s</string>
+    <string name="upload_notification_progress">%1$s / %2$s</string>
 </resources>

@@ -76,4 +76,7 @@
     <string name="server_mode_local">Local only</string>
     <string name="server_mode_lan">LAN</string>
     <string name="server_mode_public">Public</string>
+    <string name="upload_notification_channel">File uploads</string>
+    <string name="upload_notification_title">Uploading %1$s</string>
+    <string name="upload_notification_progress">%1$s / %2$s</string>
 </resources>

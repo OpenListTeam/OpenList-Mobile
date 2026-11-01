@@ -7,6 +7,7 @@ import com.openlist.mobile.bridge.AppConfigBridge
 import com.openlist.mobile.bridge.BackgroundBridge
 import com.openlist.mobile.bridge.CommonBridge
 import com.openlist.mobile.bridge.ServerBridge
+import com.openlist.mobile.bridge.UploadBridge
 import com.openlist.mobile.model.ShortCuts
 import com.openlist.mobile.server.ServerClient
 import com.openlist.pigeon.GeneratedApi
@@ -21,6 +22,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private var mEvent: GeneratedApi.Event? = null
+    private var uploadBridge: UploadBridge? = null
 
     private val ignoreResult = object : VoidResult {
         override fun success() {}
@@ -52,6 +54,9 @@ class MainActivity : FlutterActivity() {
         GeneratedApi.NativeCommon.setUp(binaryMessage, CommonBridge(this))
         GeneratedApi.ServerApi.setUp(binaryMessage, ServerBridge(applicationContext))
         GeneratedApi.BackgroundApi.setUp(binaryMessage, BackgroundBridge(this))
+        uploadBridge = UploadBridge(applicationContext, GeneratedApi.UploadEventApi(binaryMessage)).also {
+            GeneratedApi.UploadApi.setUp(binaryMessage, it)
+        }
         mEvent = GeneratedApi.Event(binaryMessage)
 
         ServerClient.addListener(serverListener)
@@ -68,6 +73,9 @@ class MainActivity : FlutterActivity() {
         triggerDatabaseSync("onDestroy")
         ServerClient.removeListener(serverListener)
         mEvent = null
+        // Upload work keeps running; only this engine's observers are dropped.
+        uploadBridge?.dispose()
+        uploadBridge = null
         // Unbinding does not stop a started server; it only drops the UI link.
         if (isFinishing) ServerClient.unbind()
         super.onDestroy()
