@@ -796,5 +796,81 @@
   "adminPasswordSetupMessage": "本地核心已为 admin 账户生成随机密码。请设置你自己的密码，以便通过网页端或其他设备登录。",
   "adminPasswordHint": "admin 密码",
   "adminPasswordUpdated": "admin 密码已更新",
-  "later": "稍后"
+  "later": "稍后",
+  "home": "主页",
+  "quickAccess": "快速访问",
+  "recentFiles": "最近文件",
+  "favorites": "收藏",
+  "photos": "照片",
+  "videos": "视频",
+  "myStorages": "我的存储",
+  "noStoragesConfigured": "未配置存储",
+  "noStoragesDesc": "添加存储以开始使用 OpenList",
+  "seeAll": "查看全部",
+  "account": "账户",
+  "administrator": "管理员",
+  "user": "用户",
+  "signOut": "退出登录",
+  "signOutConfirmTitle": "退出登录",
+  "signOutConfirmMessage": "确定要退出登录吗？",
+  "server": "服务器",
+  "serverDetails": "服务器详情",
+  "serverDetailsDesc": "查看运行信息和连接详情",
+  "storage": "存储",
+  "manageStorages": "管理存储",
+  "manageStoragesDesc": "添加、编辑或删除存储位置",
+  "appearance": "外观",
+  "theme": "主题",
+  "themeSystem": "跟随系统",
+  "themeLight": "浅色",
+  "themeDark": "深色",
+  "administration": "管理",
+  "userManagement": "用户管理",
+  "userManagementDesc": "管理用户和权限",
+  "storageManagement": "存储管理",
+  "storageManagementDesc": "配置存储后端",
+  "tlsCertificates": "TLS 证书",
+  "tlsCertificatesDesc": "管理 SSL/TLS 证书",
+  "changeAdminPassword": "更改管理员密码",
+  "changeAdminPasswordDesc": "更新服务器管理员密码",
+  "cache": "缓存",
+  "clearCache": "清除缓存",
+  "clearCacheDesc": "释放存储空间",
+  "aboutOpenList": "关于 OpenList",
+  "version": "版本",
+  "githubRepo": "GitHub 仓库",
+  "stopServerTitle": "停止服务器",
+  "stopServerMessage": "确定要停止服务器吗？",
+  "modeChangedRestart": "模式已更改。重启服务器以应用。",
+  "modeChangeFailed": "更改模式失败：{error}",
+  "@modeChangeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkMode": "网络模式",
+  "selectNetworkMode": "选择网络模式",
+  "deleteStorageTitle": "删除存储",
+  "deleteStorageMessage": "删除存储 \"{name}\"？",
+  "@deleteStorageMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingStorages": "加载中...",
+  "loadStoragesFailed": "加载存储失败",
+  "noStorages": "没有存储",
+  "storageActions": "存储操作",
+  "browseFiles": "浏览文件",
+  "editStorage": "编辑存储",
+  "enableStorage": "启用存储",
+  "disableStorage": "禁用存储",
+  "deleteStorage": "删除存储",
+  "driver": "驱动",
+  "remark": "备注",
+  "systemDefault": "系统默认"
 }

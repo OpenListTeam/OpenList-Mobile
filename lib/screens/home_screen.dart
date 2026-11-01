@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/main.dart';
 import 'package:openlist_mobile/screens/storages_screen.dart';
@@ -85,8 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (isRunning) {
       final confirmed = await _showConfirmDialog(
-        'Stop Server',
-        'Are you sure you want to stop the server?',
+        S.current.stopServerTitle,
+        S.current.stopServerMessage,
       );
       if (!confirmed) return;
 
@@ -111,10 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() => _mode = newMode);
 
         if (_status?.running ?? false) {
-          _showMessage('Mode changed. Restart server to apply.');
+          _showMessage(S.current.modeChangedRestart);
         }
       } catch (e) {
-        _showMessage('Failed to change mode: $e');
+        _showMessage(S.current.modeChangeFailed(e.toString()));
       }
     }
   }
@@ -128,11 +129,11 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(S.current.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirm'),
+            child: Text(S.current.confirm),
           ),
         ],
       ),
@@ -191,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 AppDesign.space12,
               ),
               child: Text(
-                'Quick Access',
+                S.current.quickAccess,
                 style: AppDesign.headline3.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? Colors.white
@@ -208,8 +209,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   QuickAccessItem(
                     icon: Icons.access_time,
-                    label: 'Recent',
-                    subtitle: 'Files',
+                    label: S.current.recentFiles,
+                    subtitle: '',
                     onTap: () {
                       // Navigate to files tab
                       Get.find<MainNavigationController>().setPageIndex(1);
@@ -217,8 +218,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   QuickAccessItem(
                     icon: Icons.star,
-                    label: 'Favorites',
-                    subtitle: 'Folders',
+                    label: S.current.favorites,
+                    subtitle: '',
                     onTap: () {
                       // Navigate to files tab
                       Get.find<MainNavigationController>().setPageIndex(1);
@@ -226,8 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   QuickAccessItem(
                     icon: Icons.image,
-                    label: 'Photos',
-                    subtitle: 'All images',
+                    label: S.current.photos,
+                    subtitle: '',
                     onTap: () {
                       // Navigate to files tab
                       Get.find<MainNavigationController>().setPageIndex(1);
@@ -235,8 +236,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   QuickAccessItem(
                     icon: Icons.videocam,
-                    label: 'Videos',
-                    subtitle: 'All videos',
+                    label: S.current.videos,
+                    subtitle: '',
                     onTap: () {
                       // Navigate to files tab
                       Get.find<MainNavigationController>().setPageIndex(1);
@@ -258,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Storages',
+                    S.current.myStorages,
                     style: AppDesign.headline3.copyWith(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.white
@@ -274,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       );
                     },
-                    child: const Text('See All'),
+                    child: Text(S.current.seeAll),
                   ),
                 ],
               ),
@@ -282,8 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Storage cards - show real storages or empty state
             if (_loadingStorages)
-              const Padding(
-                padding: EdgeInsets.all(AppDesign.space32),
+              Padding(
+                padding: const EdgeInsets.all(AppDesign.space32),
                 child: Center(child: CircularProgressIndicator()),
               )
             else if (_storages.isEmpty)
@@ -301,14 +302,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: AppDesign.space16),
                         Text(
-                          'No storages configured',
+                          S.current.noStoragesConfigured,
                           style: AppDesign.body1.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: AppDesign.space8),
                         Text(
-                          'Add a storage to manage files',
+                          S.current.noStoragesDesc,
                           style: AppDesign.body2,
                           textAlign: TextAlign.center,
                         ),
@@ -322,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           },
-                          child: const Text('Add Storage'),
+                          child: Text(S.current.addStorage),
                         ),
                       ],
                     ),
@@ -376,7 +377,7 @@ class _NetworkModeSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppDesign.space24),
             child: Text(
-              'Network Mode',
+              S.current.networkMode,
               style: AppDesign.headline3.copyWith(
                 color: isDark ? Colors.white : Colors.black87,
               ),
@@ -385,22 +386,22 @@ class _NetworkModeSheet extends StatelessWidget {
           const SizedBox(height: AppDesign.space16),
           _ModeOption(
             icon: Icons.computer,
-            title: 'Localhost Only',
-            description: 'Only accessible from this device',
+            title: S.current.modeLocal,
+            description: S.current.modeLocalDesc,
             selected: currentMode == 'local',
             onTap: () => Navigator.pop(context, 'local'),
           ),
           _ModeOption(
             icon: Icons.wifi,
-            title: 'LAN Access',
-            description: 'Accessible from devices on the same network',
+            title: S.current.modeLan,
+            description: S.current.modeLanDesc,
             selected: currentMode == 'lan',
             onTap: () => Navigator.pop(context, 'lan'),
           ),
           _ModeOption(
             icon: Icons.public,
-            title: 'Public Access',
-            description: 'Accessible from anywhere (requires proper security)',
+            title: S.current.modePublic,
+            description: S.current.modePublicDesc,
             selected: currentMode == 'public',
             onTap: () => Navigator.pop(context, 'public'),
           ),

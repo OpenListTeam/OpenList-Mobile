@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/users_page.dart';
 import 'package:openlist_mobile/pages/native/tls_page.dart';
 import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
@@ -26,13 +27,13 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(S.current.settings),
       ),
       body: ListView(
         children: [
           // User info section
           if (session.isConnected) ...[
-            _SectionHeader(title: 'Account'),
+            _SectionHeader(title: S.current.account),
             Card(
               margin: const EdgeInsets.symmetric(horizontal: AppDesign.space16),
               child: ListTile(
@@ -51,7 +52,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  session.user?.isAdmin ?? false ? 'Administrator' : 'User',
+                  session.user?.isAdmin ?? false ? S.current.administrator : S.current.user,
                   style: AppDesign.body2.copyWith(
                     color: isDark ? Colors.white70 : Colors.black54,
                   ),
@@ -61,15 +62,15 @@ class SettingsScreen extends StatelessWidget {
                         onPressed: () async {
                           final confirmed = await _showConfirmDialog(
                             context,
-                            'Sign Out',
-                            'Are you sure you want to sign out?',
+                            S.current.signOutConfirmTitle,
+                            S.current.signOutConfirmMessage,
                           );
                           if (confirmed) {
                             await session.logout();
                             await session.connectLocal();
                           }
                         },
-                        child: const Text('Sign Out'),
+                        child: Text(S.current.signOut),
                       )
                     : null,
               ),
@@ -79,11 +80,11 @@ class SettingsScreen extends StatelessWidget {
 
           // Server section (Android only)
           if (Platform.isAndroid) ...[
-            _SectionHeader(title: 'Server'),
+            _SectionHeader(title: S.current.server),
             _SettingsTile(
               icon: Icons.dns,
-              title: 'Server Details',
-              subtitle: 'View runtime info and connection details',
+              title: S.current.serverDetails,
+              subtitle: S.current.serverDetailsDesc,
               onTap: () {
                 Navigator.push(
                   context,
@@ -97,11 +98,11 @@ class SettingsScreen extends StatelessWidget {
           ],
 
           // Storage section
-          _SectionHeader(title: 'Storage'),
+          _SectionHeader(title: S.current.storage),
           _SettingsTile(
             icon: Icons.storage,
-            title: 'Manage Storages',
-            subtitle: 'Add, edit, or remove storage locations',
+            title: S.current.manageStorages,
+            subtitle: S.current.manageStoragesDesc,
             onTap: () {
               Navigator.push(
                 context,
@@ -114,12 +115,12 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: AppDesign.space24),
 
           // Appearance section
-          _SectionHeader(title: 'Appearance'),
+          _SectionHeader(title: S.current.appearance),
           GetBuilder<ThemeController>(
             builder: (themeController) {
               return _SettingsTile(
                 icon: Icons.brightness_6,
-                title: 'Theme',
+                title: S.current.theme,
                 subtitle: themeController.getThemeName(),
                 onTap: () {
                   _showThemeSelector(context);
@@ -129,7 +130,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           _SettingsTile(
             icon: Icons.language,
-            title: 'Language',
+            title: S.current.language,
             subtitle: _getLanguageName(),
             onTap: () {
               _showLanguageSelector(context);
@@ -139,11 +140,11 @@ class SettingsScreen extends StatelessWidget {
 
           // Admin section (only if admin)
           if (session.user?.isAdmin ?? false) ...[
-            _SectionHeader(title: 'Administration'),
+            _SectionHeader(title: S.current.administration),
             _SettingsTile(
               icon: Icons.people,
-              title: 'User Management',
-              subtitle: 'Manage users and permissions',
+              title: S.current.userManagement,
+              subtitle: S.current.userManagementDesc,
               onTap: () {
                 Navigator.push(
                   context,
@@ -151,22 +152,11 @@ class SettingsScreen extends StatelessWidget {
                 );
               },
             ),
-            _SettingsTile(
-              icon: Icons.storage,
-              title: 'Storage Management',
-              subtitle: 'Configure storage backends',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const StoragesScreen()),
-                );
-              },
-            ),
             if (Platform.isAndroid) ...[
               _SettingsTile(
                 icon: Icons.security,
-                title: 'TLS Certificates',
-                subtitle: 'Manage SSL/TLS certificates',
+                title: S.current.tlsCertificates,
+                subtitle: S.current.tlsCertificatesDesc,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -176,8 +166,8 @@ class SettingsScreen extends StatelessWidget {
               ),
               _SettingsTile(
                 icon: Icons.lock,
-                title: 'Change Admin Password',
-                subtitle: 'Update server admin password',
+                title: S.current.changeAdminPassword,
+                subtitle: S.current.changeAdminPasswordDesc,
                 onTap: () async {
                   await AdminPassword.showEditor(context);
                 },
@@ -187,11 +177,11 @@ class SettingsScreen extends StatelessWidget {
           ],
 
           // Cache section
-          _SectionHeader(title: 'Cache'),
+          _SectionHeader(title: S.current.cache),
           _SettingsTile(
             icon: Icons.cleaning_services,
-            title: 'Clear Cache',
-            subtitle: 'Free up storage space',
+            title: S.current.clearCache,
+            subtitle: S.current.clearCacheDesc,
             onTap: () {
               _showClearCacheDialog(context);
             },
@@ -199,14 +189,14 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: AppDesign.space24),
 
           // About section
-          _SectionHeader(title: 'About'),
+          _SectionHeader(title: S.current.about),
           FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
             builder: (context, snapshot) {
               final version = snapshot.data?.version ?? '...';
               return _SettingsTile(
                 icon: Icons.info_outline,
-                title: 'Version',
+                title: S.current.version,
                 subtitle: version,
                 onTap: () {
                   _showAboutDialog(context);
@@ -216,14 +206,14 @@ class SettingsScreen extends StatelessWidget {
           ),
           _SettingsTile(
             icon: Icons.description,
-            title: 'Open Source Licenses',
+            title: S.current.openSourceLicenses,
             onTap: () {
               showLicensePage(context: context);
             },
           ),
           _SettingsTile(
             icon: Icons.link,
-            title: 'GitHub Repository',
+            title: S.current.githubRepo,
             subtitle: 'github.com/OpenListTeam/OpenList',
             onTap: () async {
               final url = Uri.parse('https://github.com/OpenListTeam/OpenList');
@@ -243,9 +233,9 @@ class SettingsScreen extends StatelessWidget {
 
   String _getLanguageName() {
     final controller = Get.find<LanguageController>();
-    if (controller.locale == null) return 'System default';
-    if (controller.locale?.languageCode == 'zh') return '简体中文';
-    return 'English';
+    if (controller.locale == null) return S.current.systemDefault;
+    if (controller.locale?.languageCode == 'zh') return S.current.simplifiedChinese;
+    return S.current.english;
   }
 
   void _showThemeSelector(BuildContext context) {
@@ -261,7 +251,7 @@ class SettingsScreen extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.brightness_auto),
-              title: const Text('System Default'),
+              title: Text(S.current.themeSystem),
               trailing: currentMode == ThemeMode.system
                   ? const Icon(Icons.check)
                   : null,
@@ -272,7 +262,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.light_mode),
-              title: const Text('Light'),
+              title: Text(S.current.themeLight),
               trailing: currentMode == ThemeMode.light
                   ? const Icon(Icons.check)
                   : null,
@@ -283,7 +273,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.dark_mode),
-              title: const Text('Dark'),
+              title: Text(S.current.themeDark),
               trailing: currentMode == ThemeMode.dark
                   ? const Icon(Icons.check)
                   : null,
@@ -309,7 +299,7 @@ class SettingsScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('System Default'),
+              title: Text(S.current.systemDefault),
               onTap: () async {
                 await controller.changeLanguage(
                   LanguageOption(name: 'followSystem', code: '', locale: null),
@@ -318,7 +308,7 @@ class SettingsScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              title: const Text('English'),
+              title: Text(S.current.english),
               onTap: () async {
                 await controller.changeLanguage(
                   LanguageOption(name: 'english', code: 'en', locale: const Locale('en')),
@@ -327,7 +317,7 @@ class SettingsScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              title: const Text('简体中文'),
+              title: Text(S.current.simplifiedChinese),
               onTap: () async {
                 await controller.changeLanguage(
                   LanguageOption(name: 'simplifiedChinese', code: 'zh', locale: const Locale('zh')),

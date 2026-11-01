@@ -796,5 +796,81 @@
   "adminPasswordSetupMessage": "The local core created the admin account with a random password. Set your own password to sign in from the web interface or other devices.",
   "adminPasswordHint": "Admin password",
   "adminPasswordUpdated": "Admin password updated",
-  "later": "Later"
+  "later": "Later",
+  "home": "Home",
+  "quickAccess": "Quick Access",
+  "recentFiles": "Recent Files",
+  "favorites": "Favorites",
+  "photos": "Photos",
+  "videos": "Videos",
+  "myStorages": "My Storages",
+  "noStoragesConfigured": "No storages configured",
+  "noStoragesDesc": "Add a storage to get started with OpenList",
+  "seeAll": "See All",
+  "account": "Account",
+  "administrator": "Administrator",
+  "user": "User",
+  "signOut": "Sign Out",
+  "signOutConfirmTitle": "Sign Out",
+  "signOutConfirmMessage": "Are you sure you want to sign out?",
+  "server": "Server",
+  "serverDetails": "Server Details",
+  "serverDetailsDesc": "View runtime info and connection details",
+  "storage": "Storage",
+  "manageStorages": "Manage Storages",
+  "manageStoragesDesc": "Add, edit, or remove storage locations",
+  "appearance": "Appearance",
+  "theme": "Theme",
+  "themeSystem": "System Default",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "administration": "Administration",
+  "userManagement": "User Management",
+  "userManagementDesc": "Manage users and permissions",
+  "storageManagement": "Storage Management",
+  "storageManagementDesc": "Configure storage backends",
+  "tlsCertificates": "TLS Certificates",
+  "tlsCertificatesDesc": "Manage SSL/TLS certificates",
+  "changeAdminPassword": "Change Admin Password",
+  "changeAdminPasswordDesc": "Update server admin password",
+  "cache": "Cache",
+  "clearCache": "Clear Cache",
+  "clearCacheDesc": "Free up storage space",
+  "aboutOpenList": "About OpenList",
+  "version": "Version",
+  "githubRepo": "GitHub Repository",
+  "stopServerTitle": "Stop Server",
+  "stopServerMessage": "Are you sure you want to stop the server?",
+  "modeChangedRestart": "Mode changed. Restart server to apply.",
+  "modeChangeFailed": "Failed to change mode: {error}",
+  "@modeChangeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "networkMode": "Network Mode",
+  "selectNetworkMode": "Select Network Mode",
+  "deleteStorageTitle": "Delete Storage",
+  "deleteStorageMessage": "Delete storage \"{name}\"?",
+  "@deleteStorageMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingStorages": "Loading...",
+  "loadStoragesFailed": "Failed to load storages",
+  "noStorages": "No storages",
+  "storageActions": "Storage Actions",
+  "browseFiles": "Browse Files",
+  "editStorage": "Edit Storage",
+  "enableStorage": "Enable Storage",
+  "disableStorage": "Disable Storage",
+  "deleteStorage": "Delete Storage",
+  "driver": "Driver",
+  "remark": "Remark",
+  "systemDefault": "System Default"
 }

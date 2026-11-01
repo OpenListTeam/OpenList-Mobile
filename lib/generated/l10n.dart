@@ -3213,6 +3213,396 @@ class S {
   String get later {
     return Intl.message('稍后', name: 'later', desc: '', args: []);
   }
+
+  /// `主页`
+  String get home {
+    return Intl.message('主页', name: 'home', desc: '', args: []);
+  }
+
+  /// `快速访问`
+  String get quickAccess {
+    return Intl.message('快速访问', name: 'quickAccess', desc: '', args: []);
+  }
+
+  /// `最近文件`
+  String get recentFiles {
+    return Intl.message('最近文件', name: 'recentFiles', desc: '', args: []);
+  }
+
+  /// `收藏`
+  String get favorites {
+    return Intl.message('收藏', name: 'favorites', desc: '', args: []);
+  }
+
+  /// `照片`
+  String get photos {
+    return Intl.message('照片', name: 'photos', desc: '', args: []);
+  }
+
+  /// `视频`
+  String get videos {
+    return Intl.message('视频', name: 'videos', desc: '', args: []);
+  }
+
+  /// `我的存储`
+  String get myStorages {
+    return Intl.message('我的存储', name: 'myStorages', desc: '', args: []);
+  }
+
+  /// `未配置存储`
+  String get noStoragesConfigured {
+    return Intl.message(
+      '未配置存储',
+      name: 'noStoragesConfigured',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `添加存储以开始使用 OpenList`
+  String get noStoragesDesc {
+    return Intl.message(
+      '添加存储以开始使用 OpenList',
+      name: 'noStoragesDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `查看全部`
+  String get seeAll {
+    return Intl.message('查看全部', name: 'seeAll', desc: '', args: []);
+  }
+
+  /// `账户`
+  String get account {
+    return Intl.message('账户', name: 'account', desc: '', args: []);
+  }
+
+  /// `管理员`
+  String get administrator {
+    return Intl.message('管理员', name: 'administrator', desc: '', args: []);
+  }
+
+  /// `用户`
+  String get user {
+    return Intl.message('用户', name: 'user', desc: '', args: []);
+  }
+
+  /// `退出登录`
+  String get signOut {
+    return Intl.message('退出登录', name: 'signOut', desc: '', args: []);
+  }
+
+  /// `退出登录`
+  String get signOutConfirmTitle {
+    return Intl.message(
+      '退出登录',
+      name: 'signOutConfirmTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确定要退出登录吗？`
+  String get signOutConfirmMessage {
+    return Intl.message(
+      '确定要退出登录吗？',
+      name: 'signOutConfirmMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `服务器`
+  String get server {
+    return Intl.message('服务器', name: 'server', desc: '', args: []);
+  }
+
+  /// `服务器详情`
+  String get serverDetails {
+    return Intl.message('服务器详情', name: 'serverDetails', desc: '', args: []);
+  }
+
+  /// `查看运行信息和连接详情`
+  String get serverDetailsDesc {
+    return Intl.message(
+      '查看运行信息和连接详情',
+      name: 'serverDetailsDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `存储`
+  String get storage {
+    return Intl.message('存储', name: 'storage', desc: '', args: []);
+  }
+
+  /// `管理存储`
+  String get manageStorages {
+    return Intl.message('管理存储', name: 'manageStorages', desc: '', args: []);
+  }
+
+  /// `添加、编辑或删除存储位置`
+  String get manageStoragesDesc {
+    return Intl.message(
+      '添加、编辑或删除存储位置',
+      name: 'manageStoragesDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `外观`
+  String get appearance {
+    return Intl.message('外观', name: 'appearance', desc: '', args: []);
+  }
+
+  /// `主题`
+  String get theme {
+    return Intl.message('主题', name: 'theme', desc: '', args: []);
+  }
+
+  /// `跟随系统`
+  String get themeSystem {
+    return Intl.message('跟随系统', name: 'themeSystem', desc: '', args: []);
+  }
+
+  /// `浅色`
+  String get themeLight {
+    return Intl.message('浅色', name: 'themeLight', desc: '', args: []);
+  }
+
+  /// `深色`
+  String get themeDark {
+    return Intl.message('深色', name: 'themeDark', desc: '', args: []);
+  }
+
+  /// `管理`
+  String get administration {
+    return Intl.message('管理', name: 'administration', desc: '', args: []);
+  }
+
+  /// `用户管理`
+  String get userManagement {
+    return Intl.message('用户管理', name: 'userManagement', desc: '', args: []);
+  }
+
+  /// `管理用户和权限`
+  String get userManagementDesc {
+    return Intl.message(
+      '管理用户和权限',
+      name: 'userManagementDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `存储管理`
+  String get storageManagement {
+    return Intl.message('存储管理', name: 'storageManagement', desc: '', args: []);
+  }
+
+  /// `配置存储后端`
+  String get storageManagementDesc {
+    return Intl.message(
+      '配置存储后端',
+      name: 'storageManagementDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `TLS 证书`
+  String get tlsCertificates {
+    return Intl.message('TLS 证书', name: 'tlsCertificates', desc: '', args: []);
+  }
+
+  /// `管理 SSL/TLS 证书`
+  String get tlsCertificatesDesc {
+    return Intl.message(
+      '管理 SSL/TLS 证书',
+      name: 'tlsCertificatesDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `更改管理员密码`
+  String get changeAdminPassword {
+    return Intl.message(
+      '更改管理员密码',
+      name: 'changeAdminPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `更新服务器管理员密码`
+  String get changeAdminPasswordDesc {
+    return Intl.message(
+      '更新服务器管理员密码',
+      name: 'changeAdminPasswordDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `缓存`
+  String get cache {
+    return Intl.message('缓存', name: 'cache', desc: '', args: []);
+  }
+
+  /// `清除缓存`
+  String get clearCache {
+    return Intl.message('清除缓存', name: 'clearCache', desc: '', args: []);
+  }
+
+  /// `释放存储空间`
+  String get clearCacheDesc {
+    return Intl.message('释放存储空间', name: 'clearCacheDesc', desc: '', args: []);
+  }
+
+  /// `关于 OpenList`
+  String get aboutOpenList {
+    return Intl.message(
+      '关于 OpenList',
+      name: 'aboutOpenList',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `版本`
+  String get version {
+    return Intl.message('版本', name: 'version', desc: '', args: []);
+  }
+
+  /// `GitHub 仓库`
+  String get githubRepo {
+    return Intl.message('GitHub 仓库', name: 'githubRepo', desc: '', args: []);
+  }
+
+  /// `停止服务器`
+  String get stopServerTitle {
+    return Intl.message('停止服务器', name: 'stopServerTitle', desc: '', args: []);
+  }
+
+  /// `确定要停止服务器吗？`
+  String get stopServerMessage {
+    return Intl.message(
+      '确定要停止服务器吗？',
+      name: 'stopServerMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `模式已更改。重启服务器以应用。`
+  String get modeChangedRestart {
+    return Intl.message(
+      '模式已更改。重启服务器以应用。',
+      name: 'modeChangedRestart',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `更改模式失败：{error}`
+  String modeChangeFailed(String error) {
+    return Intl.message(
+      '更改模式失败：$error',
+      name: 'modeChangeFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `网络模式`
+  String get networkMode {
+    return Intl.message('网络模式', name: 'networkMode', desc: '', args: []);
+  }
+
+  /// `选择网络模式`
+  String get selectNetworkMode {
+    return Intl.message(
+      '选择网络模式',
+      name: 'selectNetworkMode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `删除存储`
+  String get deleteStorageTitle {
+    return Intl.message('删除存储', name: 'deleteStorageTitle', desc: '', args: []);
+  }
+
+  /// `删除存储 "{name}"？`
+  String deleteStorageMessage(String name) {
+    return Intl.message(
+      '删除存储 "$name"？',
+      name: 'deleteStorageMessage',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `加载中...`
+  String get loadingStorages {
+    return Intl.message('加载中...', name: 'loadingStorages', desc: '', args: []);
+  }
+
+  /// `加载存储失败`
+  String get loadStoragesFailed {
+    return Intl.message(
+      '加载存储失败',
+      name: 'loadStoragesFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `没有存储`
+  String get noStorages {
+    return Intl.message('没有存储', name: 'noStorages', desc: '', args: []);
+  }
+
+  /// `存储操作`
+  String get storageActions {
+    return Intl.message('存储操作', name: 'storageActions', desc: '', args: []);
+  }
+
+  /// `浏览文件`
+  String get browseFiles {
+    return Intl.message('浏览文件', name: 'browseFiles', desc: '', args: []);
+  }
+
+  /// `启用存储`
+  String get enableStorage {
+    return Intl.message('启用存储', name: 'enableStorage', desc: '', args: []);
+  }
+
+  /// `禁用存储`
+  String get disableStorage {
+    return Intl.message('禁用存储', name: 'disableStorage', desc: '', args: []);
+  }
+
+  /// `删除存储`
+  String get deleteStorage {
+    return Intl.message('删除存储', name: 'deleteStorage', desc: '', args: []);
+  }
+
+  /// `备注`
+  String get remark {
+    return Intl.message('备注', name: 'remark', desc: '', args: []);
+  }
+
+  /// `系统默认`
+  String get systemDefault {
+    return Intl.message('系统默认', name: 'systemDefault', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/storage_edit_page.dart';
 import 'package:openlist_mobile/widgets/cards.dart';
 
@@ -49,7 +50,7 @@ class _StoragesScreenState extends State<StoragesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Storages'),
+        title: Text(S.current.storages),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
