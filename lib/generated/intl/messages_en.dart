@@ -41,96 +41,101 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m8(name) => "Delete storage ${name}?";
 
-  static String m9(error) => "Failed to create OpenList directory: ${error}";
+  static String m9(name) => "Delete user ${name}?";
 
-  static String m10(path) => "Create OpenList download directory: ${path}";
+  static String m10(error) => "Failed to create OpenList directory: ${error}";
 
-  static String m11(count) => "Currently ${count} files are downloading";
+  static String m11(path) => "Create OpenList download directory: ${path}";
 
-  static String m12(error) => "Failed to delete file: ${error}";
+  static String m12(count) => "Currently ${count} files are downloading";
 
-  static String m13(url) => "Download cancelled: ${url}";
+  static String m13(error) => "Failed to delete file: ${error}";
 
-  static String m14(filename) => "Download complete: ${filename}";
+  static String m14(url) => "Download cancelled: ${url}";
 
   static String m15(filename) => "Download complete: ${filename}";
 
-  static String m16(filename) => "${filename} download completed";
+  static String m16(filename) => "Download complete: ${filename}";
 
-  static String m17(filename) => "Download failed: ${filename}";
+  static String m17(filename) => "${filename} download completed";
 
   static String m18(filename) => "Download failed: ${filename}";
 
-  static String m19(count) => "Download (${count})";
+  static String m19(filename) => "Download failed: ${filename}";
 
-  static String m20(progress) => "Download progress: ${progress}%";
+  static String m20(count) => "Download (${count})";
 
-  static String m21(current, total) => "Downloading file ${current}/${total}";
+  static String m21(progress) => "Download progress: ${progress}%";
 
-  static String m22(filename) => "File deleted: ${filename}";
+  static String m22(current, total) => "Downloading file ${current}/${total}";
 
-  static String m23(index) => "File ${index} download failed";
+  static String m23(filename) => "File deleted: ${filename}";
 
-  static String m24(size) => "Size: ${size}";
+  static String m24(index) => "File ${index} download failed";
 
-  static String m25(time) => "Time: ${time}";
+  static String m25(size) => "Size: ${size}";
 
-  static String m26(error) => "Failed to get download directory: ${error}";
+  static String m26(time) => "Time: ${time}";
 
-  static String m27(error) => "Failed to get download file list: ${error}";
+  static String m27(error) => "Failed to get download directory: ${error}";
 
-  static String m28(line, error) =>
+  static String m28(error) => "Failed to get download file list: ${error}";
+
+  static String m29(line, error) =>
       "Invalid JSON format at line ${line}: ${error}";
 
-  static String m29(error) => "Load failed: ${error}";
+  static String m30(error) => "Load failed: ${error}";
 
-  static String m30(count) =>
+  static String m31(count) =>
       "${count} files completed, click to jump to download manager";
 
-  static String m31(payload) => "Notification clicked: ${payload}";
+  static String m32(payload) => "Notification clicked: ${payload}";
 
-  static String m32(error) =>
+  static String m33(error) =>
       "Failed to initialize notification manager: ${error}";
 
-  static String m33(error) => "Failed to open download directory: ${error}";
+  static String m34(error) => "Failed to open download directory: ${error}";
 
-  static String m34(error) => "Open file exception: ${error}";
+  static String m35(error) => "Open file exception: ${error}";
 
-  static String m35(error) => "Failed to open file: ${error}";
+  static String m36(error) => "Failed to open file: ${error}";
 
-  static String m36(error) => "Failed to open file manager: ${error}";
+  static String m37(error) => "Failed to open file manager: ${error}";
 
-  static String m37(type, message) => "Open file result: ${type} - ${message}";
+  static String m38(type, message) => "Open file result: ${type} - ${message}";
 
-  static String m38(path) => "OpenList download directory: ${path}";
+  static String m39(path) => "OpenList download directory: ${path}";
 
-  static String m39(error) => "Failed to parse filename: ${error}";
+  static String m40(error) => "Failed to parse filename: ${error}";
 
-  static String m40(error) => "Restore backup failed: ${error}";
+  static String m41(error) => "Restore backup failed: ${error}";
 
-  static String m41(error) => "Save failed: ${error}";
-
-  static String m42(error) =>
-      "Failed to show download complete notification: ${error}";
+  static String m42(error) => "Save failed: ${error}";
 
   static String m43(error) =>
-      "Failed to show download progress notification: ${error}";
+      "Failed to show download complete notification: ${error}";
 
   static String m44(error) =>
-      "Failed to show single file complete notification: ${error}";
+      "Failed to show download progress notification: ${error}";
 
-  static String m45(filename) => "Start download: ${filename}";
+  static String m45(error) =>
+      "Failed to show single file complete notification: ${error}";
 
   static String m46(filename) => "Start download: ${filename}";
 
-  static String m47(path) => "Trying to open file: ${path}";
+  static String m47(filename) => "Start download: ${filename}";
 
-  static String m48(name) => "Uploading ${name}";
+  static String m48(path) => "Trying to open file: ${path}";
+
+  static String m49(name) => "Uploading ${name}";
+
+  static String m50(count) => "${count} uploads in progress";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about": MessageLookupByLibrary.simpleMessage("About"),
     "addStorage": MessageLookupByLibrary.simpleMessage("Add storage"),
+    "addUser": MessageLookupByLibrary.simpleMessage("Add user"),
     "addresses": MessageLookupByLibrary.simpleMessage("Addresses"),
     "adminOnly": MessageLookupByLibrary.simpleMessage(
       "Admin permission required",
@@ -173,6 +178,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "backupRestored": MessageLookupByLibrary.simpleMessage(
       "Backup restored successfully",
     ),
+    "basePath": MessageLookupByLibrary.simpleMessage("Base path"),
     "batchDownloadComplete": MessageLookupByLibrary.simpleMessage(
       "Batch download complete",
     ),
@@ -218,6 +224,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "cannotInstallApkNeedPermission": MessageLookupByLibrary.simpleMessage(
       "Cannot install APK file, you may need to enable \"Install unknown apps\" in settings",
     ),
+    "certFile": MessageLookupByLibrary.simpleMessage("Certificate (PEM)"),
     "checkAdmin2fa": MessageLookupByLibrary.simpleMessage(
       "Admin two-factor authentication",
     ),
@@ -245,6 +252,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "checkS3Tls": MessageLookupByLibrary.simpleMessage("S3 server uses TLS"),
     "checkTls": MessageLookupByLibrary.simpleMessage("Valid TLS certificate"),
+    "chooseFile": MessageLookupByLibrary.simpleMessage("Choose file"),
     "clear": MessageLookupByLibrary.simpleMessage("Clear"),
     "clearAll": MessageLookupByLibrary.simpleMessage("Clear All"),
     "clearDownloadDirectoryFailed": m3,
@@ -274,6 +282,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmDeleteItems": m6,
     "confirmDeleteRecord": m7,
     "confirmDeleteStorage": m8,
+    "confirmDeleteUser": m9,
     "confirmDownload": MessageLookupByLibrary.simpleMessage("Confirm Download"),
     "confirmDownloadMessage": MessageLookupByLibrary.simpleMessage(
       "Do you want to download this file?",
@@ -295,9 +304,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "copyLink": MessageLookupByLibrary.simpleMessage("Copy link"),
     "copyTo": MessageLookupByLibrary.simpleMessage("Copy to"),
     "cpuTime": MessageLookupByLibrary.simpleMessage("CPU time"),
-    "createOpenListDirectoryFailed": m9,
-    "createOpenListDownloadDirectory": m10,
-    "currentDownloadingFiles": m11,
+    "createOpenListDirectoryFailed": m10,
+    "createOpenListDownloadDirectory": m11,
+    "currentDownloadingFiles": m12,
     "currentIsLatestVersion": MessageLookupByLibrary.simpleMessage(
       "Current is latest version",
     ),
@@ -312,7 +321,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
     "deleteFailed": MessageLookupByLibrary.simpleMessage("Delete failed"),
     "deleteFile": MessageLookupByLibrary.simpleMessage("Delete file"),
-    "deleteFileFailedLog": m12,
+    "deleteFileFailedLog": m13,
+    "deletePolicy": MessageLookupByLibrary.simpleMessage("Delete policy"),
     "deleteRecord": MessageLookupByLibrary.simpleMessage("Delete record"),
     "description": MessageLookupByLibrary.simpleMessage("Description:"),
     "desktopShortcut": MessageLookupByLibrary.simpleMessage("Desktop shortcut"),
@@ -329,22 +339,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "disable": MessageLookupByLibrary.simpleMessage("Disable"),
     "download": MessageLookupByLibrary.simpleMessage("download"),
     "downloadApk": MessageLookupByLibrary.simpleMessage("Download APK"),
-    "downloadCancelled": m13,
+    "downloadCancelled": m14,
     "downloadCancelledStatus": MessageLookupByLibrary.simpleMessage(
       "Download cancelled",
     ),
     "downloadCancelledText": MessageLookupByLibrary.simpleMessage(
       "Download cancelled",
     ),
-    "downloadComplete": m14,
+    "downloadComplete": m15,
     "downloadCompleteChannel": MessageLookupByLibrary.simpleMessage(
       "Download Complete",
     ),
     "downloadCompleteChannelDesc": MessageLookupByLibrary.simpleMessage(
       "File download complete notification",
     ),
-    "downloadCompleteFile": m15,
-    "downloadCompleteNotificationTitle": m16,
+    "downloadCompleteFile": m16,
+    "downloadCompleteNotificationTitle": m17,
     "downloadCompleteTitle": MessageLookupByLibrary.simpleMessage(
       "Download Complete",
     ),
@@ -361,8 +371,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Download directory path unknown",
     ),
     "downloadFailed": MessageLookupByLibrary.simpleMessage("Download failed"),
-    "downloadFailedFile": m17,
-    "downloadFailedWithError": m18,
+    "downloadFailedFile": m18,
+    "downloadFailedWithError": m19,
     "downloadFunctionTest": MessageLookupByLibrary.simpleMessage(
       "Download Function Test",
     ),
@@ -370,8 +380,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "• Files will be downloaded to system download directory\\n• Download progress will show notifications\\n• You can choose to open file after download completes\\n• If filename exists, a number will be added automatically\\n• Please check download manager via bottom navigation bar to view files",
     ),
     "downloadManager": MessageLookupByLibrary.simpleMessage("Download"),
-    "downloadManagerWithCount": m19,
-    "downloadProgress": m20,
+    "downloadManagerWithCount": m20,
+    "downloadProgress": m21,
     "downloadProgressChannel": MessageLookupByLibrary.simpleMessage(
       "Download Progress",
     ),
@@ -385,16 +395,20 @@ class MessageLookup extends MessageLookupByLibrary {
       "Download this file？",
     ),
     "downloading": MessageLookupByLibrary.simpleMessage("Downloading"),
-    "downloadingFileProgress": m21,
+    "downloadingFileProgress": m22,
     "downloadingImage": MessageLookupByLibrary.simpleMessage(
       "Downloading image...",
     ),
     "driver": MessageLookupByLibrary.simpleMessage("Driver"),
+    "driverNoUpload": MessageLookupByLibrary.simpleMessage(
+      "This driver does not support uploads",
+    ),
     "edit": MessageLookupByLibrary.simpleMessage("Edit"),
     "editOpenListConfig": MessageLookupByLibrary.simpleMessage(
       "Edit OpenList Config",
     ),
     "editStorage": MessageLookupByLibrary.simpleMessage("Edit storage"),
+    "editUser": MessageLookupByLibrary.simpleMessage("Edit user"),
     "emptyFolder": MessageLookupByLibrary.simpleMessage("This folder is empty"),
     "enable": MessageLookupByLibrary.simpleMessage("Enable"),
     "enableWebBrowser": MessageLookupByLibrary.simpleMessage(
@@ -407,8 +421,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "exposureMode": MessageLookupByLibrary.simpleMessage("Access mode"),
     "failed": MessageLookupByLibrary.simpleMessage("Failed"),
     "fileDeleted": MessageLookupByLibrary.simpleMessage("File deleted"),
-    "fileDeletedLog": m22,
-    "fileDownloadFailed": m23,
+    "fileDeletedLog": m23,
+    "fileDownloadFailed": m24,
     "fileInfo": MessageLookupByLibrary.simpleMessage("File info"),
     "fileLocation": MessageLookupByLibrary.simpleMessage("File Location"),
     "fileLocationTip": MessageLookupByLibrary.simpleMessage(
@@ -429,17 +443,18 @@ class MessageLookup extends MessageLookupByLibrary {
       "File permission denied. Please check app permissions.",
     ),
     "fileSavedTo": MessageLookupByLibrary.simpleMessage("File saved to:"),
-    "fileSize": m24,
-    "fileTime": m25,
+    "fileSize": m25,
+    "fileTime": m26,
     "findApkInDownloadFolder": MessageLookupByLibrary.simpleMessage(
       "Please find APK file in download folder to install",
     ),
     "folderName": MessageLookupByLibrary.simpleMessage("Folder name"),
     "folderPassword": MessageLookupByLibrary.simpleMessage("Folder password"),
     "followSystem": MessageLookupByLibrary.simpleMessage("Follow System"),
+    "forceHttps": MessageLookupByLibrary.simpleMessage("Force HTTPS"),
     "general": MessageLookupByLibrary.simpleMessage("General"),
-    "getDownloadDirectoryFailed": m26,
-    "getDownloadFileListFailed": m27,
+    "getDownloadDirectoryFailed": m27,
+    "getDownloadFileListFailed": m28,
     "getDownloadPathFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to get",
     ),
@@ -461,6 +476,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "grantStoragePermissionDesc": MessageLookupByLibrary.simpleMessage(
       "Mounting local storage is a must, otherwise no permission to read and write files",
     ),
+    "groupFtp": MessageLookupByLibrary.simpleMessage("FTP"),
+    "groupGlobal": MessageLookupByLibrary.simpleMessage("Global"),
+    "groupIndex": MessageLookupByLibrary.simpleMessage("Index"),
+    "groupLdap": MessageLookupByLibrary.simpleMessage("LDAP"),
+    "groupMedia": MessageLookupByLibrary.simpleMessage("Media"),
+    "groupOfflineDownload": MessageLookupByLibrary.simpleMessage(
+      "Offline download",
+    ),
+    "groupPreview": MessageLookupByLibrary.simpleMessage("Preview"),
+    "groupS3": MessageLookupByLibrary.simpleMessage("S3"),
+    "groupSite": MessageLookupByLibrary.simpleMessage("Site"),
+    "groupSso": MessageLookupByLibrary.simpleMessage("SSO"),
+    "groupStyle": MessageLookupByLibrary.simpleMessage("Style"),
+    "groupTraffic": MessageLookupByLibrary.simpleMessage("Traffic"),
+    "groupTranscode": MessageLookupByLibrary.simpleMessage("Transcode"),
+    "httpsPort": MessageLookupByLibrary.simpleMessage("HTTPS port"),
     "imageDownloadSuccess": MessageLookupByLibrary.simpleMessage(
       "Image download success",
     ),
@@ -472,13 +503,20 @@ class MessageLookup extends MessageLookupByLibrary {
       "Initializing notification manager",
     ),
     "installNow": MessageLookupByLibrary.simpleMessage("Install Now"),
-    "invalidJsonFormat": m28,
+    "invalidJsonFormat": m29,
+    "invalidPem": MessageLookupByLibrary.simpleMessage(
+      "The file is not a PEM certificate or private key",
+    ),
+    "invalidPort": MessageLookupByLibrary.simpleMessage(
+      "Enter a port from 1 to 65535, or -1 to disable",
+    ),
     "iosBackgroundNote": MessageLookupByLibrary.simpleMessage(
       "iOS only keeps the server running while the app is in the foreground or briefly after it leaves.",
     ),
     "jumpToOtherApp": MessageLookupByLibrary.simpleMessage(
       "Jump to other app？",
     ),
+    "keyFile": MessageLookupByLibrary.simpleMessage("Private key (PEM)"),
     "language": MessageLookupByLibrary.simpleMessage("Language"),
     "languageSettings": MessageLookupByLibrary.simpleMessage(
       "Language Settings",
@@ -491,7 +529,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "loadDownloadFilesFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to load download files",
     ),
-    "loadFailed": m29,
+    "loadFailed": m30,
     "localServer": MessageLookupByLibrary.simpleMessage("Local server"),
     "login": MessageLookupByLibrary.simpleMessage("Sign in"),
     "logout": MessageLookupByLibrary.simpleMessage("Sign out"),
@@ -517,7 +555,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "moreOptions": MessageLookupByLibrary.simpleMessage("More options"),
     "moveTo": MessageLookupByLibrary.simpleMessage("Move to"),
-    "multipleFilesCompleted": m30,
+    "multipleFilesCompleted": m31,
     "nativeFiles": MessageLookupByLibrary.simpleMessage("Files"),
     "needInstallPermission": MessageLookupByLibrary.simpleMessage(
       "Install Permission Required",
@@ -542,8 +580,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "noBackupFound": MessageLookupByLibrary.simpleMessage(
       "No backup file found",
     ),
+    "noChanges": MessageLookupByLibrary.simpleMessage("No changes"),
     "noCompletedDownloads": MessageLookupByLibrary.simpleMessage(
       "No completed downloads",
+    ),
+    "noOfflineTools": MessageLookupByLibrary.simpleMessage(
+      "No offline download tool is configured on the server",
     ),
     "noPermissionToInstallApk": MessageLookupByLibrary.simpleMessage(
       "No permission to install APK file, please enable install permission in settings",
@@ -554,19 +596,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "noPermissionToOpenFile": MessageLookupByLibrary.simpleMessage(
       "No permission to open this file",
     ),
+    "noSearchResults": MessageLookupByLibrary.simpleMessage("No results"),
     "noTasks": MessageLookupByLibrary.simpleMessage("No tasks"),
-    "notificationClicked": m31,
-    "notificationManagerInitFailed": m32,
+    "noUploads": MessageLookupByLibrary.simpleMessage("No uploads"),
+    "notConfigured": MessageLookupByLibrary.simpleMessage("Not configured"),
+    "notificationClicked": m32,
+    "notificationManagerInitFailed": m33,
     "notificationManagerInitialized": MessageLookupByLibrary.simpleMessage(
       "Notification manager initialized successfully",
     ),
     "notificationsDisabled": MessageLookupByLibrary.simpleMessage(
       "Notifications are off, so the server status notification is hidden",
     ),
+    "offlineAdded": MessageLookupByLibrary.simpleMessage(
+      "Offline download task added",
+    ),
+    "offlineDownload": MessageLookupByLibrary.simpleMessage("Offline download"),
+    "offlineTool": MessageLookupByLibrary.simpleMessage("Tool"),
+    "offlineUrls": MessageLookupByLibrary.simpleMessage("URLs, one per line"),
     "ok": MessageLookupByLibrary.simpleMessage("OK"),
     "open": MessageLookupByLibrary.simpleMessage("Open"),
     "openDirectory": MessageLookupByLibrary.simpleMessage("Open Directory"),
-    "openDownloadDirectoryFailed": m33,
+    "openDownloadDirectoryFailed": m34,
     "openDownloadManager": MessageLookupByLibrary.simpleMessage(
       "Open Download Manager",
     ),
@@ -574,14 +625,14 @@ class MessageLookup extends MessageLookupByLibrary {
       "Do you want to open download test page?",
     ),
     "openFile": MessageLookupByLibrary.simpleMessage("Open file"),
-    "openFileException": m34,
-    "openFileFailed": m35,
+    "openFileException": m35,
+    "openFileFailed": m36,
     "openFileManager": MessageLookupByLibrary.simpleMessage(
       "Open File Manager",
     ),
-    "openFileManagerFailed": m36,
-    "openFileResult": m37,
-    "openListDownloadDirectory": m38,
+    "openFileManagerFailed": m37,
+    "openFileResult": m38,
+    "openListDownloadDirectory": m39,
     "openSourceLicenses": MessageLookupByLibrary.simpleMessage(
       "Open Source Licenses",
     ),
@@ -593,9 +644,50 @@ class MessageLookup extends MessageLookupByLibrary {
     "operationDone": MessageLookupByLibrary.simpleMessage("Done"),
     "operationFailed": MessageLookupByLibrary.simpleMessage("Operation failed"),
     "otpCode": MessageLookupByLibrary.simpleMessage("2FA code (optional)"),
-    "parseFilenameFailed": m39,
+    "parseFilenameFailed": m40,
     "password": MessageLookupByLibrary.simpleMessage("Password"),
+    "passwordKeepHint": MessageLookupByLibrary.simpleMessage(
+      "Leave empty to keep the current password",
+    ),
     "pending": MessageLookupByLibrary.simpleMessage("Pending"),
+    "permAccessWithoutPassword": MessageLookupByLibrary.simpleMessage(
+      "Access without password",
+    ),
+    "permCopy": MessageLookupByLibrary.simpleMessage("Copy"),
+    "permCustomShareId": MessageLookupByLibrary.simpleMessage(
+      "Custom share ID",
+    ),
+    "permDecompress": MessageLookupByLibrary.simpleMessage(
+      "Decompress archives",
+    ),
+    "permFtpAccess": MessageLookupByLibrary.simpleMessage("FTP/SFTP read"),
+    "permFtpManage": MessageLookupByLibrary.simpleMessage("FTP/SFTP write"),
+    "permMove": MessageLookupByLibrary.simpleMessage("Move"),
+    "permOfflineDownload": MessageLookupByLibrary.simpleMessage(
+      "Add offline downloads",
+    ),
+    "permReadArchives": MessageLookupByLibrary.simpleMessage("Read archives"),
+    "permRemove": MessageLookupByLibrary.simpleMessage("Delete"),
+    "permRename": MessageLookupByLibrary.simpleMessage("Rename"),
+    "permSeeHides": MessageLookupByLibrary.simpleMessage("See hidden files"),
+    "permShare": MessageLookupByLibrary.simpleMessage("Create shares"),
+    "permWebdavManage": MessageLookupByLibrary.simpleMessage("WebDAV write"),
+    "permWebdavRead": MessageLookupByLibrary.simpleMessage("WebDAV read"),
+    "permWrite": MessageLookupByLibrary.simpleMessage(
+      "Create folders and upload",
+    ),
+    "permissions": MessageLookupByLibrary.simpleMessage("Permissions"),
+    "policyDeleteAlways": MessageLookupByLibrary.simpleMessage("Always delete"),
+    "policyDeleteNever": MessageLookupByLibrary.simpleMessage("Never delete"),
+    "policyDeleteOnUploadFailed": MessageLookupByLibrary.simpleMessage(
+      "Delete after upload fails",
+    ),
+    "policyDeleteOnUploadSucceed": MessageLookupByLibrary.simpleMessage(
+      "Delete after upload succeeds",
+    ),
+    "policyUploadDownloadStream": MessageLookupByLibrary.simpleMessage(
+      "Upload while downloading",
+    ),
     "preparingDownload": MessageLookupByLibrary.simpleMessage(
       "Preparing download...",
     ),
@@ -624,20 +716,30 @@ class MessageLookup extends MessageLookupByLibrary {
       "Allow running in background",
     ),
     "requiredField": MessageLookupByLibrary.simpleMessage("Required"),
+    "reset2fa": MessageLookupByLibrary.simpleMessage("Reset 2FA"),
     "restartServer": MessageLookupByLibrary.simpleMessage("Restart server"),
     "restartingService": MessageLookupByLibrary.simpleMessage(
       "Restarting OpenList service...",
     ),
     "restoreBackup": MessageLookupByLibrary.simpleMessage("Restore Backup"),
-    "restoreBackupFailed": m40,
+    "restoreBackupFailed": m41,
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
+    "role": MessageLookupByLibrary.simpleMessage("Role"),
+    "roleAdmin": MessageLookupByLibrary.simpleMessage("Admin"),
+    "roleGeneral": MessageLookupByLibrary.simpleMessage("General"),
+    "roleGuest": MessageLookupByLibrary.simpleMessage("Guest"),
     "running": MessageLookupByLibrary.simpleMessage("Running"),
     "runtimeStatus": MessageLookupByLibrary.simpleMessage("Runtime"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "saveAndRestart": MessageLookupByLibrary.simpleMessage("Save and Restart"),
-    "saveFailed": m41,
+    "saveFailed": m42,
     "saveOnly": MessageLookupByLibrary.simpleMessage("Save Only"),
     "saved": MessageLookupByLibrary.simpleMessage("Saved"),
+    "search": MessageLookupByLibrary.simpleMessage("Search"),
+    "searchAll": MessageLookupByLibrary.simpleMessage("All"),
+    "searchFiles": MessageLookupByLibrary.simpleMessage("Files"),
+    "searchFolders": MessageLookupByLibrary.simpleMessage("Folders"),
+    "searchHint": MessageLookupByLibrary.simpleMessage("Keywords"),
     "securityChecks": MessageLookupByLibrary.simpleMessage("Security checks"),
     "selectAppToOpen": MessageLookupByLibrary.simpleMessage(
       "Select app to open",
@@ -677,21 +779,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "shareLinkDesc": MessageLookupByLibrary.simpleMessage(
       "Share download link",
     ),
-    "showDownloadCompleteNotificationFailed": m42,
-    "showDownloadProgressNotificationFailed": m43,
+    "showDownloadCompleteNotificationFailed": m43,
+    "showDownloadProgressNotificationFailed": m44,
     "showInFileManager": MessageLookupByLibrary.simpleMessage(
       "Show in file manager",
     ),
-    "showSingleFileCompleteNotificationFailed": m44,
+    "showSingleFileCompleteNotificationFailed": m45,
     "silentJumpApp": MessageLookupByLibrary.simpleMessage("Silent jump app"),
     "silentJumpAppDesc": MessageLookupByLibrary.simpleMessage(
       "Jump to other app without prompt",
     ),
     "simplifiedChinese": MessageLookupByLibrary.simpleMessage("简体中文"),
+    "siteSettings": MessageLookupByLibrary.simpleMessage("Site settings"),
     "size": MessageLookupByLibrary.simpleMessage("Size"),
     "standbyBucket": MessageLookupByLibrary.simpleMessage("Standby bucket"),
-    "startDownload": m45,
-    "startDownloadFile": m46,
+    "startDownload": m46,
+    "startDownloadFile": m47,
     "startServer": MessageLookupByLibrary.simpleMessage("Start server"),
     "startTime": MessageLookupByLibrary.simpleMessage("Start time"),
     "startWebBrowser": MessageLookupByLibrary.simpleMessage(
@@ -730,16 +833,30 @@ class MessageLookup extends MessageLookupByLibrary {
     "testDownloadPngImage": MessageLookupByLibrary.simpleMessage(
       "Test download PNG image",
     ),
+    "tlsCertificate": MessageLookupByLibrary.simpleMessage("HTTPS certificate"),
+    "tlsNeedsCert": MessageLookupByLibrary.simpleMessage(
+      "HTTPS needs both a certificate and a private key",
+    ),
     "troubleshooting": MessageLookupByLibrary.simpleMessage("Troubleshooting"),
     "troubleshootingDesc": MessageLookupByLibrary.simpleMessage(
       "Common issues and solutions",
     ),
-    "tryToOpenFile": m47,
+    "tryToOpenFile": m48,
     "uiSettings": MessageLookupByLibrary.simpleMessage("UI"),
     "upload": MessageLookupByLibrary.simpleMessage("Upload"),
+    "uploadCanceled": MessageLookupByLibrary.simpleMessage("Canceled"),
     "uploadDone": MessageLookupByLibrary.simpleMessage("Upload complete"),
     "uploadFailed": MessageLookupByLibrary.simpleMessage("Upload failed"),
-    "uploadingFile": m48,
+    "uploadFailedState": MessageLookupByLibrary.simpleMessage("Failed"),
+    "uploadQueued": MessageLookupByLibrary.simpleMessage("Queued"),
+    "uploadRunning": MessageLookupByLibrary.simpleMessage("Uploading"),
+    "uploadSucceeded": MessageLookupByLibrary.simpleMessage("Done"),
+    "uploadingFile": m49,
+    "uploads": MessageLookupByLibrary.simpleMessage("Uploads"),
+    "uploadsActive": m50,
+    "uploadsKeepAppAlive": MessageLookupByLibrary.simpleMessage(
+      "Uploads continue while the app process is alive; closing the app from recents stops them.",
+    ),
     "uptime": MessageLookupByLibrary.simpleMessage("Uptime"),
     "userCancelledDownload": MessageLookupByLibrary.simpleMessage(
       "User cancelled download",
@@ -747,7 +864,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "userCancelledDownloadError": MessageLookupByLibrary.simpleMessage(
       "User cancelled download",
     ),
+    "userDisabled": MessageLookupByLibrary.simpleMessage("Disabled"),
     "username": MessageLookupByLibrary.simpleMessage("Username"),
+    "users": MessageLookupByLibrary.simpleMessage("Users"),
     "view": MessageLookupByLibrary.simpleMessage("View"),
     "viewDownloadDirectory": MessageLookupByLibrary.simpleMessage(
       "View download directory",

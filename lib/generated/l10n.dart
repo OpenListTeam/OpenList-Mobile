@@ -2668,6 +2668,506 @@ class S {
       args: [],
     );
   }
+
+  /// `搜索`
+  String get search {
+    return Intl.message('搜索', name: 'search', desc: '', args: []);
+  }
+
+  /// `关键词`
+  String get searchHint {
+    return Intl.message('关键词', name: 'searchHint', desc: '', args: []);
+  }
+
+  /// `全部`
+  String get searchAll {
+    return Intl.message('全部', name: 'searchAll', desc: '', args: []);
+  }
+
+  /// `文件夹`
+  String get searchFolders {
+    return Intl.message('文件夹', name: 'searchFolders', desc: '', args: []);
+  }
+
+  /// `文件`
+  String get searchFiles {
+    return Intl.message('文件', name: 'searchFiles', desc: '', args: []);
+  }
+
+  /// `没有结果`
+  String get noSearchResults {
+    return Intl.message('没有结果', name: 'noSearchResults', desc: '', args: []);
+  }
+
+  /// `离线下载`
+  String get offlineDownload {
+    return Intl.message('离线下载', name: 'offlineDownload', desc: '', args: []);
+  }
+
+  /// `链接（每行一个）`
+  String get offlineUrls {
+    return Intl.message('链接（每行一个）', name: 'offlineUrls', desc: '', args: []);
+  }
+
+  /// `工具`
+  String get offlineTool {
+    return Intl.message('工具', name: 'offlineTool', desc: '', args: []);
+  }
+
+  /// `删除策略`
+  String get deletePolicy {
+    return Intl.message('删除策略', name: 'deletePolicy', desc: '', args: []);
+  }
+
+  /// `服务器未配置离线下载工具`
+  String get noOfflineTools {
+    return Intl.message(
+      '服务器未配置离线下载工具',
+      name: 'noOfflineTools',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已添加离线下载任务`
+  String get offlineAdded {
+    return Intl.message('已添加离线下载任务', name: 'offlineAdded', desc: '', args: []);
+  }
+
+  /// `上传成功后删除`
+  String get policyDeleteOnUploadSucceed {
+    return Intl.message(
+      '上传成功后删除',
+      name: 'policyDeleteOnUploadSucceed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `上传失败后删除`
+  String get policyDeleteOnUploadFailed {
+    return Intl.message(
+      '上传失败后删除',
+      name: 'policyDeleteOnUploadFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `从不删除`
+  String get policyDeleteNever {
+    return Intl.message('从不删除', name: 'policyDeleteNever', desc: '', args: []);
+  }
+
+  /// `总是删除`
+  String get policyDeleteAlways {
+    return Intl.message('总是删除', name: 'policyDeleteAlways', desc: '', args: []);
+  }
+
+  /// `边下载边上传`
+  String get policyUploadDownloadStream {
+    return Intl.message(
+      '边下载边上传',
+      name: 'policyUploadDownloadStream',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `用户`
+  String get users {
+    return Intl.message('用户', name: 'users', desc: '', args: []);
+  }
+
+  /// `添加用户`
+  String get addUser {
+    return Intl.message('添加用户', name: 'addUser', desc: '', args: []);
+  }
+
+  /// `编辑用户`
+  String get editUser {
+    return Intl.message('编辑用户', name: 'editUser', desc: '', args: []);
+  }
+
+  /// `基础路径`
+  String get basePath {
+    return Intl.message('基础路径', name: 'basePath', desc: '', args: []);
+  }
+
+  /// `角色`
+  String get role {
+    return Intl.message('角色', name: 'role', desc: '', args: []);
+  }
+
+  /// `普通用户`
+  String get roleGeneral {
+    return Intl.message('普通用户', name: 'roleGeneral', desc: '', args: []);
+  }
+
+  /// `访客`
+  String get roleGuest {
+    return Intl.message('访客', name: 'roleGuest', desc: '', args: []);
+  }
+
+  /// `管理员`
+  String get roleAdmin {
+    return Intl.message('管理员', name: 'roleAdmin', desc: '', args: []);
+  }
+
+  /// `权限`
+  String get permissions {
+    return Intl.message('权限', name: 'permissions', desc: '', args: []);
+  }
+
+  /// `已禁用`
+  String get userDisabled {
+    return Intl.message('已禁用', name: 'userDisabled', desc: '', args: []);
+  }
+
+  /// `留空则保持当前密码`
+  String get passwordKeepHint {
+    return Intl.message(
+      '留空则保持当前密码',
+      name: 'passwordKeepHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `重置两步验证`
+  String get reset2fa {
+    return Intl.message('重置两步验证', name: 'reset2fa', desc: '', args: []);
+  }
+
+  /// `查看隐藏文件`
+  String get permSeeHides {
+    return Intl.message('查看隐藏文件', name: 'permSeeHides', desc: '', args: []);
+  }
+
+  /// `无需密码访问`
+  String get permAccessWithoutPassword {
+    return Intl.message(
+      '无需密码访问',
+      name: 'permAccessWithoutPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `添加离线下载`
+  String get permOfflineDownload {
+    return Intl.message(
+      '添加离线下载',
+      name: 'permOfflineDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `创建文件夹和上传`
+  String get permWrite {
+    return Intl.message('创建文件夹和上传', name: 'permWrite', desc: '', args: []);
+  }
+
+  /// `重命名`
+  String get permRename {
+    return Intl.message('重命名', name: 'permRename', desc: '', args: []);
+  }
+
+  /// `移动`
+  String get permMove {
+    return Intl.message('移动', name: 'permMove', desc: '', args: []);
+  }
+
+  /// `复制`
+  String get permCopy {
+    return Intl.message('复制', name: 'permCopy', desc: '', args: []);
+  }
+
+  /// `删除`
+  String get permRemove {
+    return Intl.message('删除', name: 'permRemove', desc: '', args: []);
+  }
+
+  /// `WebDAV 读取`
+  String get permWebdavRead {
+    return Intl.message(
+      'WebDAV 读取',
+      name: 'permWebdavRead',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WebDAV 写入`
+  String get permWebdavManage {
+    return Intl.message(
+      'WebDAV 写入',
+      name: 'permWebdavManage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `FTP/SFTP 读取`
+  String get permFtpAccess {
+    return Intl.message(
+      'FTP/SFTP 读取',
+      name: 'permFtpAccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `FTP/SFTP 写入`
+  String get permFtpManage {
+    return Intl.message(
+      'FTP/SFTP 写入',
+      name: 'permFtpManage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `读取压缩包`
+  String get permReadArchives {
+    return Intl.message('读取压缩包', name: 'permReadArchives', desc: '', args: []);
+  }
+
+  /// `解压压缩包`
+  String get permDecompress {
+    return Intl.message('解压压缩包', name: 'permDecompress', desc: '', args: []);
+  }
+
+  /// `创建分享`
+  String get permShare {
+    return Intl.message('创建分享', name: 'permShare', desc: '', args: []);
+  }
+
+  /// `自定义分享 ID`
+  String get permCustomShareId {
+    return Intl.message(
+      '自定义分享 ID',
+      name: 'permCustomShareId',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `站点设置`
+  String get siteSettings {
+    return Intl.message('站点设置', name: 'siteSettings', desc: '', args: []);
+  }
+
+  /// `站点`
+  String get groupSite {
+    return Intl.message('站点', name: 'groupSite', desc: '', args: []);
+  }
+
+  /// `样式`
+  String get groupStyle {
+    return Intl.message('样式', name: 'groupStyle', desc: '', args: []);
+  }
+
+  /// `预览`
+  String get groupPreview {
+    return Intl.message('预览', name: 'groupPreview', desc: '', args: []);
+  }
+
+  /// `全局`
+  String get groupGlobal {
+    return Intl.message('全局', name: 'groupGlobal', desc: '', args: []);
+  }
+
+  /// `离线下载`
+  String get groupOfflineDownload {
+    return Intl.message(
+      '离线下载',
+      name: 'groupOfflineDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `索引`
+  String get groupIndex {
+    return Intl.message('索引', name: 'groupIndex', desc: '', args: []);
+  }
+
+  /// `单点登录`
+  String get groupSso {
+    return Intl.message('单点登录', name: 'groupSso', desc: '', args: []);
+  }
+
+  /// `LDAP`
+  String get groupLdap {
+    return Intl.message('LDAP', name: 'groupLdap', desc: '', args: []);
+  }
+
+  /// `S3`
+  String get groupS3 {
+    return Intl.message('S3', name: 'groupS3', desc: '', args: []);
+  }
+
+  /// `FTP`
+  String get groupFtp {
+    return Intl.message('FTP', name: 'groupFtp', desc: '', args: []);
+  }
+
+  /// `流量`
+  String get groupTraffic {
+    return Intl.message('流量', name: 'groupTraffic', desc: '', args: []);
+  }
+
+  /// `媒体`
+  String get groupMedia {
+    return Intl.message('媒体', name: 'groupMedia', desc: '', args: []);
+  }
+
+  /// `转码`
+  String get groupTranscode {
+    return Intl.message('转码', name: 'groupTranscode', desc: '', args: []);
+  }
+
+  /// `没有修改`
+  String get noChanges {
+    return Intl.message('没有修改', name: 'noChanges', desc: '', args: []);
+  }
+
+  /// `上传`
+  String get uploads {
+    return Intl.message('上传', name: 'uploads', desc: '', args: []);
+  }
+
+  /// `排队中`
+  String get uploadQueued {
+    return Intl.message('排队中', name: 'uploadQueued', desc: '', args: []);
+  }
+
+  /// `上传中`
+  String get uploadRunning {
+    return Intl.message('上传中', name: 'uploadRunning', desc: '', args: []);
+  }
+
+  /// `已完成`
+  String get uploadSucceeded {
+    return Intl.message('已完成', name: 'uploadSucceeded', desc: '', args: []);
+  }
+
+  /// `失败`
+  String get uploadFailedState {
+    return Intl.message('失败', name: 'uploadFailedState', desc: '', args: []);
+  }
+
+  /// `已取消`
+  String get uploadCanceled {
+    return Intl.message('已取消', name: 'uploadCanceled', desc: '', args: []);
+  }
+
+  /// `没有上传任务`
+  String get noUploads {
+    return Intl.message('没有上传任务', name: 'noUploads', desc: '', args: []);
+  }
+
+  /// `上传会在应用进程存活期间继续；从最近任务中划掉应用会中止上传。`
+  String get uploadsKeepAppAlive {
+    return Intl.message(
+      '上传会在应用进程存活期间继续；从最近任务中划掉应用会中止上传。',
+      name: 'uploadsKeepAppAlive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `HTTPS 证书`
+  String get tlsCertificate {
+    return Intl.message('HTTPS 证书', name: 'tlsCertificate', desc: '', args: []);
+  }
+
+  /// `证书（PEM）`
+  String get certFile {
+    return Intl.message('证书（PEM）', name: 'certFile', desc: '', args: []);
+  }
+
+  /// `私钥（PEM）`
+  String get keyFile {
+    return Intl.message('私钥（PEM）', name: 'keyFile', desc: '', args: []);
+  }
+
+  /// `HTTPS 端口`
+  String get httpsPort {
+    return Intl.message('HTTPS 端口', name: 'httpsPort', desc: '', args: []);
+  }
+
+  /// `强制 HTTPS`
+  String get forceHttps {
+    return Intl.message('强制 HTTPS', name: 'forceHttps', desc: '', args: []);
+  }
+
+  /// `选择文件`
+  String get chooseFile {
+    return Intl.message('选择文件', name: 'chooseFile', desc: '', args: []);
+  }
+
+  /// `未配置`
+  String get notConfigured {
+    return Intl.message('未配置', name: 'notConfigured', desc: '', args: []);
+  }
+
+  /// `该文件不是 PEM 格式的证书或私钥`
+  String get invalidPem {
+    return Intl.message(
+      '该文件不是 PEM 格式的证书或私钥',
+      name: 'invalidPem',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `请输入 1 到 65535 的端口，或 -1 表示禁用`
+  String get invalidPort {
+    return Intl.message(
+      '请输入 1 到 65535 的端口，或 -1 表示禁用',
+      name: 'invalidPort',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `启用 HTTPS 需要同时提供证书和私钥`
+  String get tlsNeedsCert {
+    return Intl.message(
+      '启用 HTTPS 需要同时提供证书和私钥',
+      name: 'tlsNeedsCert',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `该驱动不支持上传`
+  String get driverNoUpload {
+    return Intl.message('该驱动不支持上传', name: 'driverNoUpload', desc: '', args: []);
+  }
+
+  /// `{count} 个上传进行中`
+  String uploadsActive(int count) {
+    return Intl.message(
+      '$count 个上传进行中',
+      name: 'uploadsActive',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `删除用户 {name}？`
+  String confirmDeleteUser(String name) {
+    return Intl.message(
+      '删除用户 $name？',
+      name: 'confirmDeleteUser',
+      desc: '',
+      args: [name],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
