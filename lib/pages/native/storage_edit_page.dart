@@ -149,6 +149,25 @@ class _StorageEditPageState extends State<StorageEditPage> {
     if (mounted) setState(() => _saving = false);
   }
 
+  /// Driver notice from `config.alert`, colored by its level.
+  Widget _alert(DriverInfo info) {
+    final scheme = Theme.of(context).colorScheme;
+    final (icon, color) = switch (info.alertLevel) {
+      'danger' => (Icons.error_outline, scheme.error),
+      'warning' => (Icons.warning_amber_outlined, Colors.orange),
+      'success' => (Icons.check_circle_outline, Colors.green),
+      _ => (Icons.info_outline, scheme.primary),
+    };
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: color.withValues(alpha: 0.08),
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(info.alertText),
+      ),
+    );
+  }
+
   Widget _field(DriverItem item, Map<String, dynamic> values) {
     final label = item.required ? '${item.name} *' : item.name;
     final help = item.help.isEmpty ? null : item.help;
@@ -243,6 +262,13 @@ class _StorageEditPageState extends State<StorageEditPage> {
             else if (_error != null)
               StateMessage(icon: Icons.error_outline, text: errorText(_error!))
             else if (info != null) ...[
+              if (info.alertText.isNotEmpty) _alert(info),
+              if (info.noUpload)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.upload_file_outlined),
+                  title: Text(S.of(context).driverNoUpload),
+                ),
               for (final i in info.common) ...[_field(i, _common), const SizedBox(height: 12)],
               const Divider(),
               for (final i in info.additional) ...[
