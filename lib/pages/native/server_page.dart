@@ -9,6 +9,7 @@ import 'package:openlist_mobile/utils/service_manager.dart';
 
 import '../../generated/l10n.dart';
 import 'common.dart';
+import 'tls_page.dart';
 
 const _modes = ['local', 'lan', 'public'];
 
@@ -291,6 +292,14 @@ class _ServerPageState extends State<ServerPage> {
               ),
           ],
           _section(S.of(context).exposureMode),
+          ListTile(
+            leading: const Icon(Icons.https_outlined),
+            title: Text(S.of(context).tlsCertificate),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const TlsPage()))
+                .then((_) => _load()),
+          ),
           RadioGroupFallback(
             value: _mode,
             options: _modes,
