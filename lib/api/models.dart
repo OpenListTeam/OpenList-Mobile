@@ -229,6 +229,21 @@ class DriverInfo {
             ? Map<String, dynamic>.from(j['config'])
             : null,
       );
+
+  /// Driver notice from `config.alert` (`info|warning|danger|success|text`).
+  String get alertLevel {
+    final a = _str(config?['alert']);
+    final i = a.indexOf('|');
+    return i < 0 ? '' : a.substring(0, i);
+  }
+
+  String get alertText {
+    final a = _str(config?['alert']);
+    final i = a.indexOf('|');
+    return i < 0 ? a : a.substring(i + 1);
+  }
+
+  bool get noUpload => config?['no_upload'] == true;
 }
 
 class UserRole {
@@ -265,4 +280,111 @@ class UserInfo {
         permission: _int(j['permission']),
         otp: j['otp'] == true,
       );
+}
+
+/// One hit from `/api/fs/search`.
+class SearchHit {
+  SearchHit({
+    required this.parent,
+    required this.name,
+    required this.isDir,
+    this.size = 0,
+    this.type = ObjType.unknown,
+  });
+
+  final String parent;
+  final String name;
+  final bool isDir;
+  final int size;
+  final int type;
+
+  String get path => parent == '/' ? '/$name' : '$parent/$name';
+
+  factory SearchHit.fromJson(Map<String, dynamic> j) => SearchHit(
+        parent: _str(j['parent']).isEmpty ? '/' : _str(j['parent']),
+        name: _str(j['name']),
+        isDir: j['is_dir'] == true,
+        size: _int(j['size']),
+        type: _int(j['type']),
+      );
+}
+
+/// User permission bits (`internal/model/user.go`).
+class UserPerm {
+  static const seeHides = 0;
+  static const accessWithoutPassword = 1;
+  static const offlineDownload = 2;
+  static const write = 3;
+  static const rename = 4;
+  static const move = 5;
+  static const copy = 6;
+  static const remove = 7;
+  static const webdavRead = 8;
+  static const webdavManage = 9;
+  static const ftpAccess = 10;
+  static const ftpManage = 11;
+  static const readArchives = 12;
+  static const decompress = 13;
+  static const share = 14;
+  static const customShareId = 15;
+
+  static const all = [
+    seeHides, accessWithoutPassword, offlineDownload, write, rename, move, //
+    copy, remove, webdavRead, webdavManage, ftpAccess, ftpManage,
+    readArchives, decompress, share, customShareId,
+  ];
+}
+
+/// Admin view of a user; keeps the raw JSON so updates round-trip fields
+/// this client does not model (sso_id, otp secret flags, ...).
+class AdminUser {
+  AdminUser(Map<String, dynamic> raw) : raw = Map<String, dynamic>.from(raw);
+
+  final Map<String, dynamic> raw;
+
+  int get id => _int(raw['id']);
+  String get username => _str(raw['username']);
+  String get basePath => _str(raw['base_path']).isEmpty ? '/' : _str(raw['base_path']);
+  int get role => _int(raw['role']);
+  bool get disabled => raw['disabled'] == true;
+  int get permission => _int(raw['permission']);
+
+  bool get isAdmin => role == UserRole.admin;
+  bool get isGuest => role == UserRole.guest;
+  bool can(int bit) => (permission >> bit) & 1 == 1;
+
+  factory AdminUser.fromJson(Map<String, dynamic> j) => AdminUser(j);
+
+  Map<String, dynamic> toJson() => Map<String, dynamic>.from(raw);
+}
+
+/// One site setting (`internal/model/setting.go`).
+class SettingItem {
+  SettingItem(Map<String, dynamic> raw) : raw = Map<String, dynamic>.from(raw);
+
+  final Map<String, dynamic> raw;
+
+  String get key => _str(raw['key']);
+  String get value => _str(raw['value']);
+  set value(String v) => raw['value'] = v;
+  String get help => _str(raw['help']);
+
+  /// `string`, `number`, `bool`, `select` or `text`.
+  String get type => _str(raw['type']);
+  int get group => _int(raw['group']);
+  int get flag => _int(raw['flag']);
+
+  /// Flag 2 marks read-only settings, 3 deprecated ones.
+  bool get readOnly => flag == 2;
+  bool get deprecated => flag == 3;
+
+  List<String> get optionList => _str(raw['options'])
+      .split(',')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+
+  factory SettingItem.fromJson(Map<String, dynamic> j) => SettingItem(j);
+
+  Map<String, dynamic> toJson() => Map<String, dynamic>.from(raw);
 }

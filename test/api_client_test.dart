@@ -219,4 +219,79 @@ void main() {
         isFalse);
     expect(ApiException(500, 'password').isPasswordRequired, isFalse);
   });
+
+  test('search posts paging and parses hits', () async {
+    final (c, adapter) = _client((_) => _ok({
+          'content': [
+            {'parent': '/a', 'name': 'b.mp4', 'is_dir': false, 'size': 9, 'type': 2}
+          ],
+          'total': 7,
+        }));
+    final (hits, total) = await FsApi(c).search('/a', 'b', scope: 2);
+    expect(total, 7);
+    expect(hits.single.path, '/a/b.mp4');
+    expect(hits.single.type, ObjType.video);
+    final body = adapter.requests.single.data as Map;
+    expect(body['keywords'], 'b');
+    expect(body['scope'], 2);
+    expect(body['per_page'], 100);
+  });
+
+  test('offline download sends urls, tool and policy', () async {
+    final (c, adapter) =
+        _client((o) => o.path.contains('tools') ? _ok(['aria2']) : _ok(null));
+    final api = FsApi(c);
+    expect(await api.offlineTools(path: '/d'), ['aria2']);
+    expect(adapter.requests.first.queryParameters['path'], '/d');
+    await api.addOfflineDownload(['http://x/y'], '/d', 'aria2');
+    final req = adapter.requests.last;
+    expect(req.path, '/api/fs/add_offline_download');
+    expect((req.data as Map)['delete_policy'], 'delete_on_upload_succeed');
+  });
+
+  test('user list keeps raw fields and decodes permission bits', () async {
+    final (c, adapter) = _client((_) => _ok({
+          'content': [
+            {'id': 2, 'username': 'u', 'role': 0, 'permission': 9, 'sso_id': 's'}
+          ],
+          'total': 1,
+        }));
+    final u = (await AdminApi(c).listUsers()).single;
+    expect(u.can(UserPerm.seeHides), isTrue);
+    expect(u.can(UserPerm.write), isTrue);
+    expect(u.can(UserPerm.rename), isFalse);
+    expect(u.toJson()['sso_id'], 's');
+    expect(u.basePath, '/');
+    await AdminApi(c).deleteUser(2);
+    expect(adapter.requests.last.queryParameters['id'], 2);
+  });
+
+  test('settings list joins groups and save posts an array', () async {
+    final (c, adapter) = _client((o) => o.path.endsWith('/list')
+        ? _ok([
+            {'key': 'site_title', 'value': 'A', 'type': 'string', 'flag': 0},
+            {'key': 'version', 'value': '1', 'type': 'string', 'flag': 2},
+          ])
+        : _ok(null));
+    final api = AdminApi(c);
+    final items = await api.listSettings([1, 4]);
+    expect(adapter.requests.first.queryParameters['groups'], '1,4');
+    expect(items.last.readOnly, isTrue);
+    items.first.value = 'B';
+    await api.saveSettings([items.first]);
+    final body = adapter.requests.last.data as List;
+    expect((body.single as Map)['value'], 'B');
+  });
+
+  test('driver alert splits level and text', () {
+    final info = DriverInfo.fromJson({
+      'common': [],
+      'additional': [],
+      'config': {'alert': 'warning|Be careful|really', 'no_upload': true},
+    });
+    expect(info.alertLevel, 'warning');
+    expect(info.alertText, 'Be careful|really');
+    expect(info.noUpload, isTrue);
+    expect(DriverInfo.fromJson({}).alertText, '');
+  });
 }

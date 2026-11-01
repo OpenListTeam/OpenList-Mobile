@@ -89,6 +89,53 @@ class FsApi {
         cancelToken: cancelToken,
       );
 
+  /// Searches the index under [parent]; scope 0 = all, 1 = dirs, 2 = files.
+  /// Returns the hits of one page and the total hit count.
+  Future<(List<SearchHit>, int)> search(
+    String parent,
+    String keywords, {
+    int scope = 0,
+    int page = 1,
+    int perPage = 100,
+    String password = '',
+  }) async {
+    final data = await client.post('/api/fs/search', body: {
+      'parent': parent,
+      'keywords': keywords,
+      'scope': scope,
+      'page': page,
+      'per_page': perPage,
+      'password': password,
+    });
+    final m = data is Map ? data : const {};
+    final hits = ((m['content'] as List?) ?? const [])
+        .map((e) => SearchHit.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+    final total = m['total'];
+    return (hits, total is num ? total.toInt() : hits.length);
+  }
+
+  /// Offline download tools usable for [path].
+  Future<List<String>> offlineTools({String path = ''}) async {
+    final data = await client.get('/api/public/offline_download_tools',
+        query: {if (path.isNotEmpty) 'path': path});
+    return ((data as List?) ?? const []).map((e) => '$e').toList();
+  }
+
+  /// Queues offline download tasks for [urls] into [path].
+  Future<void> addOfflineDownload(
+    List<String> urls,
+    String path,
+    String tool, {
+    String deletePolicy = 'delete_on_upload_succeed',
+  }) =>
+      client.post('/api/fs/add_offline_download', body: {
+        'urls': urls,
+        'path': path,
+        'tool': tool,
+        'delete_policy': deletePolicy,
+      });
+
   /// Direct download URL served by the core (`/d/*path?sign=`).
   String downloadUrl(String path, {String sign = ''}) {
     final url = '${client.baseUrl}/d${OpenListClient.encodePath(path)}';
