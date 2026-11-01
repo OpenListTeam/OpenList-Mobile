@@ -222,12 +222,13 @@ jobs:
           flutter-version: '3.32.7'
 
       # Also generates the Gradle wrapper and local.properties used below.
+      # app/build.gradle always splits per ABI, so Flutter must expect splits.
       - name: Build Debug APK
-        run: flutter build apk --debug --target-platform android-x64
+        run: flutter build apk --split-per-abi --debug --target-platform android-x64
 
       - name: Compile Instrumented Tests
         working-directory: android
-        run: ./gradlew :app:compileDebugAndroidTestKotlin
+        run: ./gradlew :app:compileDebugAndroidTestKotlin -Ptarget-platform=android-x64
 
       - name: Enable KVM
         run: |
@@ -243,7 +244,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: cd android && ./gradlew :app:connectedDebugAndroidTest
+          script: cd android && ./gradlew :app:connectedDebugAndroidTest -Ptarget-platform=android-x64
 
       - name: Upload Instrumented Test Reports
         if: failure()
