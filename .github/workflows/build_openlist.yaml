@@ -73,19 +73,17 @@ jobs:
         with:
           ndk-version: r25c
 
-      - name: Test OpenList Mobile Binding
-        run: |
-          cd $GITHUB_WORKSPACE/openlist-lib
-          go test -count=1 ./openlistlib/...
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3
 
-      - name: Build OpenList Android AAR
+      # Tests run after init_gomobile.sh because its `go get` calls resolve
+      # the go.mod edits made by init_openlist.sh; before that go.mod is stale.
+      - name: Test and Build OpenList Android AAR
         run: |
           cd $GITHUB_WORKSPACE/openlist-lib/scripts
           chmod +x *.sh
           ./init_gomobile.sh
+          (cd .. && go test -count=1 ./openlistlib/...)
           ./gobind.sh
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
