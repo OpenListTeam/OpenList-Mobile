@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:openlist_mobile/generated_api.dart';
+import 'package:openlist_mobile/pages/native/server_page.dart';
 import 'package:openlist_mobile/pages/openlist/about_dialog.dart';
 import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
 import 'package:openlist_mobile/pages/openlist/config_editor_page.dart';
@@ -25,6 +26,11 @@ class OpenListScreen extends StatelessWidget {
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             title: Obx(() => Text("OpenList - ${ui.openlistVersion.value}")),
             actions: [
+              IconButton(
+                tooltip: S.of(context).serverRuntime,
+                onPressed: () => Get.to(() => const ServerPage()),
+                icon: const Icon(Icons.dns_outlined),
+              ),
               IconButton(
                 tooltip: S.current.setAdminPassword,
                 onPressed: () {

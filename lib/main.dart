@@ -1,4 +1,5 @@
 import 'package:openlist_mobile/generated/l10n.dart';
+import 'package:openlist_mobile/pages/native/files_page.dart';
 import 'package:openlist_mobile/pages/openlist/openlist.dart';
 import 'package:openlist_mobile/pages/app_update_dialog.dart';
 import 'package:openlist_mobile/pages/settings/settings.dart';
@@ -105,7 +106,6 @@ class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
-  static const webPageIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +117,7 @@ class MyHomePage extends StatelessWidget {
             lazy: true,
             index: controller.selectedIndex.value,
             children: [
-              WebScreen(key: webGlobalKey),
+              const FilesPage(),
               const OpenListScreen(),
               const DownloadManagerPage(),
               const SettingsScreen()
@@ -127,8 +127,8 @@ class MyHomePage extends StatelessWidget {
         bottomNavigationBar: Obx(() => NavigationBar(
                 destinations: [
                   NavigationDestination(
-                    icon: const Icon(Icons.preview),
-                    label: S.current.webPage,
+                    icon: const Icon(Icons.folder_outlined),
+                    label: S.current.nativeFiles,
                   ),
                   NavigationDestination(
                     icon: SvgPicture.asset(
@@ -149,15 +149,7 @@ class MyHomePage extends StatelessWidget {
                   ),
                 ],
                 selectedIndex: controller.selectedIndex.value,
-                onDestinationSelected: (int index) {
-                  // Web
-                  if (controller.selectedIndex.value == webPageIndex &&
-                      controller.selectedIndex.value == webPageIndex) {
-                    webGlobalKey.currentState?.onClickNavigationBar();
-                  }
-
-                  controller.setPageIndex(index);
-                })));
+                onDestinationSelected: controller.setPageIndex)));
   }
 
   String _getDownloadLabel() {
@@ -171,7 +163,7 @@ class MyHomePage extends StatelessWidget {
 }
 
 class _MainController extends GetxController {
-  final selectedIndex = 1.obs;
+  final selectedIndex = 0.obs;
 
   setPageIndex(int index) {
     selectedIndex.value = index;
@@ -180,11 +172,10 @@ class _MainController extends GetxController {
   @override
   void onInit() async {
     final webPage = await NativeBridge.appConfig.isAutoOpenWebPageEnabled();
-    if (webPage) {
-      setPageIndex(MyHomePage.webPageIndex);
-    }
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      // The web interface is a secondary route on top of the native UI.
+      if (webPage) Get.to(() => WebScreen(key: webGlobalKey));
       if (await NativeBridge.appConfig.isAutoCheckUpdateEnabled()) {
         AppUpdateDialog.checkUpdateAndShowDialog(Get.context!, null);
       }
