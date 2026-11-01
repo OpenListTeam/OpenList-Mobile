@@ -35,6 +35,9 @@ func Init(event Event, cb LogCallback) error {
 		shutdownHookUuid = ""
 	}
 	bootstrap.Init()
+	if err := ensureAdmin(); err != nil {
+		return err
+	}
 	startFailedHookUuid = bootstrap.RegisterEndpointStartFailedHook(event.OnStartError)
 	shutdownHookUuid = bootstrap.RegisterEndpointShutdownHook(event.OnShutdown)
 	logFormatter = &internal.MyFormatter{
