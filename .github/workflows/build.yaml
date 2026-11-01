@@ -193,6 +193,65 @@ jobs:
             ${{ env.output_path }}/*x86_64*.apk
             ${{ env.output_path }}/*x64*.apk
 
+  # Instrumented tests need a booted emulator, so they run in their own job
+  # next to the APK build instead of slowing it down.
+  android_test:
+    name: Android Instrumented Tests
+    needs: [libs]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download OpenList Android AAR
+        uses: actions/download-artifact@v4
+        with:
+          name: openlist-android-aar
+          path: ${{ github.workspace }}/android/app/libs/
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.7'
+
+      # Also generates the Gradle wrapper and local.properties used below.
+      - name: Build Debug APK
+        run: flutter build apk --debug --target-platform android-x64
+
+      - name: Compile Instrumented Tests
+        working-directory: android
+        run: ./gradlew :app:compileDebugAndroidTestKotlin
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Instrumented Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: cd android && ./gradlew :app:connectedDebugAndroidTest
+
+      - name: Upload Instrumented Test Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-instrumented-test-reports
+          path: ${{ github.workspace }}/build/app/reports/androidTests/
+
   ios:
     name: Build OpenList iOS App (Dev)
     needs: [version, libs]
