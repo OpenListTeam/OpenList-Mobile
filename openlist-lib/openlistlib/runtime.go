@@ -230,6 +230,8 @@ type runtimeStatus struct {
 	HeapSys    uint64          `json:"heap_sys"`
 	Sys        uint64          `json:"sys"`
 	NumGC      uint32          `json:"num_gc"`
+	// The admin still has the password the core generated on first start.
+	AdminPasswordGenerated bool `json:"admin_password_generated"`
 }
 
 // RuntimeStatus returns listener state and Go runtime resource usage as JSON.
@@ -252,6 +254,9 @@ func RuntimeStatus() string {
 	}
 	if ts := startedAt.Load(); st.Running && ts > 0 {
 		st.UptimeSec = time.Now().Unix() - ts
+	}
+	if st.Running {
+		st.AdminPasswordGenerated = adminPasswordGenerated()
 	}
 	if conf.Conf != nil {
 		st.Address = conf.Conf.Scheme.Address

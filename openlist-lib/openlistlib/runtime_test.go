@@ -174,6 +174,13 @@ func TestCoreLifecycle(t *testing.T) {
 	if tok, err := AdminToken(); err != nil || tok == "" {
 		t.Fatalf("admin token: %q %v", tok, err)
 	}
+	if !st.AdminPasswordGenerated {
+		t.Fatal("a fresh data dir must report the generated admin password")
+	}
+	SetAdminPassword("lifecycle-test")
+	if adminPasswordGenerated() {
+		t.Fatal("setting the admin password must clear the generated state")
+	}
 	var rep securityReport
 	if err := json.Unmarshal([]byte(SecurityReport(ModePublic)), &rep); err != nil || !rep.Blocked {
 		t.Fatalf("public report should be blocked: %+v %v", rep, err)
