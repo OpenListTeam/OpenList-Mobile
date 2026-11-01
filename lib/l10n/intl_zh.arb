@@ -791,5 +791,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "adminPasswordSetupTitle": "设置管理员密码",
+  "adminPasswordSetupMessage": "本地核心已为 admin 账户生成随机密码。请设置你自己的密码，以便通过网页端或其他设备登录。",
+  "adminPasswordHint": "admin 密码",
+  "adminPasswordUpdated": "admin 密码已更新",
+  "later": "稍后"
 }

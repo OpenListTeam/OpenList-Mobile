@@ -33,24 +33,7 @@ class OpenListScreen extends StatelessWidget {
               ),
               IconButton(
                 tooltip: S.current.setAdminPassword,
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) => PwdEditDialog(onConfirm: (pwd) async {
-                            try {
-                              await ServiceManager.instance.setAdminPassword(pwd);
-                              Get.showSnackbar(GetSnackBar(
-                                  title: S.current.setAdminPassword,
-                                  message: pwd,
-                                  duration: const Duration(seconds: 1)));
-                            } catch (e) {
-                              Get.showSnackbar(GetSnackBar(
-                                  title: S.current.setAdminPassword,
-                                  message: 'Error: $e',
-                                  duration: const Duration(seconds: 2)));
-                            }
-                          }));
-                },
+                onPressed: () => AdminPassword.showEditor(context),
                 icon: const Icon(Icons.password),
               ),
               IconButton(

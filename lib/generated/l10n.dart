@@ -3168,6 +3168,51 @@ class S {
       args: [name],
     );
   }
+
+  /// `设置管理员密码`
+  String get adminPasswordSetupTitle {
+    return Intl.message(
+      '设置管理员密码',
+      name: 'adminPasswordSetupTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `本地核心已为 admin 账户生成随机密码。请设置你自己的密码，以便通过网页端或其他设备登录。`
+  String get adminPasswordSetupMessage {
+    return Intl.message(
+      '本地核心已为 admin 账户生成随机密码。请设置你自己的密码，以便通过网页端或其他设备登录。',
+      name: 'adminPasswordSetupMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `admin 密码`
+  String get adminPasswordHint {
+    return Intl.message(
+      'admin 密码',
+      name: 'adminPasswordHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `admin 密码已更新`
+  String get adminPasswordUpdated {
+    return Intl.message(
+      'admin 密码已更新',
+      name: 'adminPasswordUpdated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `稍后`
+  String get later {
+    return Intl.message('稍后', name: 'later', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

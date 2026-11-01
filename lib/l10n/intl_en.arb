@@ -791,5 +791,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "adminPasswordSetupTitle": "Set the admin password",
+  "adminPasswordSetupMessage": "The local core created the admin account with a random password. Set your own password to sign in from the web interface or other devices.",
+  "adminPasswordHint": "Admin password",
+  "adminPasswordUpdated": "Admin password updated",
+  "later": "Later"
 }

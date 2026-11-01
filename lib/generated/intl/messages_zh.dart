@@ -129,6 +129,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "addUser": MessageLookupByLibrary.simpleMessage("添加用户"),
     "addresses": MessageLookupByLibrary.simpleMessage("访问地址"),
     "adminOnly": MessageLookupByLibrary.simpleMessage("需要管理员权限"),
+    "adminPasswordHint": MessageLookupByLibrary.simpleMessage("admin 密码"),
+    "adminPasswordSetupMessage": MessageLookupByLibrary.simpleMessage(
+      "本地核心已为 admin 账户生成随机密码。请设置你自己的密码，以便通过网页端或其他设备登录。",
+    ),
+    "adminPasswordSetupTitle": MessageLookupByLibrary.simpleMessage("设置管理员密码"),
+    "adminPasswordUpdated": MessageLookupByLibrary.simpleMessage("admin 密码已更新"),
     "apkDownloadCompleteMessage": MessageLookupByLibrary.simpleMessage(
       "APK文件已下载完成，是否要安装？",
     ),
@@ -412,6 +418,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "languageSettings": MessageLookupByLibrary.simpleMessage("语言设置"),
     "languageSettingsDesc": MessageLookupByLibrary.simpleMessage("选择应用显示语言"),
     "lastError": MessageLookupByLibrary.simpleMessage("最近错误"),
+    "later": MessageLookupByLibrary.simpleMessage("稍后"),
     "laterInstall": MessageLookupByLibrary.simpleMessage("稍后安装"),
     "loadDownloadFilesFailed": MessageLookupByLibrary.simpleMessage("加载下载文件失败"),
     "loadFailed": m30,

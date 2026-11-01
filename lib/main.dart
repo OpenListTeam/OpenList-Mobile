@@ -4,6 +4,7 @@ import 'package:openlist_mobile/api/loopback_http.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/files_page.dart';
 import 'package:openlist_mobile/pages/openlist/openlist.dart';
+import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
 import 'package:openlist_mobile/pages/app_update_dialog.dart';
 import 'package:openlist_mobile/pages/settings/settings.dart';
 import 'package:openlist_mobile/pages/web/web.dart';
@@ -180,6 +181,7 @@ class _MainController extends GetxController {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       // The web interface is a secondary route on top of the native UI.
       if (webPage) Get.to(() => WebScreen(key: webGlobalKey));
+      await AdminPassword.promptOnFirstLaunch();
       if (await NativeBridge.appConfig.isAutoCheckUpdateEnabled()) {
         AppUpdateDialog.checkUpdateAndShowDialog(Get.context!, null);
       }

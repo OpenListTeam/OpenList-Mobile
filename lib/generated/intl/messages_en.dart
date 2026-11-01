@@ -140,6 +140,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "adminOnly": MessageLookupByLibrary.simpleMessage(
       "Admin permission required",
     ),
+    "adminPasswordHint": MessageLookupByLibrary.simpleMessage("Admin password"),
+    "adminPasswordSetupMessage": MessageLookupByLibrary.simpleMessage(
+      "The local core created the admin account with a random password. Set your own password to sign in from the web interface or other devices.",
+    ),
+    "adminPasswordSetupTitle": MessageLookupByLibrary.simpleMessage(
+      "Set the admin password",
+    ),
+    "adminPasswordUpdated": MessageLookupByLibrary.simpleMessage(
+      "Admin password updated",
+    ),
     "apkDownloadCompleteMessage": MessageLookupByLibrary.simpleMessage(
       "APK file download completed, do you want to install?",
     ),
@@ -525,6 +535,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Select app display language",
     ),
     "lastError": MessageLookupByLibrary.simpleMessage("Last error"),
+    "later": MessageLookupByLibrary.simpleMessage("Later"),
     "laterInstall": MessageLookupByLibrary.simpleMessage("Install Later"),
     "loadDownloadFilesFailed": MessageLookupByLibrary.simpleMessage(
       "Failed to load download files",
