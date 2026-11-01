@@ -1,30 +1,27 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:openlist_mobile/api/loopback_http.dart';
-import 'package:openlist_mobile/api/native_upload.dart';
-import 'package:openlist_mobile/generated/l10n.dart';
-import 'package:openlist_mobile/pages/native/files_page.dart';
-import 'package:openlist_mobile/pages/openlist/openlist.dart';
-import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
-import 'package:openlist_mobile/pages/app_update_dialog.dart';
-import 'package:openlist_mobile/pages/settings/settings.dart';
-import 'package:openlist_mobile/pages/web/web.dart';
-import 'package:openlist_mobile/pages/download_manager_page.dart';
-import 'package:openlist_mobile/utils/download_manager.dart';
-import 'package:openlist_mobile/utils/notification_manager.dart';
-import 'package:openlist_mobile/utils/service_manager.dart';
-import 'package:openlist_mobile/utils/web_browser_manager.dart';
-import 'package:openlist_mobile/utils/language_controller.dart';
-import 'package:fade_indexed_stack/fade_indexed_stack.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-
-import 'contant/native_bridge.dart';
+import 'package:openlist_mobile/api/loopback_http.dart';
+import 'package:openlist_mobile/api/native_upload.dart';
+import 'package:openlist_mobile/api/session.dart';
+import 'package:openlist_mobile/contant/native_bridge.dart';
+import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
+import 'package:openlist_mobile/pages/app_update_dialog.dart';
+import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
+import 'package:openlist_mobile/screens/home_screen.dart';
+import 'package:openlist_mobile/screens/files_screen.dart';
+import 'package:openlist_mobile/screens/transfers_screen.dart';
+import 'package:openlist_mobile/screens/settings_screen.dart';
+import 'package:openlist_mobile/utils/language_controller.dart';
+import 'package:openlist_mobile/utils/notification_manager.dart';
+import 'package:openlist_mobile/utils/service_manager.dart';
+import 'package:openlist_mobile/utils/web_browser_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,24 +35,22 @@ void main() async {
 
   // Initialize notification manager
   await NotificationManager.initialize();
-  
+
   // Initialize service manager (supports both Android and iOS)
   await ServiceManager.instance.initialize();
-  
+
   // For iOS: Ensure service is started on first launch
   if (defaultTargetPlatform == TargetPlatform.iOS) {
     try {
-      // Check if service is running
       final isRunning = await ServiceManager.instance.checkServiceStatus();
       if (!isRunning) {
-        // Start service automatically on iOS
         await ServiceManager.instance.startService();
       }
     } catch (e) {
       debugPrint('Failed to start iOS service on launch: $e');
     }
   }
-  
+
   // Android WebView debugging
   if (!kIsWeb &&
       kDebugMode &&
@@ -69,31 +64,17 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return GetBuilder<LanguageController>(
       builder: (languageController) {
-        // 如果语言控制器设置为跟随系统，则使用null让系统自动选择
-        // 否则使用指定的locale
         Locale? appLocale = languageController.locale;
-        
+
         return GetMaterialApp(
           title: 'OpenList',
           themeMode: ThemeMode.system,
-          theme: ThemeData(
-            useMaterial3: true,
-            colorSchemeSeed: Colors.blueGrey,
-            inputDecorationTheme: const InputDecorationTheme(
-              border: OutlineInputBorder(),
-            ),
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            brightness: Brightness.dark,
-            colorSchemeSeed: Colors.blueGrey,
-            /* dark theme settings */
-          ),
+          theme: AppDesign.lightTheme(),
+          darkTheme: AppDesign.darkTheme(),
           locale: appLocale,
           fallbackLocale: const Locale('en'),
           supportedLocales: S.delegate.supportedLocales,
@@ -103,94 +84,98 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: const MyHomePage(title: ""),
+          home: const MainNavigationScreen(),
         );
       },
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
+class MainNavigationScreen extends StatefulWidget {
+  const MainNavigationScreen({super.key});
 
-  final String title;
+  @override
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+}
+
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  final _controller = Get.put(MainNavigationController());
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.initialize();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(_MainController());
-
-    return Scaffold(
-        body: Obx(
-          () => FadeIndexedStack(
-            lazy: true,
-            index: controller.selectedIndex.value,
-            children: [
-              const FilesPage(),
-              const OpenListScreen(),
-              const DownloadManagerPage(),
-              const SettingsScreen()
-            ],
-          ),
+    return Obx(
+      () => Scaffold(
+        body: IndexedStack(
+          index: _controller.selectedIndex.value,
+          children: const [
+            HomeScreen(),
+            FilesScreen(),
+            TransfersScreen(),
+            SettingsScreen(),
+          ],
         ),
-        bottomNavigationBar: Obx(() => NavigationBar(
-                destinations: [
-                  NavigationDestination(
-                    icon: const Icon(Icons.folder_outlined),
-                    label: S.current.nativeFiles,
-                  ),
-                  NavigationDestination(
-                    icon: SvgPicture.asset(
-                      "assets/openlist.svg",
-                      color: Theme.of(context).hintColor,
-                      width: 32,
-                      height: 32,
-                    ),
-                    label: S.current.appName,
-                  ),
-                  NavigationDestination(
-                    icon: const Icon(Icons.arrow_downward),
-                    label: _getDownloadLabel(),
-                  ),
-                  NavigationDestination(
-                    icon: const Icon(Icons.settings),
-                    label: S.current.settings,
-                  ),
-                ],
-                selectedIndex: controller.selectedIndex.value,
-                onDestinationSelected: controller.setPageIndex)));
-  }
-
-  String _getDownloadLabel() {
-    int activeCount = DownloadManager.activeTasks.length;
-    if (activeCount > 0) {
-      return S.current.downloadManagerWithCount(activeCount);
-    } else {
-      return S.current.downloadManager;
-    }
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _controller.selectedIndex.value,
+          onDestinationSelected: _controller.setPageIndex,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.folder_outlined),
+              selectedIcon: Icon(Icons.folder),
+              label: 'Files',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.swap_vert),
+              selectedIcon: Icon(Icons.swap_vert),
+              label: 'Transfers',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
-class _MainController extends GetxController {
+class MainNavigationController extends GetxController {
   final selectedIndex = 0.obs;
+  final _session = OpenListSession.instance;
 
-  setPageIndex(int index) {
+  void setPageIndex(int index) {
     selectedIndex.value = index;
   }
 
-  @override
-  void onInit() async {
-    final webPage = await NativeBridge.appConfig.isAutoOpenWebPageEnabled();
+  Future<void> initialize() async {
+    // Restore session
+    try {
+      await _session.restore();
+    } catch (e) {
+      debugPrint('Failed to restore session: $e');
+    }
 
+    // Post-frame initialization
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      // The web interface is a secondary route on top of the native UI.
-      if (webPage) Get.to(() => WebScreen(key: webGlobalKey));
-      // Waits for the core, so it must not hold up the update check.
+      // Prompt for admin password on first launch
       unawaited(AdminPassword.promptOnFirstLaunch());
+
+      // Check for updates if enabled
       if (await NativeBridge.appConfig.isAutoCheckUpdateEnabled()) {
         AppUpdateDialog.checkUpdateAndShowDialog(Get.context!, null);
       }
     });
-
-    super.onInit();
   }
 }

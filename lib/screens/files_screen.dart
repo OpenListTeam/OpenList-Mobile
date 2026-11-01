@@ -1,0 +1,637 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:openlist_mobile/api/models.dart';
+import 'package:openlist_mobile/api/session.dart';
+import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/widgets/file_items.dart';
+
+/// Files browser screen with list/grid view modes
+class FilesScreen extends StatefulWidget {
+  const FilesScreen({super.key});
+
+  @override
+  State<FilesScreen> createState() => _FilesScreenState();
+}
+
+class _FilesScreenState extends State<FilesScreen> {
+  final _controller = Get.put(_FilesController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Obx(() => _Breadcrumb(path: _controller.currentPath.value)),
+        actions: [
+          Obx(() => IconButton(
+                icon: Icon(_controller.viewMode.value == _ViewMode.list
+                    ? Icons.grid_view
+                    : Icons.view_list),
+                onPressed: _controller.toggleViewMode,
+              )),
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              // TODO: Navigate to search
+            },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'sort':
+                  _showSortOptions();
+                  break;
+                case 'refresh':
+                  _controller.loadFiles();
+                  break;
+                case 'newfolder':
+                  _showCreateFolderDialog();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'sort', child: Text('Sort')),
+              const PopupMenuItem(value: 'refresh', child: Text('Refresh')),
+              const PopupMenuItem(value: 'newfolder', child: Text('New Folder')),
+            ],
+          ),
+        ],
+      ),
+      body: Obx(() {
+        if (_controller.isLoading.value && _controller.files.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (_controller.error.value.isNotEmpty) {
+          return _ErrorView(
+            message: _controller.error.value,
+            onRetry: _controller.loadFiles,
+          );
+        }
+
+        if (_controller.files.isEmpty) {
+          return _EmptyView(
+            onCreateFolder: _showCreateFolderDialog,
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            await _controller.loadFiles();
+          },
+          child: _controller.viewMode.value == _ViewMode.list
+              ? _ListView(controller: _controller)
+              : _GridView(controller: _controller),
+        );
+      }),
+      floatingActionButton: Obx(() {
+        if (_controller.selectedFiles.isNotEmpty) {
+          return _BatchActionBar(controller: _controller);
+        }
+        return FloatingActionButton(
+          onPressed: _showUploadOptions,
+          child: const Icon(Icons.add),
+        );
+      }),
+    );
+  }
+
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => _SortOptionsSheet(
+        currentSort: _controller.sortBy.value,
+        onSelected: (sort) {
+          _controller.setSortBy(sort);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  void _showCreateFolderDialog() {
+    final nameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('New Folder'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: 'Folder Name',
+            hintText: 'Enter folder name',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final name = nameController.text.trim();
+              if (name.isNotEmpty) {
+                _controller.createFolder(name);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUploadOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: AppDesign.space24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Upload Photos'),
+              onTap: () {
+                Navigator.pop(context);
+                _controller.pickAndUploadFiles(FilePickType.image);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam),
+              title: const Text('Upload Videos'),
+              onTap: () {
+                Navigator.pop(context);
+                _controller.pickAndUploadFiles(FilePickType.video);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.insert_drive_file),
+              title: const Text('Upload Files'),
+              onTap: () {
+                Navigator.pop(context);
+                _controller.pickAndUploadFiles(FilePickType.any);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.create_new_folder),
+              title: const Text('New Folder'),
+              onTap: () {
+                Navigator.pop(context);
+                _showCreateFolderDialog();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Breadcrumb extends StatelessWidget {
+  const _Breadcrumb({required this.path});
+
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = path.split('/').where((p) => p.isNotEmpty).toList();
+
+    if (parts.isEmpty) {
+      return const Text('Files');
+    }
+
+    return Text(
+      parts.last,
+      style: AppDesign.headline3.copyWith(fontSize: 18),
+    );
+  }
+}
+
+class _ListView extends StatelessWidget {
+  const _ListView({required this.controller});
+
+  final _FilesController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: controller.files.length,
+      itemBuilder: (context, index) {
+        final file = controller.files[index];
+        final isSelected = controller.selectedFiles.contains(file.name);
+
+        return FileListItem(
+          name: file.name,
+          isDirectory: file.isDir,
+          size: file.size,
+          modified: file.modified,
+          thumbnail: file.thumb,
+          selected: isSelected,
+          onTap: () => controller.onFileTap(file),
+          onLongPress: () => controller.toggleSelection(file.name),
+        );
+      },
+    );
+  }
+}
+
+class _GridView extends StatelessWidget {
+  const _GridView({required this.controller});
+
+  final _FilesController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(AppDesign.space16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.85,
+        crossAxisSpacing: AppDesign.space12,
+        mainAxisSpacing: AppDesign.space12,
+      ),
+      itemCount: controller.files.length,
+      itemBuilder: (context, index) {
+        final file = controller.files[index];
+        final isSelected = controller.selectedFiles.contains(file.name);
+
+        return FileGridItem(
+          name: file.name,
+          isDirectory: file.isDir,
+          thumbnail: file.thumb,
+          selected: isSelected,
+          onTap: () => controller.onFileTap(file),
+          onLongPress: () => controller.toggleSelection(file.name),
+        );
+      },
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDesign.space32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: AppDesign.space24),
+            Text(
+              'Failed to load files',
+              style: AppDesign.headline3,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDesign.space12),
+            Text(
+              message,
+              style: AppDesign.body2,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppDesign.space24),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyView extends StatelessWidget {
+  const _EmptyView({required this.onCreateFolder});
+
+  final VoidCallback onCreateFolder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDesign.space32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.folder_open,
+              size: 64,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            ),
+            const SizedBox(height: AppDesign.space24),
+            Text(
+              'No files here',
+              style: AppDesign.headline3,
+            ),
+            const SizedBox(height: AppDesign.space12),
+            Text(
+              'Upload files or create a new folder',
+              style: AppDesign.body2,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BatchActionBar extends StatelessWidget {
+  const _BatchActionBar({required this.controller});
+
+  final _FilesController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = controller.selectedFiles.length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDesign.space16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Text(
+            '$count selected',
+            style: AppDesign.body1.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.drive_file_move),
+            onPressed: controller.moveSelected,
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy),
+            onPressed: controller.copySelected,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: controller.deleteSelected,
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: controller.clearSelection,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SortOptionsSheet extends StatelessWidget {
+  const _SortOptionsSheet({
+    required this.currentSort,
+    required this.onSelected,
+  });
+
+  final String currentSort;
+  final Function(String) onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: AppDesign.space24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _SortOption(
+            title: 'Name',
+            selected: currentSort == 'name',
+            onTap: () => onSelected('name'),
+          ),
+          _SortOption(
+            title: 'Date Modified',
+            selected: currentSort == 'date',
+            onTap: () => onSelected('date'),
+          ),
+          _SortOption(
+            title: 'Size',
+            selected: currentSort == 'size',
+            onTap: () => onSelected('size'),
+          ),
+          _SortOption(
+            title: 'Type',
+            selected: currentSort == 'type',
+            onTap: () => onSelected('type'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SortOption extends StatelessWidget {
+  const _SortOption({
+    required this.title,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      trailing: selected ? const Icon(Icons.check) : null,
+      onTap: onTap,
+    );
+  }
+}
+
+enum _ViewMode { list, grid }
+enum FilePickType { image, video, any }
+
+class _FilesController extends GetxController {
+  final _session = OpenListSession.instance;
+
+  final currentPath = '/'.obs;
+  final files = <FsObject>[].obs;
+  final selectedFiles = <String>[].obs;
+  final isLoading = false.obs;
+  final error = ''.obs;
+  final viewMode = _ViewMode.list.obs;
+  final sortBy = 'name'.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadFiles();
+  }
+
+  Future<void> loadFiles() async {
+    if (!_session.isConnected) {
+      error.value = 'Not connected to server';
+      return;
+    }
+
+    isLoading.value = true;
+    error.value = '';
+
+    try {
+      final result = await _session.fs.list(currentPath.value);
+      files.value = result.content;
+      _sortFiles();
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void toggleViewMode() {
+    viewMode.value = viewMode.value == _ViewMode.list
+        ? _ViewMode.grid
+        : _ViewMode.list;
+  }
+
+  void setSortBy(String sort) {
+    sortBy.value = sort;
+    _sortFiles();
+  }
+
+  void _sortFiles() {
+    files.sort((a, b) {
+      // Directories first
+      if (a.isDir && !b.isDir) return -1;
+      if (!a.isDir && b.isDir) return 1;
+
+      switch (sortBy.value) {
+        case 'date':
+          final aTime = a.modified ?? DateTime(2000);
+          final bTime = b.modified ?? DateTime(2000);
+          return bTime.compareTo(aTime);
+        case 'size':
+          return b.size.compareTo(a.size);
+        case 'type':
+          final aExt = a.name.split('.').last;
+          final bExt = b.name.split('.').last;
+          final extCompare = aExt.compareTo(bExt);
+          return extCompare != 0 ? extCompare : a.name.compareTo(b.name);
+        default:
+          return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      }
+    });
+    files.refresh();
+  }
+
+  void onFileTap(FsObject file) {
+    if (selectedFiles.isNotEmpty) {
+      toggleSelection(file.name);
+      return;
+    }
+
+    if (file.isDir) {
+      navigateToFolder(file.name);
+    } else {
+      // TODO: Open file preview
+    }
+  }
+
+  void navigateToFolder(String folderName) {
+    final newPath = currentPath.value == '/'
+        ? '/$folderName'
+        : '${currentPath.value}/$folderName';
+    currentPath.value = newPath;
+    loadFiles();
+  }
+
+  void navigateUp() {
+    if (currentPath.value == '/') return;
+
+    final parts = currentPath.value.split('/');
+    parts.removeLast();
+    currentPath.value = parts.isEmpty || parts.length == 1 ? '/' : parts.join('/');
+    loadFiles();
+  }
+
+  void toggleSelection(String fileName) {
+    if (selectedFiles.contains(fileName)) {
+      selectedFiles.remove(fileName);
+    } else {
+      selectedFiles.add(fileName);
+    }
+  }
+
+  void clearSelection() {
+    selectedFiles.clear();
+  }
+
+  Future<void> createFolder(String name) async {
+    try {
+      final path = currentPath.value == '/' ? '/$name' : '${currentPath.value}/$name';
+      await _session.fs.mkdir(path);
+      await loadFiles();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to create folder: $e');
+    }
+  }
+
+  Future<void> pickAndUploadFiles(FilePickType type) async {
+    // TODO: Implement file picker and upload
+    Get.snackbar('Info', 'Upload functionality coming soon');
+  }
+
+  Future<void> deleteSelected() async {
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Delete Files'),
+        content: Text('Delete ${selectedFiles.length} item(s)?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await _session.fs.remove(currentPath.value, selectedFiles.toList());
+      clearSelection();
+      await loadFiles();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to delete: $e');
+    }
+  }
+
+  Future<void> moveSelected() async {
+    Get.snackbar('Info', 'Move functionality coming soon');
+  }
+
+  Future<void> copySelected() async {
+    Get.snackbar('Info', 'Copy functionality coming soon');
+  }
+}
