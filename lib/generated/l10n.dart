@@ -2048,6 +2048,626 @@ class S {
       args: [],
     );
   }
+
+  /// `文件`
+  String get nativeFiles {
+    return Intl.message('文件', name: 'nativeFiles', desc: '', args: []);
+  }
+
+  /// `存储`
+  String get storages {
+    return Intl.message('存储', name: 'storages', desc: '', args: []);
+  }
+
+  /// `任务`
+  String get tasks {
+    return Intl.message('任务', name: 'tasks', desc: '', args: []);
+  }
+
+  /// `服务器`
+  String get serverRuntime {
+    return Intl.message('服务器', name: 'serverRuntime', desc: '', args: []);
+  }
+
+  /// `连接`
+  String get connection {
+    return Intl.message('连接', name: 'connection', desc: '', args: []);
+  }
+
+  /// `本机服务器`
+  String get localServer {
+    return Intl.message('本机服务器', name: 'localServer', desc: '', args: []);
+  }
+
+  /// `远程服务器`
+  String get remoteServer {
+    return Intl.message('远程服务器', name: 'remoteServer', desc: '', args: []);
+  }
+
+  /// `服务器地址`
+  String get serverUrl {
+    return Intl.message('服务器地址', name: 'serverUrl', desc: '', args: []);
+  }
+
+  /// `用户名`
+  String get username {
+    return Intl.message('用户名', name: 'username', desc: '', args: []);
+  }
+
+  /// `密码`
+  String get password {
+    return Intl.message('密码', name: 'password', desc: '', args: []);
+  }
+
+  /// `两步验证码（可选）`
+  String get otpCode {
+    return Intl.message('两步验证码（可选）', name: 'otpCode', desc: '', args: []);
+  }
+
+  /// `登录`
+  String get login {
+    return Intl.message('登录', name: 'login', desc: '', args: []);
+  }
+
+  /// `退出登录`
+  String get logout {
+    return Intl.message('退出登录', name: 'logout', desc: '', args: []);
+  }
+
+  /// `连接失败`
+  String get connectFailed {
+    return Intl.message('连接失败', name: 'connectFailed', desc: '', args: []);
+  }
+
+  /// `本机服务器未运行`
+  String get serverNotRunning {
+    return Intl.message(
+      '本机服务器未运行',
+      name: 'serverNotRunning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `启动服务器`
+  String get startServer {
+    return Intl.message('启动服务器', name: 'startServer', desc: '', args: []);
+  }
+
+  /// `停止服务器`
+  String get stopServer {
+    return Intl.message('停止服务器', name: 'stopServer', desc: '', args: []);
+  }
+
+  /// `重启服务器`
+  String get restartServer {
+    return Intl.message('重启服务器', name: 'restartServer', desc: '', args: []);
+  }
+
+  /// `重试`
+  String get retry {
+    return Intl.message('重试', name: 'retry', desc: '', args: []);
+  }
+
+  /// `文件夹为空`
+  String get emptyFolder {
+    return Intl.message('文件夹为空', name: 'emptyFolder', desc: '', args: []);
+  }
+
+  /// `新建文件夹`
+  String get newFolder {
+    return Intl.message('新建文件夹', name: 'newFolder', desc: '', args: []);
+  }
+
+  /// `文件夹名称`
+  String get folderName {
+    return Intl.message('文件夹名称', name: 'folderName', desc: '', args: []);
+  }
+
+  /// `重命名`
+  String get rename {
+    return Intl.message('重命名', name: 'rename', desc: '', args: []);
+  }
+
+  /// `新名称`
+  String get newName {
+    return Intl.message('新名称', name: 'newName', desc: '', args: []);
+  }
+
+  /// `移动到`
+  String get moveTo {
+    return Intl.message('移动到', name: 'moveTo', desc: '', args: []);
+  }
+
+  /// `复制到`
+  String get copyTo {
+    return Intl.message('复制到', name: 'copyTo', desc: '', args: []);
+  }
+
+  /// `选择此文件夹`
+  String get selectThisFolder {
+    return Intl.message('选择此文件夹', name: 'selectThisFolder', desc: '', args: []);
+  }
+
+  /// `上传`
+  String get upload {
+    return Intl.message('上传', name: 'upload', desc: '', args: []);
+  }
+
+  /// `正在上传 {name}`
+  String uploadingFile(String name) {
+    return Intl.message(
+      '正在上传 $name',
+      name: 'uploadingFile',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `上传完成`
+  String get uploadDone {
+    return Intl.message('上传完成', name: 'uploadDone', desc: '', args: []);
+  }
+
+  /// `上传失败`
+  String get uploadFailed {
+    return Intl.message('上传失败', name: 'uploadFailed', desc: '', args: []);
+  }
+
+  /// `完成`
+  String get operationDone {
+    return Intl.message('完成', name: 'operationDone', desc: '', args: []);
+  }
+
+  /// `操作失败`
+  String get operationFailed {
+    return Intl.message('操作失败', name: 'operationFailed', desc: '', args: []);
+  }
+
+  /// `确定删除 {names}？`
+  String confirmDeleteItems(String names) {
+    return Intl.message(
+      '确定删除 $names？',
+      name: 'confirmDeleteItems',
+      desc: '',
+      args: [names],
+    );
+  }
+
+  /// `文件夹密码`
+  String get folderPassword {
+    return Intl.message('文件夹密码', name: 'folderPassword', desc: '', args: []);
+  }
+
+  /// `不支持预览该类型文件`
+  String get previewNotSupported {
+    return Intl.message(
+      '不支持预览该类型文件',
+      name: 'previewNotSupported',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `复制链接`
+  String get copyLink {
+    return Intl.message('复制链接', name: 'copyLink', desc: '', args: []);
+  }
+
+  /// `打开网页界面`
+  String get openWebInterface {
+    return Intl.message('打开网页界面', name: 'openWebInterface', desc: '', args: []);
+  }
+
+  /// `已禁用`
+  String get storageDisabled {
+    return Intl.message('已禁用', name: 'storageDisabled', desc: '', args: []);
+  }
+
+  /// `启用`
+  String get enable {
+    return Intl.message('启用', name: 'enable', desc: '', args: []);
+  }
+
+  /// `禁用`
+  String get disable {
+    return Intl.message('禁用', name: 'disable', desc: '', args: []);
+  }
+
+  /// `添加存储`
+  String get addStorage {
+    return Intl.message('添加存储', name: 'addStorage', desc: '', args: []);
+  }
+
+  /// `编辑存储`
+  String get editStorage {
+    return Intl.message('编辑存储', name: 'editStorage', desc: '', args: []);
+  }
+
+  /// `驱动`
+  String get driver {
+    return Intl.message('驱动', name: 'driver', desc: '', args: []);
+  }
+
+  /// `全部重新加载`
+  String get reloadAll {
+    return Intl.message('全部重新加载', name: 'reloadAll', desc: '', args: []);
+  }
+
+  /// `确定删除存储 {name}？`
+  String confirmDeleteStorage(String name) {
+    return Intl.message(
+      '确定删除存储 $name？',
+      name: 'confirmDeleteStorage',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `必填`
+  String get requiredField {
+    return Intl.message('必填', name: 'requiredField', desc: '', args: []);
+  }
+
+  /// `需要管理员权限`
+  String get adminOnly {
+    return Intl.message('需要管理员权限', name: 'adminOnly', desc: '', args: []);
+  }
+
+  /// `进行中`
+  String get taskUndone {
+    return Intl.message('进行中', name: 'taskUndone', desc: '', args: []);
+  }
+
+  /// `已结束`
+  String get taskDone {
+    return Intl.message('已结束', name: 'taskDone', desc: '', args: []);
+  }
+
+  /// `上传`
+  String get taskGroupUpload {
+    return Intl.message('上传', name: 'taskGroupUpload', desc: '', args: []);
+  }
+
+  /// `复制`
+  String get taskGroupCopy {
+    return Intl.message('复制', name: 'taskGroupCopy', desc: '', args: []);
+  }
+
+  /// `移动`
+  String get taskGroupMove {
+    return Intl.message('移动', name: 'taskGroupMove', desc: '', args: []);
+  }
+
+  /// `离线下载`
+  String get taskGroupOfflineDownload {
+    return Intl.message(
+      '离线下载',
+      name: 'taskGroupOfflineDownload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `离线转存`
+  String get taskGroupTransfer {
+    return Intl.message('离线转存', name: 'taskGroupTransfer', desc: '', args: []);
+  }
+
+  /// `解压`
+  String get taskGroupDecompress {
+    return Intl.message('解压', name: 'taskGroupDecompress', desc: '', args: []);
+  }
+
+  /// `解压上传`
+  String get taskGroupDecompressUpload {
+    return Intl.message(
+      '解压上传',
+      name: 'taskGroupDecompressUpload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `清除已成功`
+  String get clearSucceeded {
+    return Intl.message('清除已成功', name: 'clearSucceeded', desc: '', args: []);
+  }
+
+  /// `清除已结束`
+  String get clearFinished {
+    return Intl.message('清除已结束', name: 'clearFinished', desc: '', args: []);
+  }
+
+  /// `暂无任务`
+  String get noTasks {
+    return Intl.message('暂无任务', name: 'noTasks', desc: '', args: []);
+  }
+
+  /// `访问模式`
+  String get exposureMode {
+    return Intl.message('访问模式', name: 'exposureMode', desc: '', args: []);
+  }
+
+  /// `仅本机`
+  String get modeLocal {
+    return Intl.message('仅本机', name: 'modeLocal', desc: '', args: []);
+  }
+
+  /// `仅监听 127.0.0.1，其他设备无法访问。`
+  String get modeLocalDesc {
+    return Intl.message(
+      '仅监听 127.0.0.1，其他设备无法访问。',
+      name: 'modeLocalDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `局域网`
+  String get modeLan {
+    return Intl.message('局域网', name: 'modeLan', desc: '', args: []);
+  }
+
+  /// `监听所有网卡，同一网络中的设备可以访问。`
+  String get modeLanDesc {
+    return Intl.message(
+      '监听所有网卡，同一网络中的设备可以访问。',
+      name: 'modeLanDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `公网`
+  String get modePublic {
+    return Intl.message('公网', name: 'modePublic', desc: '', args: []);
+  }
+
+  /// `可从互联网访问。需要 TLS、强制 HTTPS 并禁用游客账户。`
+  String get modePublicDesc {
+    return Intl.message(
+      '可从互联网访问。需要 TLS、强制 HTTPS 并禁用游客账户。',
+      name: 'modePublicDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `新模式在服务器重启后生效。`
+  String get modeChangeRestart {
+    return Intl.message(
+      '新模式在服务器重启后生效。',
+      name: 'modeChangeRestart',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `将服务器暴露到公网后任何人都可以访问。请确保管理员密码足够强并开启两步验证。`
+  String get publicModeWarning {
+    return Intl.message(
+      '将服务器暴露到公网后任何人都可以访问。请确保管理员密码足够强并开启两步验证。',
+      name: 'publicModeWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `安全检查`
+  String get securityChecks {
+    return Intl.message('安全检查', name: 'securityChecks', desc: '', args: []);
+  }
+
+  /// `在所有必需检查通过之前无法启用公网模式。`
+  String get publicBlocked {
+    return Intl.message(
+      '在所有必需检查通过之前无法启用公网模式。',
+      name: 'publicBlocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `有效的 TLS 证书`
+  String get checkTls {
+    return Intl.message('有效的 TLS 证书', name: 'checkTls', desc: '', args: []);
+  }
+
+  /// `禁用 HTTP 或强制跳转 HTTPS`
+  String get checkForceHttps {
+    return Intl.message(
+      '禁用 HTTP 或强制跳转 HTTPS',
+      name: 'checkForceHttps',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `游客账户已禁用`
+  String get checkGuestDisabled {
+    return Intl.message(
+      '游客账户已禁用',
+      name: 'checkGuestDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `S3 服务使用 TLS`
+  String get checkS3Tls {
+    return Intl.message('S3 服务使用 TLS', name: 'checkS3Tls', desc: '', args: []);
+  }
+
+  /// `FTP 以明文传输凭据`
+  String get checkFtpPlaintext {
+    return Intl.message(
+      'FTP 以明文传输凭据',
+      name: 'checkFtpPlaintext',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `管理员两步验证`
+  String get checkAdmin2fa {
+    return Intl.message('管理员两步验证', name: 'checkAdmin2fa', desc: '', args: []);
+  }
+
+  /// `服务器尚未初始化`
+  String get checkNotInitialized {
+    return Intl.message(
+      '服务器尚未初始化',
+      name: 'checkNotInitialized',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `访问地址`
+  String get addresses {
+    return Intl.message('访问地址', name: 'addresses', desc: '', args: []);
+  }
+
+  /// `运行状态`
+  String get runtimeStatus {
+    return Intl.message('运行状态', name: 'runtimeStatus', desc: '', args: []);
+  }
+
+  /// `运行时长`
+  String get uptime {
+    return Intl.message('运行时长', name: 'uptime', desc: '', args: []);
+  }
+
+  /// `协程数`
+  String get goroutines {
+    return Intl.message('协程数', name: 'goroutines', desc: '', args: []);
+  }
+
+  /// `内存`
+  String get memory {
+    return Intl.message('内存', name: 'memory', desc: '', args: []);
+  }
+
+  /// `进程内存 (PSS)`
+  String get processMemory {
+    return Intl.message(
+      '进程内存 (PSS)',
+      name: 'processMemory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CPU 时间`
+  String get cpuTime {
+    return Intl.message('CPU 时间', name: 'cpuTime', desc: '', args: []);
+  }
+
+  /// `最近错误`
+  String get lastError {
+    return Intl.message('最近错误', name: 'lastError', desc: '', args: []);
+  }
+
+  /// `后台运行`
+  String get backgroundRunning {
+    return Intl.message('后台运行', name: 'backgroundRunning', desc: '', args: []);
+  }
+
+  /// `电池优化`
+  String get batteryOptimization {
+    return Intl.message(
+      '电池优化',
+      name: 'batteryOptimization',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `未限制`
+  String get batteryOptimizationIgnored {
+    return Intl.message(
+      '未限制',
+      name: 'batteryOptimizationIgnored',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `受限制，系统可能会停止服务器。`
+  String get batteryOptimizationActive {
+    return Intl.message(
+      '受限制，系统可能会停止服务器。',
+      name: 'batteryOptimizationActive',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `允许后台运行`
+  String get requestIgnoreBattery {
+    return Intl.message(
+      '允许后台运行',
+      name: 'requestIgnoreBattery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `自启动设置`
+  String get autoStartSettings {
+    return Intl.message('自启动设置', name: 'autoStartSettings', desc: '', args: []);
+  }
+
+  /// `部分厂商系统需要允许自启动，否则会停止后台应用。`
+  String get autoStartSettingsDesc {
+    return Intl.message(
+      '部分厂商系统需要允许自启动，否则会停止后台应用。',
+      name: 'autoStartSettingsDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `系统限制了后台活动`
+  String get backgroundRestricted {
+    return Intl.message(
+      '系统限制了后台活动',
+      name: 'backgroundRestricted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `通知已关闭，服务器状态通知不会显示`
+  String get notificationsDisabled {
+    return Intl.message(
+      '通知已关闭，服务器状态通知不会显示',
+      name: 'notificationsDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `待机分组`
+  String get standbyBucket {
+    return Intl.message('待机分组', name: 'standbyBucket', desc: '', args: []);
+  }
+
+  /// `应用详情`
+  String get appDetails {
+    return Intl.message('应用详情', name: 'appDetails', desc: '', args: []);
+  }
+
+  /// `iOS 仅在应用处于前台或刚切到后台的短时间内保持服务器运行。`
+  String get iosBackgroundNote {
+    return Intl.message(
+      'iOS 仅在应用处于前台或刚切到后台的短时间内保持服务器运行。',
+      name: 'iosBackgroundNote',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
