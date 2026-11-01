@@ -116,8 +116,7 @@ jobs:
 
       - name: Run Dart Unit Tests
         run: |
-          flutter test test/api_client_test.dart test/web_browser_manager_test.dart \
-            test/web_screen_stopped_test.dart
+          flutter test
 
       - name: Generate iOS Build Number
         run: |
