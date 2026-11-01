@@ -690,7 +690,7 @@ class _DownloadManagerPageState extends State<DownloadManagerPage>
           break;
         case ResultType.error:
           Get.showSnackbar(GetSnackBar(
-            message: S.of(context).openFileFailed(result.message ?? ''),
+            message: S.of(context).openFileFailed(result.message),
             duration: const Duration(seconds: 3),
             mainButton: TextButton(
               onPressed: () {

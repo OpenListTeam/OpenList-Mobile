@@ -50,7 +50,6 @@ class WebScreenState extends State<WebScreen> with WidgetsBindingObserver {
   double _progress = 0;
   String? _url;
   bool _canGoBack = false;
-  bool _isLoading = false;
   bool _browserRequested = WebBrowserManager.instance.enabled.value;
   int _browserGeneration = 0;
   Future<void>? _urlLoad;
@@ -296,7 +295,6 @@ window.__openListReleaseBlobDownload?.(url);
       _webViewController = null;
       _progress = 0;
       _canGoBack = false;
-      _isLoading = false;
     });
     WebBrowserManager.instance.running.value = false;
   }
@@ -348,7 +346,6 @@ window.__openListReleaseBlobDownload?.(url);
       _webViewController = null;
       _progress = 0;
       _canGoBack = false;
-      _isLoading = false;
     });
     return true;
   }
@@ -460,7 +457,6 @@ window.__openListReleaseBlobDownload?.(url);
                   log("onLoadStart $url");
                   setState(() {
                     _progress = 0;
-                    _isLoading = true;
                   });
                 },
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
@@ -590,7 +586,6 @@ window.__openListReleaseBlobDownload?.(url);
                   log("onLoadStop $url");
                   setState(() {
                     _progress = 0;
-                    _isLoading = false;
                   });
                 },
                 onProgressChanged:
