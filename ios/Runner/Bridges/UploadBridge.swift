@@ -10,6 +10,10 @@ class UploadBridge: NSObject, UploadApi, URLSessionDataDelegate {
     private static let maxBodyBytes = 64 * 1024
     private static let progressInterval: TimeInterval = 0.25
 
+    /// Terminal results by task id, kept until Dart stops asking for them in
+    /// `restore`. Tasks can finish while no Flutter handler is attached.
+    private static let resultsKey = "openlist.upload.results"
+
     var eventAPI: UploadEventApi?
 
     /// Completion handler passed to handleEventsForBackgroundURLSession.
@@ -67,6 +71,39 @@ class UploadBridge: NSObject, UploadApi, URLSessionDataDelegate {
         // Tasks restored after a relaunch are not in the map.
         session.getAllTasks { all in
             all.first { $0.taskDescription == id }?.cancel()
+        }
+    }
+
+    func restore(ids: [String], completion: @escaping (Result<[UploadEvent], Error>) -> Void) {
+        let wanted = Set(ids)
+        session.getAllTasks { [weak self] all in
+            guard let self = self else { return }
+            // The serial delegate queue runs any completion already queued
+            // first, so a finished task is found in the stored results.
+            self.delegateQueue.addOperation {
+                var stored = UserDefaults.standard.dictionary(forKey: Self.resultsKey) ?? [:]
+                // Results Dart no longer asks for were already handled.
+                stored = stored.filter { wanted.contains($0.key) }
+                UserDefaults.standard.set(stored, forKey: Self.resultsKey)
+
+                var events: [UploadEvent] = []
+                var live: [String: URLSessionTask] = [:]
+                for task in all {
+                    guard let id = task.taskDescription, wanted.contains(id), stored[id] == nil else { continue }
+                    live[id] = task
+                    // Later progress and the result arrive through the delegate.
+                    events.append(UploadEvent(
+                        id: id, state: .running, sent: task.countOfBytesSent,
+                        total: max(task.countOfBytesExpectedToSend, 0), httpStatus: 0))
+                }
+                for (id, value) in stored {
+                    if let event = Self.decodeResult(id: id, value) { events.append(event) }
+                }
+                DispatchQueue.main.async {
+                    live.forEach { self.tasks[$0.key] = $0.value }
+                    completion(.success(events))
+                }
+            }
         }
     }
 
@@ -128,9 +165,34 @@ class UploadBridge: NSObject, UploadApi, URLSessionDataDelegate {
         let event = UploadEvent(
             id: id, state: state, sent: sent, total: total, httpStatus: status, body: body, error: error)
         let finished = state == .completed || state == .failed || state == .canceled
+        if finished { Self.storeResult(event) }
         DispatchQueue.main.async { [weak self] in
             if finished { self?.tasks.removeValue(forKey: id) }
             self?.eventAPI?.onUploadEvent(event: event) { _ in }
         }
+    }
+
+    // MARK: - Stored results (delegate queue)
+
+    private static func storeResult(_ event: UploadEvent) {
+        var stored = UserDefaults.standard.dictionary(forKey: resultsKey) ?? [:]
+        var value: [String: Any] = [
+            "state": event.state.rawValue, "sent": event.sent, "total": event.total, "status": event.httpStatus,
+        ]
+        if let body = event.body { value["body"] = body }
+        if let error = event.error { value["error"] = error }
+        stored[event.id] = value
+        UserDefaults.standard.set(stored, forKey: resultsKey)
+    }
+
+    private static func decodeResult(id: String, _ value: Any) -> UploadEvent? {
+        guard let dict = value as? [String: Any],
+              let raw = (dict["state"] as? NSNumber)?.intValue,
+              let state = UploadEventState(rawValue: raw)
+        else { return nil }
+        func int64(_ key: String) -> Int64 { (dict[key] as? NSNumber)?.int64Value ?? 0 }
+        return UploadEvent(
+            id: id, state: state, sent: int64("sent"), total: int64("total"), httpStatus: int64("status"),
+            body: dict["body"] as? String, error: dict["error"] as? String)
     }
 }
