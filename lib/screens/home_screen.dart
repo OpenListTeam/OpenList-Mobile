@@ -2,9 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated_api.dart';
+import 'package:openlist_mobile/main.dart';
+import 'package:openlist_mobile/screens/storages_screen.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:openlist_mobile/widgets/server_status_card.dart';
 import 'package:openlist_mobile/widgets/cards.dart';
@@ -24,6 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   ServerStatus? _status;
   String _mode = 'local';
+  List<Storage> _storages = [];
+  bool _loadingStorages = false;
 
   @override
   void initState() {
@@ -44,8 +49,34 @@ class _HomeScreenState extends State<HomeScreen> {
           _mode = mode;
         });
       }
+
+      // Load storages if connected
+      if (_session.isConnected) {
+        await _loadStorages();
+      }
     } catch (e) {
       debugPrint('Failed to load home data: $e');
+    }
+  }
+
+  Future<void> _loadStorages() async {
+    if (_loadingStorages) return;
+
+    setState(() => _loadingStorages = true);
+
+    try {
+      final storages = await _session.admin.listStorages();
+      if (mounted) {
+        setState(() {
+          _storages = storages;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to load storages: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _loadingStorages = false);
+      }
     }
   }
 
@@ -180,8 +211,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: 'Recent',
                     subtitle: 'Files',
                     onTap: () {
-                      // Navigate to files with recent filter
-                      Get.find<_MainNavigationController>().setPageIndex(1);
+                      // Navigate to files tab
+                      Get.find<MainNavigationController>().setPageIndex(1);
                     },
                   ),
                   QuickAccessItem(
@@ -189,7 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: 'Favorites',
                     subtitle: 'Folders',
                     onTap: () {
-                      // Navigate to favorites
+                      // Navigate to files tab
+                      Get.find<MainNavigationController>().setPageIndex(1);
                     },
                   ),
                   QuickAccessItem(
@@ -197,7 +229,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: 'Photos',
                     subtitle: 'All images',
                     onTap: () {
-                      // Navigate to photos
+                      // Navigate to files tab
+                      Get.find<MainNavigationController>().setPageIndex(1);
                     },
                   ),
                   QuickAccessItem(
@@ -205,7 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: 'Videos',
                     subtitle: 'All videos',
                     onTap: () {
-                      // Navigate to videos
+                      // Navigate to files tab
+                      Get.find<MainNavigationController>().setPageIndex(1);
                     },
                   ),
                 ],
@@ -233,8 +267,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      // Navigate to storages page
-                      Get.find<_MainNavigationController>().setPageIndex(3);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const StoragesScreen(),
+                        ),
+                      );
                     },
                     child: const Text('See All'),
                   ),
@@ -242,17 +280,74 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Storage cards (placeholder - will load from API)
-            StorageCard(
-              name: 'Local Storage',
-              type: 'Local',
-              status: 'work',
-              usedBytes: 5 * 1024 * 1024 * 1024, // 5 GB
-              totalBytes: 20 * 1024 * 1024 * 1024, // 20 GB
-              onTap: () {
-                // Navigate to this storage
-              },
-            ),
+            // Storage cards - show real storages or empty state
+            if (_loadingStorages)
+              const Padding(
+                padding: EdgeInsets.all(AppDesign.space32),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_storages.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppDesign.space16),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppDesign.space32),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.storage,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                        ),
+                        const SizedBox(height: AppDesign.space16),
+                        Text(
+                          'No storages configured',
+                          style: AppDesign.body1.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AppDesign.space8),
+                        Text(
+                          'Add a storage to manage files',
+                          style: AppDesign.body2,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppDesign.space16),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const StoragesScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text('Add Storage'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              ..._storages.take(3).map((storage) => Padding(
+                padding: const EdgeInsets.only(bottom: AppDesign.space12),
+                child: StorageCard(
+                  name: storage.mountPath,
+                  type: storage.driver,
+                  status: storage.status,
+                  usedBytes: 0,
+                  totalBytes: 0,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const StoragesScreen(),
+                      ),
+                    );
+                  },
+                ),
+              )),
 
             const SizedBox(height: AppDesign.space16),
           ],
@@ -361,11 +456,3 @@ class _ModeOption extends StatelessWidget {
   }
 }
 
-/// Main navigation controller (needed for quick access navigation)
-class _MainNavigationController extends GetxController {
-  final selectedIndex = 0.obs;
-
-  void setPageIndex(int index) {
-    selectedIndex.value = index;
-  }
-}

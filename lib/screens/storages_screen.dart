@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/pages/native/storage_edit_page.dart';
 import 'package:openlist_mobile/widgets/cards.dart';
 
 /// Storages management screen
@@ -99,7 +100,12 @@ class _StoragesScreenState extends State<StoragesScreen> {
   }
 
   void _showAddStorageDialog() {
-    Get.snackbar('Info', 'Add storage functionality coming soon');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const StorageEditPage(),
+      ),
+    ).then((_) => _loadStorages());
   }
 
   void _showStorageDetails(Storage storage) {
@@ -114,7 +120,12 @@ class _StoragesScreenState extends State<StoragesScreen> {
         },
         onEdit: () {
           Navigator.pop(context);
-          Get.snackbar('Info', 'Edit storage functionality coming soon');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StorageEditPage(storage: storage),
+            ),
+          ).then((_) => _loadStorages());
         },
         onToggle: () async {
           Navigator.pop(context);
@@ -353,6 +364,15 @@ class _StorageDetailsSheet extends StatelessWidget {
               subtitle: Text(storage.remark),
             ),
           const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.folder_open),
+            title: const Text('Browse Files'),
+            onTap: () {
+              Navigator.pop(context);
+              // Navigate to files screen filtered by this storage
+              Get.snackbar('Info', 'Browse functionality coming soon');
+            },
+          ),
           ListTile(
             leading: Icon(
               storage.disabled ? Icons.toggle_off : Icons.toggle_on,

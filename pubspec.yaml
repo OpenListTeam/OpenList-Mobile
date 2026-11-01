@@ -57,6 +57,8 @@ dependencies:
   flutter_highlight: ^0.7.0
   flutter_smooth_markdown: ^0.1.5
   flutter_secure_storage: ^9.2.4
+  package_info_plus: ^8.0.0
+  url_launcher: ^6.3.0
 
 
 dev_dependencies:

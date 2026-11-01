@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
 
 /// Transfers screen showing uploads and downloads
@@ -12,17 +14,28 @@ class TransfersScreen extends StatefulWidget {
 class _TransfersScreenState extends State<TransfersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final _uploadQueue = UploadQueue.instance;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+
+    // Listen to upload queue changes
+    _uploadQueue.addListener(_onQueueUpdate);
   }
 
   @override
   void dispose() {
+    _uploadQueue.removeListener(_onQueueUpdate);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onQueueUpdate() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -42,19 +55,25 @@ class _TransfersScreenState extends State<TransfersScreen>
             onSelected: (value) {
               switch (value) {
                 case 'pause_all':
-                  // TODO: Pause all
+                  // Pause is handled per-item
+                  Get.snackbar('Info', 'Pause individual transfers');
                   break;
                 case 'resume_all':
-                  // TODO: Resume all
+                  // Resume all failed/canceled uploads
+                  for (final job in _uploadQueue.jobs) {
+                    if (job.state == UploadState.failed ||
+                        job.state == UploadState.canceled) {
+                      _uploadQueue.retry(job);
+                    }
+                  }
                   break;
                 case 'clear_completed':
-                  // TODO: Clear completed
+                  _uploadQueue.clearFinished();
                   break;
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'pause_all', child: Text('Pause All')),
-              const PopupMenuItem(value: 'resume_all', child: Text('Resume All')),
+              const PopupMenuItem(value: 'resume_all', child: Text('Retry Failed')),
               const PopupMenuItem(value: 'clear_completed', child: Text('Clear Completed')),
             ],
           ),
@@ -63,8 +82,8 @@ class _TransfersScreenState extends State<TransfersScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _UploadsTab(),
-          _DownloadsTab(),
+          _UploadsTab(uploadQueue: _uploadQueue),
+          const _DownloadsTab(),
         ],
       ),
     );
@@ -72,13 +91,17 @@ class _TransfersScreenState extends State<TransfersScreen>
 }
 
 class _UploadsTab extends StatelessWidget {
+  const _UploadsTab({required this.uploadQueue});
+
+  final UploadQueue uploadQueue;
+
   @override
   Widget build(BuildContext context) {
-    // TODO: Connect to actual upload queue
-    final hasUploads = false;
+    final jobs = uploadQueue.jobs;
+    final hasUploads = jobs.isNotEmpty;
 
     if (!hasUploads) {
-      return _EmptyView(
+      return const _EmptyView(
         icon: Icons.upload,
         message: 'No uploads',
         description: 'Upload files from the Files screen',
@@ -87,52 +110,66 @@ class _UploadsTab extends StatelessWidget {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: AppDesign.space16),
-      itemCount: 5, // Placeholder
+      itemCount: jobs.length,
       itemBuilder: (context, index) {
+        final job = jobs[index];
         return _TransferCard(
-          name: 'Example File $index.jpg',
-          progress: (index * 20) / 100,
-          speed: '2.5 MB/s',
-          status: index == 0 ? 'Uploading' : 'Waiting',
+          key: ValueKey(job),
+          name: job.name,
+          progress: job.progress ?? 0.0,
+          speed: _formatSpeed(job),
+          status: _formatStatus(job),
           type: _TransferType.upload,
-          onPause: () {},
-          onResume: () {},
-          onCancel: () {},
+          state: job.state,
+          onPause: () {
+            uploadQueue.cancel(job);
+          },
+          onResume: () {
+            uploadQueue.retry(job);
+          },
+          onCancel: () {
+            uploadQueue.cancel(job);
+          },
         );
       },
     );
   }
+
+  String _formatSpeed(UploadJob job) {
+    if (job.state == UploadState.running && job.progress != null) {
+      // Estimate speed (this is simplified, real implementation would track time)
+      return 'Uploading...';
+    }
+    return '';
+  }
+
+  String _formatStatus(UploadJob job) {
+    switch (job.state) {
+      case UploadState.queued:
+        return 'Waiting';
+      case UploadState.running:
+        final progress = job.progress ?? 0.0;
+        return '${(progress * 100).toStringAsFixed(0)}%';
+      case UploadState.succeeded:
+        return 'Completed';
+      case UploadState.failed:
+        return 'Failed';
+      case UploadState.canceled:
+        return 'Canceled';
+    }
+  }
 }
 
 class _DownloadsTab extends StatelessWidget {
+  const _DownloadsTab();
+
   @override
   Widget build(BuildContext context) {
-    // TODO: Connect to actual download manager
-    final hasDownloads = false;
-
-    if (!hasDownloads) {
-      return _EmptyView(
-        icon: Icons.download,
-        message: 'No downloads',
-        description: 'Downloaded files will appear here',
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: AppDesign.space16),
-      itemCount: 3, // Placeholder
-      itemBuilder: (context, index) {
-        return _TransferCard(
-          name: 'Downloaded File $index.pdf',
-          progress: 1.0,
-          speed: 'Completed',
-          status: 'Completed',
-          type: _TransferType.download,
-          onPause: () {},
-          onResume: () {},
-          onCancel: () {},
-        );
-      },
+    // Downloads not yet implemented
+    return const _EmptyView(
+      icon: Icons.download,
+      message: 'No downloads',
+      description: 'Downloaded files will appear here',
     );
   }
 }
@@ -179,15 +216,17 @@ class _EmptyView extends StatelessWidget {
   }
 }
 
-enum _TransferType { upload, download }
+enum _TransferType { upload }
 
 class _TransferCard extends StatelessWidget {
   const _TransferCard({
+    super.key,
     required this.name,
     required this.progress,
     required this.speed,
     required this.status,
     required this.type,
+    required this.state,
     required this.onPause,
     required this.onResume,
     required this.onCancel,
@@ -198,6 +237,7 @@ class _TransferCard extends StatelessWidget {
   final String speed;
   final String status;
   final _TransferType type;
+  final UploadState state;
   final VoidCallback onPause;
   final VoidCallback onResume;
   final VoidCallback onCancel;
@@ -205,8 +245,10 @@ class _TransferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isCompleted = progress >= 1.0;
-    final isActive = progress > 0 && progress < 1.0;
+    final isCompleted = state == UploadState.succeeded;
+    final isActive = state == UploadState.running;
+    final isFailed = state == UploadState.failed;
+    final isCanceled = state == UploadState.canceled;
 
     return Card(
       margin: const EdgeInsets.symmetric(
@@ -222,7 +264,11 @@ class _TransferCard extends StatelessWidget {
               children: [
                 Icon(
                   type == _TransferType.upload ? Icons.upload : Icons.download,
-                  color: AppDesign.primaryBlue,
+                  color: isCompleted
+                      ? AppDesign.successGreen
+                      : (isFailed || isCanceled)
+                          ? AppDesign.errorRed
+                          : AppDesign.primaryBlue,
                   size: 20,
                 ),
                 const SizedBox(width: AppDesign.space12),
@@ -243,25 +289,29 @@ class _TransferCard extends StatelessWidget {
                     color: AppDesign.successGreen,
                     size: 20,
                   )
+                else if (isFailed || isCanceled)
+                  IconButton(
+                    icon: const Icon(Icons.refresh, size: 20),
+                    onPressed: onResume,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Retry',
+                  )
                 else if (isActive)
                   IconButton(
                     icon: const Icon(Icons.pause_circle, size: 20),
                     onPressed: onPause,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                  )
-                else
-                  IconButton(
-                    icon: const Icon(Icons.play_circle, size: 20),
-                    onPressed: onResume,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                    tooltip: 'Cancel',
                   ),
+                const SizedBox(width: AppDesign.space8),
                 IconButton(
                   icon: const Icon(Icons.close, size: 20),
                   onPressed: onCancel,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
+                  tooltip: 'Remove',
                 ),
               ],
             ),
@@ -274,7 +324,11 @@ class _TransferCard extends StatelessWidget {
                 backgroundColor:
                     isDark ? AppDesign.borderDark : AppDesign.borderLight,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  isCompleted ? AppDesign.successGreen : AppDesign.primaryBlue,
+                  isCompleted
+                      ? AppDesign.successGreen
+                      : (isFailed || isCanceled)
+                          ? AppDesign.errorRed
+                          : AppDesign.primaryBlue,
                 ),
               ),
             ),
@@ -288,12 +342,13 @@ class _TransferCard extends StatelessWidget {
                     color: isDark ? Colors.white70 : Colors.black54,
                   ),
                 ),
-                Text(
-                  speed,
-                  style: AppDesign.caption.copyWith(
-                    color: isDark ? Colors.white70 : Colors.black54,
+                if (speed.isNotEmpty)
+                  Text(
+                    speed,
+                    style: AppDesign.caption.copyWith(
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
                   ),
-                ),
               ],
             ),
           ],

@@ -66,6 +66,7 @@ class _FilesScreenState extends State<FilesScreen> {
           return _ErrorView(
             message: _controller.error.value,
             onRetry: _controller.loadFiles,
+            onConnect: _controller.handleConnect,
           );
         }
 
@@ -273,13 +274,22 @@ class _GridView extends StatelessWidget {
 }
 
 class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
+  const _ErrorView({
+    required this.message,
+    required this.onRetry,
+    required this.onConnect,
+  });
 
   final String message;
   final VoidCallback onRetry;
+  final VoidCallback onConnect;
 
   @override
   Widget build(BuildContext context) {
+    final isConnectionError = message.contains('not connected') ||
+                              message.contains('not running') ||
+                              message.contains('Connection refused');
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDesign.space32),
@@ -287,13 +297,13 @@ class _ErrorView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.error_outline,
+              isConnectionError ? Icons.cloud_off : Icons.error_outline,
               size: 64,
               color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
-              'Failed to load files',
+              isConnectionError ? 'Not Connected' : 'Failed to load files',
               style: AppDesign.headline3,
               textAlign: TextAlign.center,
             ),
@@ -304,7 +314,15 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDesign.space24),
-            ElevatedButton(
+            if (isConnectionError) ...[
+              ElevatedButton.icon(
+                onPressed: onConnect,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Connect to Server'),
+              ),
+              const SizedBox(height: AppDesign.space12),
+            ],
+            OutlinedButton(
               onPressed: onRetry,
               child: const Text('Retry'),
             ),
@@ -486,20 +504,21 @@ class _FilesController extends GetxController {
   }
 
   Future<void> loadFiles() async {
-    if (!_session.isConnected) {
-      error.value = 'Not connected to server';
-      return;
-    }
-
     isLoading.value = true;
     error.value = '';
 
     try {
+      // Try to connect if not connected
+      if (!_session.isConnected) {
+        await _session.connectLocal();
+      }
+
       final result = await _session.fs.list(currentPath.value);
       files.value = result.content;
       _sortFiles();
     } catch (e) {
       error.value = e.toString();
+      debugPrint('Failed to load files: $e');
     } finally {
       isLoading.value = false;
     }
@@ -633,5 +652,22 @@ class _FilesController extends GetxController {
 
   Future<void> copySelected() async {
     Get.snackbar('Info', 'Copy functionality coming soon');
+  }
+
+  Future<void> handleConnect() async {
+    try {
+      isLoading.value = true;
+      error.value = '';
+
+      await _session.connectLocal();
+      await loadFiles();
+
+      Get.snackbar('Success', 'Connected to server');
+    } catch (e) {
+      error.value = 'Failed to connect: $e';
+      Get.snackbar('Error', 'Failed to connect to server');
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

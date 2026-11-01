@@ -4,10 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/pages/native/users_page.dart';
+import 'package:openlist_mobile/pages/native/tls_page.dart';
+import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
 import 'package:openlist_mobile/screens/storages_screen.dart';
 import 'package:openlist_mobile/screens/server_detail_screen.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:openlist_mobile/utils/language_manager.dart';
+import 'package:openlist_mobile/utils/theme_controller.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Settings screen
 class SettingsScreen extends StatelessWidget {
@@ -109,12 +115,16 @@ class SettingsScreen extends StatelessWidget {
 
           // Appearance section
           _SectionHeader(title: 'Appearance'),
-          _SettingsTile(
-            icon: Icons.brightness_6,
-            title: 'Theme',
-            subtitle: 'System default',
-            onTap: () {
-              _showThemeSelector(context);
+          GetBuilder<ThemeController>(
+            builder: (themeController) {
+              return _SettingsTile(
+                icon: Icons.brightness_6,
+                title: 'Theme',
+                subtitle: themeController.getThemeName(),
+                onTap: () {
+                  _showThemeSelector(context);
+                },
+              );
             },
           ),
           _SettingsTile(
@@ -126,6 +136,55 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           const SizedBox(height: AppDesign.space24),
+
+          // Admin section (only if admin)
+          if (session.user?.isAdmin ?? false) ...[
+            _SectionHeader(title: 'Administration'),
+            _SettingsTile(
+              icon: Icons.people,
+              title: 'User Management',
+              subtitle: 'Manage users and permissions',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UsersPage()),
+                );
+              },
+            ),
+            _SettingsTile(
+              icon: Icons.storage,
+              title: 'Storage Management',
+              subtitle: 'Configure storage backends',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StoragesScreen()),
+                );
+              },
+            ),
+            if (Platform.isAndroid) ...[
+              _SettingsTile(
+                icon: Icons.security,
+                title: 'TLS Certificates',
+                subtitle: 'Manage SSL/TLS certificates',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TlsPage()),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.lock,
+                title: 'Change Admin Password',
+                subtitle: 'Update server admin password',
+                onTap: () async {
+                  await AdminPassword.showEditor(context);
+                },
+              ),
+            ],
+            const SizedBox(height: AppDesign.space24),
+          ],
 
           // Cache section
           _SectionHeader(title: 'Cache'),
@@ -141,12 +200,18 @@ class SettingsScreen extends StatelessWidget {
 
           // About section
           _SectionHeader(title: 'About'),
-          _SettingsTile(
-            icon: Icons.info_outline,
-            title: 'Version',
-            subtitle: '4.2.9',
-            onTap: () {
-              _showAboutDialog(context);
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              final version = snapshot.data?.version ?? '...';
+              return _SettingsTile(
+                icon: Icons.info_outline,
+                title: 'Version',
+                subtitle: version,
+                onTap: () {
+                  _showAboutDialog(context);
+                },
+              );
             },
           ),
           _SettingsTile(
@@ -160,9 +225,13 @@ class SettingsScreen extends StatelessWidget {
             icon: Icons.link,
             title: 'GitHub Repository',
             subtitle: 'github.com/OpenListTeam/OpenList',
-            onTap: () {
-              // TODO: Open URL
-              Get.snackbar('Info', 'Opening GitHub...');
+            onTap: () async {
+              final url = Uri.parse('https://github.com/OpenListTeam/OpenList');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              } else {
+                Get.snackbar('Error', 'Could not open URL');
+              }
             },
           ),
 
@@ -180,6 +249,9 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showThemeSelector(BuildContext context) {
+    final themeController = Get.find<ThemeController>();
+    final currentMode = themeController.themeMode;
+
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -190,25 +262,34 @@ class SettingsScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.brightness_auto),
               title: const Text('System Default'),
-              onTap: () {
+              trailing: currentMode == ThemeMode.system
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () async {
+                await themeController.changeTheme(ThemeMode.system);
                 Navigator.pop(context);
-                // TODO: Set theme to system
               },
             ),
             ListTile(
               leading: const Icon(Icons.light_mode),
               title: const Text('Light'),
-              onTap: () {
+              trailing: currentMode == ThemeMode.light
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () async {
+                await themeController.changeTheme(ThemeMode.light);
                 Navigator.pop(context);
-                // TODO: Set theme to light
               },
             ),
             ListTile(
               leading: const Icon(Icons.dark_mode),
               title: const Text('Dark'),
-              onTap: () {
+              trailing: currentMode == ThemeMode.dark
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () async {
+                await themeController.changeTheme(ThemeMode.dark);
                 Navigator.pop(context);
-                // TODO: Set theme to dark
               },
             ),
           ],
@@ -273,12 +354,28 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  void _showAboutDialog(BuildContext context) {
+  void _showAboutDialog(BuildContext context) async {
+    final packageInfo = await PackageInfo.fromPlatform();
+
+    if (!context.mounted) return;
+
     showAboutDialog(
       context: context,
       applicationName: 'OpenList',
-      applicationVersion: '4.2.9',
-      applicationIcon: const FlutterLogo(size: 48),
+      applicationVersion: packageInfo.version,
+      applicationIcon: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: AppDesign.primaryBlue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          Icons.folder_open,
+          size: 40,
+          color: AppDesign.primaryBlue,
+        ),
+      ),
       children: [
         const SizedBox(height: AppDesign.space16),
         const Text(

@@ -7,8 +7,6 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/loopback_http.dart';
-import 'package:openlist_mobile/api/native_upload.dart';
-import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
@@ -18,18 +16,20 @@ import 'package:openlist_mobile/screens/home_screen.dart';
 import 'package:openlist_mobile/screens/files_screen.dart';
 import 'package:openlist_mobile/screens/transfers_screen.dart';
 import 'package:openlist_mobile/screens/settings_screen.dart';
+import 'package:openlist_mobile/screens/splash_screen.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:openlist_mobile/utils/notification_manager.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
+import 'package:openlist_mobile/utils/theme_controller.dart';
 import 'package:openlist_mobile/utils/web_browser_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = LoopbackHttpOverrides();
-  unawaited(NativeUploader.instance.restore());
 
-  // Initialize language controller
+  // Initialize controllers
   Get.put(LanguageController());
+  Get.put(ThemeController());
 
   await WebBrowserManager.instance.initialize();
 
@@ -68,23 +68,31 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<LanguageController>(
       builder: (languageController) {
-        Locale? appLocale = languageController.locale;
+        return GetBuilder<ThemeController>(
+          builder: (themeController) {
+            Locale? appLocale = languageController.locale;
 
-        return GetMaterialApp(
-          title: 'OpenList',
-          themeMode: ThemeMode.system,
-          theme: AppDesign.lightTheme(),
-          darkTheme: AppDesign.darkTheme(),
-          locale: appLocale,
-          fallbackLocale: const Locale('en'),
-          supportedLocales: S.delegate.supportedLocales,
-          localizationsDelegates: const [
-            S.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          home: const MainNavigationScreen(),
+            return GetMaterialApp(
+              title: 'OpenList',
+              themeMode: themeController.themeMode,
+              theme: AppDesign.lightTheme(),
+              darkTheme: AppDesign.darkTheme(),
+              locale: appLocale,
+              fallbackLocale: const Locale('en'),
+              supportedLocales: S.delegate.supportedLocales,
+              localizationsDelegates: const [
+                S.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              initialRoute: '/splash',
+              getPages: [
+                GetPage(name: '/splash', page: () => const SplashScreen()),
+                GetPage(name: '/', page: () => const MainNavigationScreen()),
+              ],
+            );
+          },
         );
       },
     );
@@ -153,21 +161,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
 class MainNavigationController extends GetxController {
   final selectedIndex = 0.obs;
-  final _session = OpenListSession.instance;
 
   void setPageIndex(int index) {
     selectedIndex.value = index;
   }
 
   Future<void> initialize() async {
-    // Restore session
-    try {
-      await _session.restore();
-    } catch (e) {
-      debugPrint('Failed to restore session: $e');
-    }
-
-    // Post-frame initialization
+    // Post-frame initialization (session already restored in splash)
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       // Prompt for admin password on first launch
       unawaited(AdminPassword.promptOnFirstLaunch());
