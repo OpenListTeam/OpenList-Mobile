@@ -118,7 +118,7 @@ class _FilesPageState extends State<FilesPage> {
       setState(() => _result = res);
     } on ApiException catch (e) {
       if (!mounted) return;
-      if (e.code == 403 && await _askPassword(path)) return;
+      if (e.isPasswordRequired && await _askPassword(path)) return;
       _error = e;
     } catch (e) {
       _error = e;

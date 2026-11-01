@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 
+import 'loopback_http.dart';
+
 /// Error returned by the OpenList API envelope or the transport.
 class ApiException implements Exception {
   ApiException(this.code, this.message);
@@ -12,6 +14,11 @@ class ApiException implements Exception {
   final String message;
 
   bool get isUnauthorized => code == 401;
+
+  /// fs/list and fs/get answer a missing or wrong folder password with this
+  /// 403 message; other 403s (path escape, refresh denied) are plain errors.
+  bool get isPasswordRequired =>
+      code == 403 && message.toLowerCase().contains('password');
 
   @override
   String toString() => 'ApiException($code): $message';
@@ -52,13 +59,12 @@ class OpenListClient {
   /// talking to the loopback interface.
   static void _allowLoopbackSelfSigned(Dio dio) {
     final uri = Uri.tryParse(dio.options.baseUrl);
-    if (uri == null || uri.scheme != 'https') return;
-    final host = uri.host;
-    if (host != '127.0.0.1' && host != 'localhost' && host != '::1') return;
+    if (uri == null || uri.scheme != 'https' || !isLoopbackHost(uri.host)) {
+      return;
+    }
     dio.httpClientAdapter = IOHttpClientAdapter(createHttpClient: () {
       return HttpClient()
-        ..badCertificateCallback = (_, h, __) =>
-            h == '127.0.0.1' || h == 'localhost' || h == '::1';
+        ..badCertificateCallback = (_, h, __) => isLoopbackHost(h);
     });
   }
 

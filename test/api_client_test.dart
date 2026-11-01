@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openlist_mobile/api/admin_api.dart';
 import 'package:openlist_mobile/api/fs_api.dart';
+import 'package:openlist_mobile/api/loopback_http.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/openlist_client.dart';
 import 'package:openlist_mobile/api/session.dart';
@@ -198,5 +199,24 @@ void main() {
         'https://127.0.0.1:5245');
     expect(OpenListSession.localBaseUrl(s(-1, 5245, false)),
         'https://127.0.0.1:5245');
+  });
+
+  test('loopback hosts are recognised', () {
+    for (final h in ['127.0.0.1', '127.8.0.1', 'localhost', '::1']) {
+      expect(isLoopbackHost(h), isTrue, reason: h);
+    }
+    for (final h in ['192.168.1.2', 'example.com', '10.0.0.1']) {
+      expect(isLoopbackHost(h), isFalse, reason: h);
+    }
+  });
+
+  test('only password 403s ask for a folder password', () {
+    expect(
+        ApiException(403, 'password is incorrect or you have no permission')
+            .isPasswordRequired,
+        isTrue);
+    expect(ApiException(403, 'Refresh without permission').isPasswordRequired,
+        isFalse);
+    expect(ApiException(500, 'password').isPasswordRequired, isFalse);
   });
 }
