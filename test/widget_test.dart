@@ -1,30 +1,71 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
+import 'package:openlist_mobile/generated_api.dart';
+import 'package:openlist_mobile/pages/native/files_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:openlist_mobile/main.dart';
+const _prefix = 'dev.flutter.pigeon.openlist_mobile.ServerApi.';
+
+/// Answers ServerApi Pigeon calls the way a host with a stopped core would.
+void _mockServerApi(List<String> calls) {
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  const codec = ServerApi.pigeonChannelCodec;
+  for (final name in ['getStatus', 'start', 'getLocalToken']) {
+    messenger.setMockMessageHandler('$_prefix$name', (data) async {
+      calls.add(name);
+      final Object? reply = switch (name) {
+        'getStatus' => ServerStatus(
+            running: false,
+            mode: 'local',
+            httpPort: 5244,
+            httpsPort: -1,
+            forceHttps: false,
+            addresses: const [],
+            manuallyStopped: true,
+          ),
+        'getLocalToken' => '',
+        _ => null,
+      };
+      return codec.encodeMessage(<Object?>[reply]);
+    });
+  }
+}
+
+Widget _app() => GetMaterialApp(
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
+      locale: const Locale('en'),
+      home: const FilesPage(),
+    );
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() => SharedPreferences.setMockInitialValues({}));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('files page offers to start a stopped local core',
+      (tester) async {
+    final calls = <String>[];
+    _mockServerApi(calls);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    expect(find.text(S.current.serverNotRunning), findsOneWidget);
+    expect(calls, contains('getStatus'));
+
+    await tester.tap(find.text(S.current.startServer));
+    await tester.pumpAndSettle();
+    expect(calls, contains('start'));
   });
 }
