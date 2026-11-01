@@ -72,6 +72,20 @@ public class GeneratedApi {
   @Retention(CLASS)
   @interface CanIgnoreReturnValue {}
 
+  public enum UploadEventState {
+    ENQUEUED(0),
+    RUNNING(1),
+    COMPLETED(2),
+    FAILED(3),
+    CANCELED(4);
+
+    final int index;
+
+    UploadEventState(final int index) {
+      this.index = index;
+    }
+  }
+
   /**
    * Snapshot of the embedded server. On Android it is produced by the
    * independent server process and delivered over IPC.
@@ -665,6 +679,388 @@ public class GeneratedApi {
     }
   }
 
+  /**
+   * One file upload handed to the platform's background transfer service.
+   *
+   * Generated class from Pigeon that represents data sent in messages.
+   */
+  public static final class UploadRequest {
+    private @NonNull String url;
+
+    public @NonNull String getUrl() {
+      return url;
+    }
+
+    public void setUrl(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"url\" is null.");
+      }
+      this.url = setterArg;
+    }
+
+    private @NonNull String method;
+
+    public @NonNull String getMethod() {
+      return method;
+    }
+
+    public void setMethod(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"method\" is null.");
+      }
+      this.method = setterArg;
+    }
+
+    /** Local file streamed as the request body; reopened on each attempt. */
+    private @NonNull String filePath;
+
+    public @NonNull String getFilePath() {
+      return filePath;
+    }
+
+    public void setFilePath(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"filePath\" is null.");
+      }
+      this.filePath = setterArg;
+    }
+
+    /** Sent as-is; the platform sets Content-Length from the file size. */
+    private @NonNull Map<String, String> headers;
+
+    public @NonNull Map<String, String> getHeaders() {
+      return headers;
+    }
+
+    public void setHeaders(@NonNull Map<String, String> setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"headers\" is null.");
+      }
+      this.headers = setterArg;
+    }
+
+    /** Shown in the system notification where there is one. */
+    private @NonNull String title;
+
+    public @NonNull String getTitle() {
+      return title;
+    }
+
+    public void setTitle(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"title\" is null.");
+      }
+      this.title = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    UploadRequest() {}
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+      UploadRequest that = (UploadRequest) o;
+      return url.equals(that.url) && method.equals(that.method) && filePath.equals(that.filePath) && headers.equals(that.headers) && title.equals(that.title);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(url, method, filePath, headers, title);
+    }
+
+    public static final class Builder {
+
+      private @Nullable String url;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setUrl(@NonNull String setterArg) {
+        this.url = setterArg;
+        return this;
+      }
+
+      private @Nullable String method;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setMethod(@NonNull String setterArg) {
+        this.method = setterArg;
+        return this;
+      }
+
+      private @Nullable String filePath;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setFilePath(@NonNull String setterArg) {
+        this.filePath = setterArg;
+        return this;
+      }
+
+      private @Nullable Map<String, String> headers;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setHeaders(@NonNull Map<String, String> setterArg) {
+        this.headers = setterArg;
+        return this;
+      }
+
+      private @Nullable String title;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setTitle(@NonNull String setterArg) {
+        this.title = setterArg;
+        return this;
+      }
+
+      public @NonNull UploadRequest build() {
+        UploadRequest pigeonReturn = new UploadRequest();
+        pigeonReturn.setUrl(url);
+        pigeonReturn.setMethod(method);
+        pigeonReturn.setFilePath(filePath);
+        pigeonReturn.setHeaders(headers);
+        pigeonReturn.setTitle(title);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<>(5);
+      toListResult.add(url);
+      toListResult.add(method);
+      toListResult.add(filePath);
+      toListResult.add(headers);
+      toListResult.add(title);
+      return toListResult;
+    }
+
+    static @NonNull UploadRequest fromList(@NonNull ArrayList<Object> pigeonVar_list) {
+      UploadRequest pigeonResult = new UploadRequest();
+      Object url = pigeonVar_list.get(0);
+      pigeonResult.setUrl((String) url);
+      Object method = pigeonVar_list.get(1);
+      pigeonResult.setMethod((String) method);
+      Object filePath = pigeonVar_list.get(2);
+      pigeonResult.setFilePath((String) filePath);
+      Object headers = pigeonVar_list.get(3);
+      pigeonResult.setHeaders((Map<String, String>) headers);
+      Object title = pigeonVar_list.get(4);
+      pigeonResult.setTitle((String) title);
+      return pigeonResult;
+    }
+  }
+
+  /**
+   * Progress or result of a native upload. `completed` means the HTTP
+   * exchange finished; Dart decides success from [httpStatus] and [body].
+   *
+   * Generated class from Pigeon that represents data sent in messages.
+   */
+  public static final class UploadEvent {
+    private @NonNull String id;
+
+    public @NonNull String getId() {
+      return id;
+    }
+
+    public void setId(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"id\" is null.");
+      }
+      this.id = setterArg;
+    }
+
+    private @NonNull UploadEventState state;
+
+    public @NonNull UploadEventState getState() {
+      return state;
+    }
+
+    public void setState(@NonNull UploadEventState setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"state\" is null.");
+      }
+      this.state = setterArg;
+    }
+
+    private @NonNull Long sent;
+
+    public @NonNull Long getSent() {
+      return sent;
+    }
+
+    public void setSent(@NonNull Long setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"sent\" is null.");
+      }
+      this.sent = setterArg;
+    }
+
+    private @NonNull Long total;
+
+    public @NonNull Long getTotal() {
+      return total;
+    }
+
+    public void setTotal(@NonNull Long setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"total\" is null.");
+      }
+      this.total = setterArg;
+    }
+
+    private @NonNull Long httpStatus;
+
+    public @NonNull Long getHttpStatus() {
+      return httpStatus;
+    }
+
+    public void setHttpStatus(@NonNull Long setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"httpStatus\" is null.");
+      }
+      this.httpStatus = setterArg;
+    }
+
+    private @Nullable String body;
+
+    public @Nullable String getBody() {
+      return body;
+    }
+
+    public void setBody(@Nullable String setterArg) {
+      this.body = setterArg;
+    }
+
+    private @Nullable String error;
+
+    public @Nullable String getError() {
+      return error;
+    }
+
+    public void setError(@Nullable String setterArg) {
+      this.error = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    UploadEvent() {}
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+      UploadEvent that = (UploadEvent) o;
+      return id.equals(that.id) && state.equals(that.state) && sent.equals(that.sent) && total.equals(that.total) && httpStatus.equals(that.httpStatus) && Objects.equals(body, that.body) && Objects.equals(error, that.error);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(id, state, sent, total, httpStatus, body, error);
+    }
+
+    public static final class Builder {
+
+      private @Nullable String id;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setId(@NonNull String setterArg) {
+        this.id = setterArg;
+        return this;
+      }
+
+      private @Nullable UploadEventState state;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setState(@NonNull UploadEventState setterArg) {
+        this.state = setterArg;
+        return this;
+      }
+
+      private @Nullable Long sent;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setSent(@NonNull Long setterArg) {
+        this.sent = setterArg;
+        return this;
+      }
+
+      private @Nullable Long total;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setTotal(@NonNull Long setterArg) {
+        this.total = setterArg;
+        return this;
+      }
+
+      private @Nullable Long httpStatus;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setHttpStatus(@NonNull Long setterArg) {
+        this.httpStatus = setterArg;
+        return this;
+      }
+
+      private @Nullable String body;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setBody(@Nullable String setterArg) {
+        this.body = setterArg;
+        return this;
+      }
+
+      private @Nullable String error;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setError(@Nullable String setterArg) {
+        this.error = setterArg;
+        return this;
+      }
+
+      public @NonNull UploadEvent build() {
+        UploadEvent pigeonReturn = new UploadEvent();
+        pigeonReturn.setId(id);
+        pigeonReturn.setState(state);
+        pigeonReturn.setSent(sent);
+        pigeonReturn.setTotal(total);
+        pigeonReturn.setHttpStatus(httpStatus);
+        pigeonReturn.setBody(body);
+        pigeonReturn.setError(error);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<>(7);
+      toListResult.add(id);
+      toListResult.add(state);
+      toListResult.add(sent);
+      toListResult.add(total);
+      toListResult.add(httpStatus);
+      toListResult.add(body);
+      toListResult.add(error);
+      return toListResult;
+    }
+
+    static @NonNull UploadEvent fromList(@NonNull ArrayList<Object> pigeonVar_list) {
+      UploadEvent pigeonResult = new UploadEvent();
+      Object id = pigeonVar_list.get(0);
+      pigeonResult.setId((String) id);
+      Object state = pigeonVar_list.get(1);
+      pigeonResult.setState((UploadEventState) state);
+      Object sent = pigeonVar_list.get(2);
+      pigeonResult.setSent((Long) sent);
+      Object total = pigeonVar_list.get(3);
+      pigeonResult.setTotal((Long) total);
+      Object httpStatus = pigeonVar_list.get(4);
+      pigeonResult.setHttpStatus((Long) httpStatus);
+      Object body = pigeonVar_list.get(5);
+      pigeonResult.setBody((String) body);
+      Object error = pigeonVar_list.get(6);
+      pigeonResult.setError((String) error);
+      return pigeonResult;
+    }
+  }
+
   private static class PigeonCodec extends StandardMessageCodec {
     public static final PigeonCodec INSTANCE = new PigeonCodec();
 
@@ -673,12 +1069,20 @@ public class GeneratedApi {
     @Override
     protected Object readValueOfType(byte type, @NonNull ByteBuffer buffer) {
       switch (type) {
-        case (byte) 129:
-          return ServerStatus.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 129: {
+          Object value = readValue(buffer);
+          return value == null ? null : UploadEventState.values()[((Long) value).intValue()];
+        }
         case (byte) 130:
-          return LogEntry.fromList((ArrayList<Object>) readValue(buffer));
+          return ServerStatus.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 131:
+          return LogEntry.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 132:
           return BackgroundDiagnostics.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 133:
+          return UploadRequest.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 134:
+          return UploadEvent.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
       }
@@ -686,15 +1090,24 @@ public class GeneratedApi {
 
     @Override
     protected void writeValue(@NonNull ByteArrayOutputStream stream, Object value) {
-      if (value instanceof ServerStatus) {
+      if (value instanceof UploadEventState) {
         stream.write(129);
+        writeValue(stream, value == null ? null : ((UploadEventState) value).index);
+      } else if (value instanceof ServerStatus) {
+        stream.write(130);
         writeValue(stream, ((ServerStatus) value).toList());
       } else if (value instanceof LogEntry) {
-        stream.write(130);
+        stream.write(131);
         writeValue(stream, ((LogEntry) value).toList());
       } else if (value instanceof BackgroundDiagnostics) {
-        stream.write(131);
+        stream.write(132);
         writeValue(stream, ((BackgroundDiagnostics) value).toList());
+      } else if (value instanceof UploadRequest) {
+        stream.write(133);
+        writeValue(stream, ((UploadRequest) value).toList());
+      } else if (value instanceof UploadEvent) {
+        stream.write(134);
+        writeValue(stream, ((UploadEvent) value).toList());
       } else {
         super.writeValue(stream, value);
       }
@@ -1817,6 +2230,113 @@ public class GeneratedApi {
           channel.setMessageHandler(null);
         }
       }
+    }
+  }
+  /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
+  public interface UploadApi {
+    /** Starts a background upload and returns its id. */
+    @NonNull 
+    String enqueue(@NonNull UploadRequest request);
+
+    void cancel(@NonNull String id);
+
+    /** The codec used by UploadApi. */
+    static @NonNull MessageCodec<Object> getCodec() {
+      return PigeonCodec.INSTANCE;
+    }
+    /**Sets up an instance of `UploadApi` to handle messages through the `binaryMessenger`. */
+    static void setUp(@NonNull BinaryMessenger binaryMessenger, @Nullable UploadApi api) {
+      setUp(binaryMessenger, "", api);
+    }
+    static void setUp(@NonNull BinaryMessenger binaryMessenger, @NonNull String messageChannelSuffix, @Nullable UploadApi api) {
+      messageChannelSuffix = messageChannelSuffix.isEmpty() ? "" : "." + messageChannelSuffix;
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.UploadApi.enqueue" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                UploadRequest requestArg = (UploadRequest) args.get(0);
+                try {
+                  String output = api.enqueue(requestArg);
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.UploadApi.cancel" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String idArg = (String) args.get(0);
+                try {
+                  api.cancel(idArg);
+                  wrapped.add(0, null);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+    }
+  }
+  /** Generated class from Pigeon that represents Flutter messages that can be called from Java. */
+  public static class UploadEventApi {
+    private final @NonNull BinaryMessenger binaryMessenger;
+    private final String messageChannelSuffix;
+
+    public UploadEventApi(@NonNull BinaryMessenger argBinaryMessenger) {
+      this(argBinaryMessenger, "");
+    }
+    public UploadEventApi(@NonNull BinaryMessenger argBinaryMessenger, @NonNull String messageChannelSuffix) {
+      this.binaryMessenger = argBinaryMessenger;
+      this.messageChannelSuffix = messageChannelSuffix.isEmpty() ? "" : "." + messageChannelSuffix;
+    }
+
+    /**
+     * Public interface for sending reply.
+     * The codec used by UploadEventApi.
+     */
+    static @NonNull MessageCodec<Object> getCodec() {
+      return PigeonCodec.INSTANCE;
+    }
+    public void onUploadEvent(@NonNull UploadEvent eventArg, @NonNull VoidResult result) {
+      final String channelName = "dev.flutter.pigeon.openlist_mobile.UploadEventApi.onUploadEvent" + messageChannelSuffix;
+      BasicMessageChannel<Object> channel =
+          new BasicMessageChannel<>(
+              binaryMessenger, channelName, getCodec());
+      channel.send(
+          new ArrayList<>(Collections.singletonList(eventArg)),
+          channelReply -> {
+            if (channelReply instanceof List) {
+              List<Object> listReply = (List<Object>) channelReply;
+              if (listReply.size() > 1) {
+                result.error(new FlutterError((String) listReply.get(0), (String) listReply.get(1), listReply.get(2)));
+              } else {
+                result.success();
+              }
+            }  else {
+              result.error(createConnectionError(channelName));
+            } 
+          });
     }
   }
   /** Generated class from Pigeon that represents Flutter messages that can be called from Java. */

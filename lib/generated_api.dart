@@ -39,6 +39,14 @@ bool _deepEquals(Object? a, Object? b) {
 }
 
 
+enum UploadEventState {
+  enqueued,
+  running,
+  completed,
+  failed,
+  canceled,
+}
+
 /// Snapshot of the embedded server. On Android it is produced by the
 /// independent server process and delivered over IPC.
 class ServerStatus {
@@ -246,6 +254,144 @@ class BackgroundDiagnostics {
 ;
 }
 
+/// One file upload handed to the platform's background transfer service.
+class UploadRequest {
+  UploadRequest({
+    required this.url,
+    required this.method,
+    required this.filePath,
+    required this.headers,
+    required this.title,
+  });
+
+  String url;
+
+  String method;
+
+  /// Local file streamed as the request body; reopened on each attempt.
+  String filePath;
+
+  /// Sent as-is; the platform sets Content-Length from the file size.
+  Map<String, String> headers;
+
+  /// Shown in the system notification where there is one.
+  String title;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      url,
+      method,
+      filePath,
+      headers,
+      title,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static UploadRequest decode(Object result) {
+    result as List<Object?>;
+    return UploadRequest(
+      url: result[0]! as String,
+      method: result[1]! as String,
+      filePath: result[2]! as String,
+      headers: (result[3] as Map<Object?, Object?>?)!.cast<String, String>(),
+      title: result[4]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! UploadRequest || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(encode(), other.encode());
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => Object.hashAll(_toList())
+;
+}
+
+/// Progress or result of a native upload. `completed` means the HTTP
+/// exchange finished; Dart decides success from [httpStatus] and [body].
+class UploadEvent {
+  UploadEvent({
+    required this.id,
+    required this.state,
+    required this.sent,
+    required this.total,
+    required this.httpStatus,
+    this.body,
+    this.error,
+  });
+
+  String id;
+
+  UploadEventState state;
+
+  int sent;
+
+  int total;
+
+  int httpStatus;
+
+  String? body;
+
+  String? error;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      id,
+      state,
+      sent,
+      total,
+      httpStatus,
+      body,
+      error,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static UploadEvent decode(Object result) {
+    result as List<Object?>;
+    return UploadEvent(
+      id: result[0]! as String,
+      state: result[1]! as UploadEventState,
+      sent: result[2]! as int,
+      total: result[3]! as int,
+      httpStatus: result[4]! as int,
+      body: result[5] as String?,
+      error: result[6] as String?,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! UploadEvent || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(encode(), other.encode());
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => Object.hashAll(_toList())
+;
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -254,14 +400,23 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is ServerStatus) {
+    }    else if (value is UploadEventState) {
       buffer.putUint8(129);
-      writeValue(buffer, value.encode());
-    }    else if (value is LogEntry) {
+      writeValue(buffer, value.index);
+    }    else if (value is ServerStatus) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is BackgroundDiagnostics) {
+    }    else if (value is LogEntry) {
       buffer.putUint8(131);
+      writeValue(buffer, value.encode());
+    }    else if (value is BackgroundDiagnostics) {
+      buffer.putUint8(132);
+      writeValue(buffer, value.encode());
+    }    else if (value is UploadRequest) {
+      buffer.putUint8(133);
+      writeValue(buffer, value.encode());
+    }    else if (value is UploadEvent) {
+      buffer.putUint8(134);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -272,11 +427,18 @@ class _PigeonCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 129: 
-        return ServerStatus.decode(readValue(buffer)!);
+        final int? value = readValue(buffer) as int?;
+        return value == null ? null : UploadEventState.values[value];
       case 130: 
-        return LogEntry.decode(readValue(buffer)!);
+        return ServerStatus.decode(readValue(buffer)!);
       case 131: 
+        return LogEntry.decode(readValue(buffer)!);
+      case 132: 
         return BackgroundDiagnostics.decode(readValue(buffer)!);
+      case 133: 
+        return UploadRequest.decode(readValue(buffer)!);
+      case 134: 
+        return UploadEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -1397,6 +1559,107 @@ class BackgroundApi {
       );
     } else {
       return (pigeonVar_replyList[0] as bool?)!;
+    }
+  }
+}
+
+class UploadApi {
+  /// Constructor for [UploadApi].  The [binaryMessenger] named argument is
+  /// available for dependency injection.  If it is left null, the default
+  /// BinaryMessenger will be used which routes to the host platform.
+  UploadApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+      : pigeonVar_binaryMessenger = binaryMessenger,
+        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  final BinaryMessenger? pigeonVar_binaryMessenger;
+
+  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
+
+  final String pigeonVar_messageChannelSuffix;
+
+  /// Starts a background upload and returns its id.
+  Future<String> enqueue(UploadRequest request) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.openlist_mobile.UploadApi.enqueue$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[request]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as String?)!;
+    }
+  }
+
+  Future<void> cancel(String id) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.openlist_mobile.UploadApi.cancel$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[id]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+}
+
+abstract class UploadEventApi {
+  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
+
+  void onUploadEvent(UploadEvent event);
+
+  static void setUp(UploadEventApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
+    messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.openlist_mobile.UploadEventApi.onUploadEvent$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.openlist_mobile.UploadEventApi.onUploadEvent was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final UploadEvent? arg_event = (args[0] as UploadEvent?);
+          assert(arg_event != null,
+              'Argument for dev.flutter.pigeon.openlist_mobile.UploadEventApi.onUploadEvent was null, expected non-null UploadEvent.');
+          try {
+            api.onUploadEvent(arg_event!);
+            return wrapResponse(empty: true);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
     }
   }
 }

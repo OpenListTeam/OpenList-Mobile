@@ -132,6 +132,14 @@ func deepHashPigeonApi(value: Any?, hasher: inout Hasher) {
 
     
 
+enum UploadEventState: Int {
+  case enqueued = 0
+  case running = 1
+  case completed = 2
+  case failed = 3
+  case canceled = 4
+}
+
 /// Snapshot of the embedded server. On Android it is produced by the
 /// independent server process and delivered over IPC.
 ///
@@ -276,15 +284,123 @@ struct BackgroundDiagnostics: Hashable {
   }
 }
 
+/// One file upload handed to the platform's background transfer service.
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct UploadRequest: Hashable {
+  var url: String
+  var method: String
+  /// Local file streamed as the request body; reopened on each attempt.
+  var filePath: String
+  /// Sent as-is; the platform sets Content-Length from the file size.
+  var headers: [String: String]
+  /// Shown in the system notification where there is one.
+  var title: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> UploadRequest? {
+    let url = pigeonVar_list[0] as! String
+    let method = pigeonVar_list[1] as! String
+    let filePath = pigeonVar_list[2] as! String
+    let headers = pigeonVar_list[3] as! [String: String]
+    let title = pigeonVar_list[4] as! String
+
+    return UploadRequest(
+      url: url,
+      method: method,
+      filePath: filePath,
+      headers: headers,
+      title: title
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      url,
+      method,
+      filePath,
+      headers,
+      title,
+    ]
+  }
+  static func == (lhs: UploadRequest, rhs: UploadRequest) -> Bool {
+    return deepEqualsPigeonApi(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashPigeonApi(value: toList(), hasher: &hasher)
+  }
+}
+
+/// Progress or result of a native upload. `completed` means the HTTP
+/// exchange finished; Dart decides success from [httpStatus] and [body].
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct UploadEvent: Hashable {
+  var id: String
+  var state: UploadEventState
+  var sent: Int64
+  var total: Int64
+  var httpStatus: Int64
+  var body: String? = nil
+  var error: String? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> UploadEvent? {
+    let id = pigeonVar_list[0] as! String
+    let state = pigeonVar_list[1] as! UploadEventState
+    let sent = pigeonVar_list[2] as! Int64
+    let total = pigeonVar_list[3] as! Int64
+    let httpStatus = pigeonVar_list[4] as! Int64
+    let body: String? = nilOrValue(pigeonVar_list[5])
+    let error: String? = nilOrValue(pigeonVar_list[6])
+
+    return UploadEvent(
+      id: id,
+      state: state,
+      sent: sent,
+      total: total,
+      httpStatus: httpStatus,
+      body: body,
+      error: error
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      id,
+      state,
+      sent,
+      total,
+      httpStatus,
+      body,
+      error,
+    ]
+  }
+  static func == (lhs: UploadEvent, rhs: UploadEvent) -> Bool {
+    return deepEqualsPigeonApi(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashPigeonApi(value: toList(), hasher: &hasher)
+  }
+}
+
 private class PigeonApiPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
     case 129:
-      return ServerStatus.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return UploadEventState(rawValue: enumResultAsInt)
+      }
+      return nil
     case 130:
-      return LogEntry.fromList(self.readValue() as! [Any?])
+      return ServerStatus.fromList(self.readValue() as! [Any?])
     case 131:
+      return LogEntry.fromList(self.readValue() as! [Any?])
+    case 132:
       return BackgroundDiagnostics.fromList(self.readValue() as! [Any?])
+    case 133:
+      return UploadRequest.fromList(self.readValue() as! [Any?])
+    case 134:
+      return UploadEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -293,14 +409,23 @@ private class PigeonApiPigeonCodecReader: FlutterStandardReader {
 
 private class PigeonApiPigeonCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
-    if let value = value as? ServerStatus {
+    if let value = value as? UploadEventState {
       super.writeByte(129)
-      super.writeValue(value.toList())
-    } else if let value = value as? LogEntry {
+      super.writeValue(value.rawValue)
+    } else if let value = value as? ServerStatus {
       super.writeByte(130)
       super.writeValue(value.toList())
-    } else if let value = value as? BackgroundDiagnostics {
+    } else if let value = value as? LogEntry {
       super.writeByte(131)
+      super.writeValue(value.toList())
+    } else if let value = value as? BackgroundDiagnostics {
+      super.writeByte(132)
+      super.writeValue(value.toList())
+    } else if let value = value as? UploadRequest {
+      super.writeByte(133)
+      super.writeValue(value.toList())
+    } else if let value = value as? UploadEvent {
+      super.writeByte(134)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -988,6 +1113,85 @@ class BackgroundApiSetup {
       }
     } else {
       openAppDetailsSettingsChannel.setMessageHandler(nil)
+    }
+  }
+}
+/// Generated protocol from Pigeon that represents a handler of messages from Flutter.
+protocol UploadApi {
+  /// Starts a background upload and returns its id.
+  func enqueue(request: UploadRequest) throws -> String
+  func cancel(id: String) throws
+}
+
+/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
+class UploadApiSetup {
+  static var codec: FlutterStandardMessageCodec { PigeonApiPigeonCodec.shared }
+  /// Sets up an instance of `UploadApi` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: UploadApi?, messageChannelSuffix: String = "") {
+    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    /// Starts a background upload and returns its id.
+    let enqueueChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.UploadApi.enqueue\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      enqueueChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let requestArg = args[0] as! UploadRequest
+        do {
+          let result = try api.enqueue(request: requestArg)
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      enqueueChannel.setMessageHandler(nil)
+    }
+    let cancelChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.UploadApi.cancel\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      cancelChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let idArg = args[0] as! String
+        do {
+          try api.cancel(id: idArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      cancelChannel.setMessageHandler(nil)
+    }
+  }
+}
+/// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
+protocol UploadEventApiProtocol {
+  func onUploadEvent(event eventArg: UploadEvent, completion: @escaping (Result<Void, PigeonError>) -> Void)
+}
+class UploadEventApi: UploadEventApiProtocol {
+  private let binaryMessenger: FlutterBinaryMessenger
+  private let messageChannelSuffix: String
+  init(binaryMessenger: FlutterBinaryMessenger, messageChannelSuffix: String = "") {
+    self.binaryMessenger = binaryMessenger
+    self.messageChannelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+  }
+  var codec: PigeonApiPigeonCodec {
+    return PigeonApiPigeonCodec.shared
+  }
+  func onUploadEvent(event eventArg: UploadEvent, completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.openlist_mobile.UploadEventApi.onUploadEvent\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([eventArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(()))
+      }
     }
   }
 }

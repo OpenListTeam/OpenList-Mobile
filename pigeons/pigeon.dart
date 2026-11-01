@@ -170,6 +170,64 @@ abstract class BackgroundApi {
   bool openAppDetailsSettings();
 }
 
+/// One file upload handed to the platform's background transfer service.
+class UploadRequest {
+  UploadRequest({
+    required this.url,
+    required this.method,
+    required this.filePath,
+    required this.headers,
+    required this.title,
+  });
+
+  String url;
+  String method;
+
+  /// Local file streamed as the request body; reopened on each attempt.
+  String filePath;
+
+  /// Sent as-is; the platform sets Content-Length from the file size.
+  Map<String, String> headers;
+
+  /// Shown in the system notification where there is one.
+  String title;
+}
+
+enum UploadEventState { enqueued, running, completed, failed, canceled }
+
+/// Progress or result of a native upload. `completed` means the HTTP
+/// exchange finished; Dart decides success from [httpStatus] and [body].
+class UploadEvent {
+  UploadEvent({
+    required this.id,
+    required this.state,
+    required this.sent,
+    required this.total,
+    required this.httpStatus,
+  });
+
+  String id;
+  UploadEventState state;
+  int sent;
+  int total;
+  int httpStatus;
+  String? body;
+  String? error;
+}
+
+@HostApi()
+abstract class UploadApi {
+  /// Starts a background upload and returns its id.
+  String enqueue(UploadRequest request);
+
+  void cancel(String id);
+}
+
+@FlutterApi()
+abstract class UploadEventApi {
+  void onUploadEvent(UploadEvent event);
+}
+
 @FlutterApi()
 abstract class Event {
   void onServiceStatusChanged(bool isRunning);
