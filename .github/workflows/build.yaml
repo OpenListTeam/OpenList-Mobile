@@ -14,6 +14,12 @@ on:
 
   workflow_dispatch:
 
+# A new push to a PR supersedes its running build; main builds always finish
+# so TestFlight uploads are never cut off.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   version:
     name: Get OpenList Version Information
