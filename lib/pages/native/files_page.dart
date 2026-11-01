@@ -18,6 +18,8 @@ import 'common.dart';
 import 'connect_page.dart';
 import 'file_preview_page.dart';
 import 'folder_picker_page.dart';
+import 'offline_download_dialog.dart';
+import 'search_page.dart';
 import 'storages_page.dart';
 import 'tasks_page.dart';
 import 'uploads_page.dart';
@@ -296,6 +298,10 @@ class _FilesPageState extends State<FilesPage> {
         Get.to(() => const TasksPage());
       case 'uploads':
         Get.to(() => const UploadsPage());
+      case 'offline':
+        showOfflineDownloadDialog(context, _path).then((ok) {
+          if (ok) Get.to(() => const TasksPage());
+        });
       case 'storages':
         Get.to(() => const StoragesPage())?.then((_) => _open(_path));
       case 'connection':
@@ -303,6 +309,19 @@ class _FilesPageState extends State<FilesPage> {
       case 'web':
         Get.to(() => WebScreen(key: webGlobalKey));
     }
+  }
+
+  /// Offline downloads need the permission bit unless the user is admin.
+  bool get _canOffline {
+    final u = _session.user;
+    if (u == null) return false;
+    return u.isAdmin || (u.permission >> UserPerm.offlineDownload) & 1 == 1;
+  }
+
+  Future<void> _search() async {
+    final dir = await Get.to<String>(
+        () => SearchPage(parent: _path, password: _passwordFor(_path)));
+    if (dir != null && mounted) unawaited(_open(dir));
   }
 
   IconData _icon(FsObject o) {
@@ -336,6 +355,12 @@ class _FilesPageState extends State<FilesPage> {
           actions: [
             if (connected)
               IconButton(
+                tooltip: S.of(context).search,
+                icon: const Icon(Icons.search),
+                onPressed: _search,
+              ),
+            if (connected)
+              IconButton(
                 tooltip: S.of(context).refresh,
                 icon: const Icon(Icons.refresh),
                 onPressed: () => _open(_path, refresh: true),
@@ -351,6 +376,8 @@ class _FilesPageState extends State<FilesPage> {
               itemBuilder: (_) => [
                 if (connected) PopupMenuItem(value: 'tasks', child: Text(S.current.tasks)),
                 PopupMenuItem(value: 'uploads', child: Text(S.current.uploads)),
+                if (canWrite && _canOffline)
+                  PopupMenuItem(value: 'offline', child: Text(S.current.offlineDownload)),
                 if (connected && (_session.user?.isAdmin ?? false))
                   PopupMenuItem(value: 'storages', child: Text(S.current.storages)),
                 PopupMenuItem(value: 'connection', child: Text(S.current.connection)),
