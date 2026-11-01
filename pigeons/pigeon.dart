@@ -221,6 +221,13 @@ abstract class UploadApi {
   String enqueue(UploadRequest request);
 
   void cancel(String id);
+
+  /// Current state of each known job in [ids], used after a relaunch.
+  /// Unfinished jobs resume sending events. Ids the platform no longer knows
+  /// are left out of the result; results kept for ids not in [ids] are
+  /// dropped, so Dart passes every id it still tracks.
+  @async
+  List<UploadEvent> restore(List<String> ids);
 }
 
 @FlutterApi()

@@ -2239,6 +2239,13 @@ public class GeneratedApi {
     String enqueue(@NonNull UploadRequest request);
 
     void cancel(@NonNull String id);
+    /**
+     * Current state of each known job in [ids], used after a relaunch.
+     * Unfinished jobs resume sending events. Ids the platform no longer knows
+     * are left out of the result; results kept for ids not in [ids] are
+     * dropped, so Dart passes every id it still tracks.
+     */
+    void restore(@NonNull List<String> ids, @NonNull Result<List<UploadEvent>> result);
 
     /** The codec used by UploadApi. */
     static @NonNull MessageCodec<Object> getCodec() {
@@ -2291,6 +2298,35 @@ public class GeneratedApi {
                   wrapped = wrapError(exception);
                 }
                 reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.UploadApi.restore" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                List<String> idsArg = (List<String>) args.get(0);
+                Result<List<UploadEvent>> resultCallback =
+                    new Result<List<UploadEvent>>() {
+                      public void success(List<UploadEvent> result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.restore(idsArg, resultCallback);
               });
         } else {
           channel.setMessageHandler(null);

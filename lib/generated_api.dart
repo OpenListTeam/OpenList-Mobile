@@ -1627,6 +1627,38 @@ class UploadApi {
       return;
     }
   }
+
+  /// Current state of each known job in [ids], used after a relaunch.
+  /// Unfinished jobs resume sending events. Ids the platform no longer knows
+  /// are left out of the result; results kept for ids not in [ids] are
+  /// dropped, so Dart passes every id it still tracks.
+  Future<List<UploadEvent>> restore(List<String> ids) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.openlist_mobile.UploadApi.restore$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[ids]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as List<Object?>?)!.cast<UploadEvent>();
+    }
+  }
 }
 
 abstract class UploadEventApi {

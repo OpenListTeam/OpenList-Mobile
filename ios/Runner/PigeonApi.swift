@@ -1121,6 +1121,11 @@ protocol UploadApi {
   /// Starts a background upload and returns its id.
   func enqueue(request: UploadRequest) throws -> String
   func cancel(id: String) throws
+  /// Current state of each known job in [ids], used after a relaunch.
+  /// Unfinished jobs resume sending events. Ids the platform no longer knows
+  /// are left out of the result; results kept for ids not in [ids] are
+  /// dropped, so Dart passes every id it still tracks.
+  func restore(ids: [String], completion: @escaping (Result<[UploadEvent], Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -1159,6 +1164,27 @@ class UploadApiSetup {
       }
     } else {
       cancelChannel.setMessageHandler(nil)
+    }
+    /// Current state of each known job in [ids], used after a relaunch.
+    /// Unfinished jobs resume sending events. Ids the platform no longer knows
+    /// are left out of the result; results kept for ids not in [ids] are
+    /// dropped, so Dart passes every id it still tracks.
+    let restoreChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.UploadApi.restore\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      restoreChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let idsArg = args[0] as! [String]
+        api.restore(ids: idsArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      restoreChannel.setMessageHandler(nil)
     }
   }
 }
