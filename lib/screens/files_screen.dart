@@ -21,6 +21,18 @@ class _FilesScreenState extends State<FilesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Obx(() {
+          // Show back button when not at root
+          if (_controller.currentPath.value != '/') {
+            return IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: _controller.navigateUp,
+            );
+          }
+          // Return empty SizedBox when at root
+          return const SizedBox.shrink();
+        }),
+        automaticallyImplyLeading: _controller.currentPath.value != '/',
         title: Obx(() => _Breadcrumb(path: _controller.currentPath.value)),
         actions: [
           Obx(() => IconButton(
