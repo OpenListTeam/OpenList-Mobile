@@ -1,7 +1,13 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
+import 'package:openlist_mobile/api/native_upload.dart';
+import 'package:openlist_mobile/api/openlist_client.dart';
 import 'package:openlist_mobile/api/session.dart';
+import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/folder_picker_page.dart';
@@ -627,8 +633,65 @@ class _FilesController extends GetxController {
   }
 
   Future<void> pickAndUploadFiles(FilePickType type) async {
-    // TODO: Implement file picker and upload
-    Get.snackbar(S.current.info, S.current.uploadFunctionalityComingSoon);
+    try {
+      final picked = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: switch (type) {
+          FilePickType.image => FileType.image,
+          FilePickType.video => FileType.video,
+          FilePickType.any => FileType.any,
+        },
+      );
+
+      if (picked == null || picked.files.isEmpty) {
+        return;
+      }
+
+      final dir = currentPath.value;
+      final fs = _session.fs;
+
+      // Queue upload jobs for each selected file
+      UploadQueue.instance.addAll([
+        for (final f in picked.files)
+          if (f.path != null)
+            UploadJob(
+              name: f.name,
+              dir: dir,
+              size: f.size,
+              run: (token, onProgress) {
+                final dstPath = OpenListClient.join(dir, f.name);
+                return NativeUploader.instance.upload(
+                  fs.client,
+                  filePath: f.path!,
+                  dstPath: dstPath,
+                  title: f.name,
+                  dir: dir,
+                  size: f.size,
+                  password: '',
+                  onProgress: onProgress,
+                  cancelToken: token,
+                  fallback: () async {
+                    final file = File(f.path!);
+                    await fs.upload(
+                      dstPath,
+                      file.openRead(),
+                      await file.length(),
+                      password: '',
+                      onProgress: onProgress,
+                      cancelToken: token,
+                    );
+                  },
+                );
+              },
+            ),
+      ]);
+
+      Get.snackbar(S.current.info,
+          '${S.current.uploading} ${picked.files.length} ${S.current.files}');
+    } catch (e) {
+      Get.snackbar(S.current.error, S.current.uploadFailed);
+      debugPrint('File picker failed: $e');
+    }
   }
 
   Future<void> deleteSelected() async {
