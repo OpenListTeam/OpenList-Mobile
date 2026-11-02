@@ -12,6 +12,7 @@ import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/file_preview_page.dart';
 import 'package:openlist_mobile/pages/native/folder_picker_page.dart';
+import 'package:openlist_mobile/pages/native/search_page.dart';
 import 'package:openlist_mobile/widgets/file_items.dart';
 
 /// Files browser screen with list/grid view modes
@@ -51,8 +52,16 @@ class _FilesScreenState extends State<FilesScreen> {
               )),
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Navigate to search
+            onPressed: () async {
+              // Navigate to search and handle result
+              final result = await Get.to<String>(
+                () => SearchPage(parent: _controller.currentPath.value),
+              );
+              // If a folder was selected from search, navigate to it
+              if (result != null) {
+                _controller.currentPath.value = result;
+                await _controller.loadFiles();
+              }
             },
           ),
           PopupMenuButton<String>(
