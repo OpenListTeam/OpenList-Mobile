@@ -917,9 +917,63 @@ class _FilesController extends GetxController {
                 copyFileLink(file);
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: Text(S.current.rename),
+              onTap: () {
+                Navigator.pop(ctx);
+                renameFile(context, file);
+              },
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> renameFile(BuildContext context, FsObject file) async {
+    final nameController = TextEditingController(text: file.name);
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.current.rename),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(
+            labelText: S.current.newName,
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(S.current.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              final name = nameController.text.trim();
+              Navigator.pop(ctx, name.isNotEmpty ? name : null);
+            },
+            child: Text(S.current.rename),
+          ),
+        ],
+      ),
+    );
+
+    if (newName == null || newName == file.name) return;
+
+    try {
+      final filePath = currentPath.value == '/'
+          ? '/${file.name}'
+          : '${currentPath.value}/${file.name}';
+
+      await _session.fs.rename(filePath, newName);
+      await loadFiles();
+      Get.snackbar(S.current.success, S.current.operationDone);
+    } catch (e) {
+      Get.snackbar(S.current.error, 'Failed to rename: ${e.toString()}');
+      debugPrint('Rename failed: $e');
+    }
   }
 }
