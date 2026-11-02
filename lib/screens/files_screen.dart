@@ -379,7 +379,7 @@ class _EmptyView extends StatelessWidget {
             Icon(
               Icons.folder_open,
               size: 64,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
@@ -415,7 +415,7 @@ class _BatchActionBar extends StatelessWidget {
         color: Theme.of(context).colorScheme.primaryContainer,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
