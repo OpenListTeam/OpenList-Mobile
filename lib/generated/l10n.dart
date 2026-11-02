@@ -504,6 +504,11 @@ class S {
     return Intl.message('下载失败', name: 'downloadFailed', desc: '', args: []);
   }
 
+  /// `下载已开始`
+  String get downloadStarted {
+    return Intl.message('下载已开始', name: 'downloadStarted', desc: '', args: []);
+  }
+
   /// `开始时间`
   String get startTime {
     return Intl.message('开始时间', name: 'startTime', desc: '', args: []);

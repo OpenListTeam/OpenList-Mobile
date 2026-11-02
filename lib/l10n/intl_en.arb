@@ -66,6 +66,7 @@
   "loadDownloadFilesFailed": "Failed to load download files",
   "noActiveDownloads": "No active downloads",
   "downloadFailed": "Download failed",
+  "downloadStarted": "Download started",
   "startTime": "Start time",
   "noCompletedDownloads": "No completed downloads",
   "completedTime": "Completed time",

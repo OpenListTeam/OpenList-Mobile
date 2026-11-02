@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/native_upload.dart';
@@ -13,6 +14,7 @@ import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/file_preview_page.dart';
 import 'package:openlist_mobile/pages/native/folder_picker_page.dart';
 import 'package:openlist_mobile/pages/native/search_page.dart';
+import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:openlist_mobile/widgets/file_items.dart';
 
 /// Files browser screen with list/grid view modes
@@ -255,15 +257,31 @@ class _ListView extends StatelessWidget {
         final file = controller.files[index];
         final isSelected = controller.selectedFiles.contains(file.name);
 
-        return FileListItem(
-          name: file.name,
-          isDirectory: file.isDir,
-          size: file.size,
-          modified: file.modified,
-          thumbnail: file.thumb,
-          selected: isSelected,
-          onTap: () => controller.onFileTap(file),
-          onLongPress: () => controller.toggleSelection(file.name),
+        return Material(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: FileListItem(
+                    name: file.name,
+                    isDirectory: file.isDir,
+                    size: file.size,
+                    modified: file.modified,
+                    thumbnail: file.thumb,
+                    selected: isSelected,
+                    onTap: () => controller.onFileTap(file),
+                    onLongPress: () => controller.toggleSelection(file.name),
+                  ),
+                ),
+                if (!file.isDir)
+                  IconButton(
+                    icon: const Icon(Icons.more_vert, size: 20),
+                    onPressed: () => controller.showFileActions(context, file),
+                  ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -816,5 +834,92 @@ class _FilesController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Get the download URL for a file, fetching fresh sign if needed
+  Future<String> _getFileUrl(FsObject file) async {
+    final filePath = currentPath.value == '/'
+        ? '/${file.name}'
+        : '${currentPath.value}/${file.name}';
+
+    // fs/get returns raw_url and a fresh sign; list entries may lack both
+    final full = await _session.fs.get(filePath);
+    return full.rawUrl.isNotEmpty
+        ? full.rawUrl
+        : _session.fs.downloadUrl(filePath, sign: full.sign);
+  }
+
+  Future<void> downloadFile(FsObject file) async {
+    if (file.isDir) return;
+
+    try {
+      final url = await _getFileUrl(file);
+      await DownloadManager.downloadFileWithProgress(
+        url: url,
+        filename: file.name,
+      );
+      Get.snackbar(S.current.success, S.current.downloadStarted);
+    } catch (e) {
+      Get.snackbar(S.current.error, S.current.downloadFailed);
+      debugPrint('Download failed: $e');
+    }
+  }
+
+  Future<void> copyFileLink(FsObject file) async {
+    if (file.isDir) return;
+
+    try {
+      final url = await _getFileUrl(file);
+      await Clipboard.setData(ClipboardData(text: url));
+      Get.snackbar(S.current.success, S.current.copiedToClipboard);
+    } catch (e) {
+      Get.snackbar(S.current.error, 'Failed to copy link');
+      debugPrint('Copy link failed: $e');
+    }
+  }
+
+  void showFileActions(BuildContext context, FsObject file) {
+    if (file.isDir) return;
+
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(file.name, maxLines: 2, overflow: TextOverflow.ellipsis),
+              dense: true,
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.preview),
+              title: Text(S.current.preview),
+              onTap: () {
+                Navigator.pop(ctx);
+                onFileTap(file);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.download),
+              title: Text(S.current.download),
+              onTap: () {
+                Navigator.pop(ctx);
+                downloadFile(file);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: Text(S.current.copyLink),
+              onTap: () {
+                Navigator.pop(ctx);
+                copyFileLink(file);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

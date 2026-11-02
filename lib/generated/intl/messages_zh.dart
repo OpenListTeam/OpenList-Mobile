@@ -372,6 +372,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "downloadProgressChannel": MessageLookupByLibrary.simpleMessage("下载进度"),
     "downloadProgressDesc": MessageLookupByLibrary.simpleMessage("显示文件下载进度"),
     "downloadRecordsCleared": MessageLookupByLibrary.simpleMessage("已清空下载记录"),
+    "downloadStarted": MessageLookupByLibrary.simpleMessage("下载已开始"),
     "downloadThisFile": MessageLookupByLibrary.simpleMessage("下载此文件吗？"),
     "downloadedFilesWillAppearHere": MessageLookupByLibrary.simpleMessage(
       "下载的文件将显示在这里",

@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('OpenList'),
+        title: Text(S.current.appName),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),

@@ -475,6 +475,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "downloadRecordsCleared": MessageLookupByLibrary.simpleMessage(
       "Download records cleared",
     ),
+    "downloadStarted": MessageLookupByLibrary.simpleMessage("Download started"),
     "downloadThisFile": MessageLookupByLibrary.simpleMessage(
       "Download this file？",
     ),
