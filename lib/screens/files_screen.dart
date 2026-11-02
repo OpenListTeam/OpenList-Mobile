@@ -10,6 +10,7 @@ import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
+import 'package:openlist_mobile/pages/native/file_preview_page.dart';
 import 'package:openlist_mobile/pages/native/folder_picker_page.dart';
 import 'package:openlist_mobile/widgets/file_items.dart';
 
@@ -589,7 +590,11 @@ class _FilesController extends GetxController {
     if (file.isDir) {
       navigateToFolder(file.name);
     } else {
-      // TODO: Open file preview
+      // Open file preview
+      final filePath = currentPath.value == '/'
+          ? '/${file.name}'
+          : '${currentPath.value}/${file.name}';
+      Get.to(() => FilePreviewPage(path: filePath));
     }
   }
 
