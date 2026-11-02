@@ -2534,9 +2534,9 @@ class S {
     return Intl.message('运行状态', name: 'runtimeStatus', desc: '', args: []);
   }
 
-  /// `运行时长`
+  /// `运行时间`
   String get uptime {
-    return Intl.message('运行时长', name: 'uptime', desc: '', args: []);
+    return Intl.message('运行时间', name: 'uptime', desc: '', args: []);
   }
 
   /// `协程数`
@@ -3064,9 +3064,9 @@ class S {
     return Intl.message('已取消', name: 'uploadCanceled', desc: '', args: []);
   }
 
-  /// `没有上传任务`
+  /// `没有上传`
   String get noUploads {
-    return Intl.message('没有上传任务', name: 'noUploads', desc: '', args: []);
+    return Intl.message('没有上传', name: 'noUploads', desc: '', args: []);
   }
 
   /// `上传会在应用进程存活期间继续；从最近任务中划掉应用会中止上传。`
@@ -3602,6 +3602,426 @@ class S {
   /// `系统默认`
   String get systemDefault {
     return Intl.message('系统默认', name: 'systemDefault', desc: '', args: []);
+  }
+
+  /// `文件`
+  String get files {
+    return Intl.message('文件', name: 'files', desc: '', args: []);
+  }
+
+  /// `排序`
+  String get sort {
+    return Intl.message('排序', name: 'sort', desc: '', args: []);
+  }
+
+  /// `输入文件夹名称`
+  String get enterFolderName {
+    return Intl.message('输入文件夹名称', name: 'enterFolderName', desc: '', args: []);
+  }
+
+  /// `创建`
+  String get create {
+    return Intl.message('创建', name: 'create', desc: '', args: []);
+  }
+
+  /// `上传图片`
+  String get uploadPhotos {
+    return Intl.message('上传图片', name: 'uploadPhotos', desc: '', args: []);
+  }
+
+  /// `上传视频`
+  String get uploadVideos {
+    return Intl.message('上传视频', name: 'uploadVideos', desc: '', args: []);
+  }
+
+  /// `上传文件`
+  String get uploadFiles {
+    return Intl.message('上传文件', name: 'uploadFiles', desc: '', args: []);
+  }
+
+  /// `连接到服务器`
+  String get connectToServer {
+    return Intl.message('连接到服务器', name: 'connectToServer', desc: '', args: []);
+  }
+
+  /// `删除文件`
+  String get deleteFiles {
+    return Intl.message('删除文件', name: 'deleteFiles', desc: '', args: []);
+  }
+
+  /// `删除 {count} 个项目？`
+  String deleteItemsConfirm(int count) {
+    return Intl.message(
+      '删除 $count 个项目？',
+      name: 'deleteItemsConfirm',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `未连接`
+  String get notConnected {
+    return Intl.message('未连接', name: 'notConnected', desc: '', args: []);
+  }
+
+  /// `无法加载文件`
+  String get failedToLoadFiles {
+    return Intl.message(
+      '无法加载文件',
+      name: 'failedToLoadFiles',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `这里没有文件`
+  String get noFilesHere {
+    return Intl.message('这里没有文件', name: 'noFilesHere', desc: '', args: []);
+  }
+
+  /// `上传文件或创建新文件夹`
+  String get uploadFilesOrCreateFolder {
+    return Intl.message(
+      '上传文件或创建新文件夹',
+      name: 'uploadFilesOrCreateFolder',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已选择`
+  String get selected {
+    return Intl.message('已选择', name: 'selected', desc: '', args: []);
+  }
+
+  /// `{count} 已选择`
+  String selectedCount(int count) {
+    return Intl.message(
+      '$count 已选择',
+      name: 'selectedCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `移动`
+  String get move {
+    return Intl.message('移动', name: 'move', desc: '', args: []);
+  }
+
+  /// `复制`
+  String get copy {
+    return Intl.message('复制', name: 'copy', desc: '', args: []);
+  }
+
+  /// `名称`
+  String get sortByName {
+    return Intl.message('名称', name: 'sortByName', desc: '', args: []);
+  }
+
+  /// `修改日期`
+  String get sortByDate {
+    return Intl.message('修改日期', name: 'sortByDate', desc: '', args: []);
+  }
+
+  /// `大小`
+  String get sortBySize {
+    return Intl.message('大小', name: 'sortBySize', desc: '', args: []);
+  }
+
+  /// `类型`
+  String get sortByType {
+    return Intl.message('类型', name: 'sortByType', desc: '', args: []);
+  }
+
+  /// `错误`
+  String get error {
+    return Intl.message('错误', name: 'error', desc: '', args: []);
+  }
+
+  /// `创建文件夹失败：{error}`
+  String failedToCreateFolder(String error) {
+    return Intl.message(
+      '创建文件夹失败：$error',
+      name: 'failedToCreateFolder',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `上传功能即将推出`
+  String get uploadFunctionalityComingSoon {
+    return Intl.message(
+      '上传功能即将推出',
+      name: 'uploadFunctionalityComingSoon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `删除失败：{error}`
+  String failedToDelete(String error) {
+    return Intl.message(
+      '删除失败：$error',
+      name: 'failedToDelete',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `移动功能即将推出`
+  String get moveFunctionalityComingSoon {
+    return Intl.message(
+      '移动功能即将推出',
+      name: 'moveFunctionalityComingSoon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `复制功能即将推出`
+  String get copyFunctionalityComingSoon {
+    return Intl.message(
+      '复制功能即将推出',
+      name: 'copyFunctionalityComingSoon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `成功`
+  String get success {
+    return Intl.message('成功', name: 'success', desc: '', args: []);
+  }
+
+  /// `已连接到服务器`
+  String get connectedToServer {
+    return Intl.message(
+      '已连接到服务器',
+      name: 'connectedToServer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `无法连接到服务器`
+  String get failedToConnectToServer {
+    return Intl.message(
+      '无法连接到服务器',
+      name: 'failedToConnectToServer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `信息`
+  String get info {
+    return Intl.message('信息', name: 'info', desc: '', args: []);
+  }
+
+  /// `传输`
+  String get transfers {
+    return Intl.message('传输', name: 'transfers', desc: '', args: []);
+  }
+
+  /// `下载`
+  String get downloads {
+    return Intl.message('下载', name: 'downloads', desc: '', args: []);
+  }
+
+  /// `重试失败`
+  String get retryFailed {
+    return Intl.message('重试失败', name: 'retryFailed', desc: '', args: []);
+  }
+
+  /// `清除已完成`
+  String get clearCompleted {
+    return Intl.message('清除已完成', name: 'clearCompleted', desc: '', args: []);
+  }
+
+  /// `暂停单个传输`
+  String get pauseIndividualTransfers {
+    return Intl.message(
+      '暂停单个传输',
+      name: 'pauseIndividualTransfers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `从文件界面上传文件`
+  String get uploadFilesFromFilesScreen {
+    return Intl.message(
+      '从文件界面上传文件',
+      name: 'uploadFilesFromFilesScreen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `没有下载`
+  String get noDownloads {
+    return Intl.message('没有下载', name: 'noDownloads', desc: '', args: []);
+  }
+
+  /// `下载的文件将显示在这里`
+  String get downloadedFilesWillAppearHere {
+    return Intl.message(
+      '下载的文件将显示在这里',
+      name: 'downloadedFilesWillAppearHere',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `等待中`
+  String get waiting {
+    return Intl.message('等待中', name: 'waiting', desc: '', args: []);
+  }
+
+  /// `上传中`
+  String get uploading {
+    return Intl.message('上传中', name: 'uploading', desc: '', args: []);
+  }
+
+  /// `已取消`
+  String get canceled {
+    return Intl.message('已取消', name: 'canceled', desc: '', args: []);
+  }
+
+  /// `移除`
+  String get remove {
+    return Intl.message('移除', name: 'remove', desc: '', args: []);
+  }
+
+  /// `状态`
+  String get status {
+    return Intl.message('状态', name: 'status', desc: '', args: []);
+  }
+
+  /// `服务器运行中`
+  String get serverRunning {
+    return Intl.message('服务器运行中', name: 'serverRunning', desc: '', args: []);
+  }
+
+  /// `服务器已停止`
+  String get serverStopped {
+    return Intl.message('服务器已停止', name: 'serverStopped', desc: '', args: []);
+  }
+
+  /// `所有系统正常运行`
+  String get allSystemsOperational {
+    return Intl.message(
+      '所有系统正常运行',
+      name: 'allSystemsOperational',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `启动服务器以接受连接`
+  String get startServerToAcceptConnections {
+    return Intl.message(
+      '启动服务器以接受连接',
+      name: 'startServerToAcceptConnections',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `连接 URL`
+  String get connectionUrls {
+    return Intl.message('连接 URL', name: 'connectionUrls', desc: '', args: []);
+  }
+
+  /// `运行时统计`
+  String get runtimeStatistics {
+    return Intl.message('运行时统计', name: 'runtimeStatistics', desc: '', args: []);
+  }
+
+  /// `配置`
+  String get configuration {
+    return Intl.message('配置', name: 'configuration', desc: '', args: []);
+  }
+
+  /// `HTTP 端口`
+  String get httpPort {
+    return Intl.message('HTTP 端口', name: 'httpPort', desc: '', args: []);
+  }
+
+  /// `模式`
+  String get mode {
+    return Intl.message('模式', name: 'mode', desc: '', args: []);
+  }
+
+  /// `存储已删除`
+  String get storageDeleted {
+    return Intl.message('存储已删除', name: 'storageDeleted', desc: '', args: []);
+  }
+
+  /// `删除存储失败：{error}`
+  String failedToDeleteStorage(String error) {
+    return Intl.message(
+      '删除存储失败：$error',
+      name: 'failedToDeleteStorage',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `存储已{action}`
+  String storageToggled(String action) {
+    return Intl.message(
+      '存储已$action',
+      name: 'storageToggled',
+      desc: '',
+      args: [action],
+    );
+  }
+
+  /// `启用`
+  String get enabled {
+    return Intl.message('启用', name: 'enabled', desc: '', args: []);
+  }
+
+  /// `禁用`
+  String get disabled {
+    return Intl.message('禁用', name: 'disabled', desc: '', args: []);
+  }
+
+  /// `切换存储状态失败：{error}`
+  String failedToToggleStorage(String error) {
+    return Intl.message(
+      '切换存储状态失败：$error',
+      name: 'failedToToggleStorage',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `浏览功能即将推出`
+  String get browseFunctionalityComingSoon {
+    return Intl.message(
+      '浏览功能即将推出',
+      name: 'browseFunctionalityComingSoon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `缓存已清除`
+  String get cacheCleared {
+    return Intl.message('缓存已清除', name: 'cacheCleared', desc: '', args: []);
+  }
+
+  /// `无法打开 URL`
+  String get couldNotOpenUrl {
+    return Intl.message(
+      '无法打开 URL',
+      name: 'couldNotOpenUrl',
+      desc: '',
+      args: [],
+    );
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 
@@ -63,7 +64,7 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied to clipboard')),
+      SnackBar(content: Text(S.current.copiedToClipboard)),
     );
   }
 
@@ -75,7 +76,7 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Server Details'),
+        title: Text(S.current.serverDetails),
         actions: [
           if (isRunning)
             IconButton(
@@ -88,7 +89,7 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
         padding: const EdgeInsets.symmetric(vertical: AppDesign.space16),
         children: [
           // Status section
-          _SectionHeader(title: 'Status'),
+          _SectionHeader(title: S.current.status),
           Card(
             margin: const EdgeInsets.symmetric(horizontal: AppDesign.space16),
             child: Padding(
@@ -115,14 +116,14 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isRunning ? 'Server Running' : 'Server Stopped',
+                          isRunning ? S.current.serverRunning : S.current.serverStopped,
                           style: AppDesign.headline3.copyWith(
                             color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
                         const SizedBox(height: AppDesign.space4),
                         Text(
-                          isRunning ? 'All systems operational' : 'Start server to accept connections',
+                          isRunning ? S.current.allSystemsOperational : S.current.startServerToAcceptConnections,
                           style: AppDesign.body2.copyWith(
                             color: isDark ? Colors.white70 : Colors.black54,
                           ),
@@ -138,7 +139,7 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
           // Connection URLs
           if (isRunning && urls.isNotEmpty) ...[
             const SizedBox(height: AppDesign.space24),
-            _SectionHeader(title: 'Connection URLs'),
+            _SectionHeader(title: S.current.connectionUrls),
             ...urls.map((url) => _ConnectionUrlCard(
               url: url,
               onCopy: () => _copyToClipboard(url),
@@ -148,7 +149,7 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
           // Runtime statistics
           if (isRunning && _runtime.isNotEmpty) ...[
             const SizedBox(height: AppDesign.space24),
-            _SectionHeader(title: 'Runtime Statistics'),
+            _SectionHeader(title: S.current.runtimeStatistics),
             Card(
               margin: const EdgeInsets.symmetric(horizontal: AppDesign.space16),
               child: Column(
@@ -156,19 +157,19 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
                   if (_runtime['uptime_sec'] != null)
                     _StatRow(
                       icon: Icons.schedule,
-                      label: 'Uptime',
+                      label: S.current.uptime,
                       value: _formatDuration((_runtime['uptime_sec'] as num).toInt()),
                     ),
                   if (_runtime['goroutines'] != null)
                     _StatRow(
                       icon: Icons.settings,
-                      label: 'Goroutines',
+                      label: S.current.goroutines,
                       value: '${_runtime['goroutines']}',
                     ),
                   if (_runtime['heap_alloc'] != null)
                     _StatRow(
                       icon: Icons.memory,
-                      label: 'Memory',
+                      label: S.current.memory,
                       value: _formatBytes((_runtime['heap_alloc'] as num).toInt()),
                     ),
                 ],
@@ -178,25 +179,25 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
 
           // Server configuration
           const SizedBox(height: AppDesign.space24),
-          _SectionHeader(title: 'Configuration'),
+          _SectionHeader(title: S.current.configuration),
           Card(
             margin: const EdgeInsets.symmetric(horizontal: AppDesign.space16),
             child: Column(
               children: [
                 _InfoRow(
                   icon: Icons.http,
-                  label: 'HTTP Port',
+                  label: S.current.httpPort,
                   value: '${_status?.httpPort ?? 5244}',
                 ),
                 if ((_status?.httpsPort ?? -1) > 0)
                   _InfoRow(
                     icon: Icons.https,
-                    label: 'HTTPS Port',
+                    label: S.current.httpsPort,
                     value: '${_status?.httpsPort}',
                   ),
                 _InfoRow(
                   icon: Icons.network_check,
-                  label: 'Mode',
+                  label: S.current.mode,
                   value: _status?.mode ?? 'local',
                 ),
               ],

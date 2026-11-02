@@ -220,7 +220,7 @@ class SettingsScreen extends StatelessWidget {
               if (await canLaunchUrl(url)) {
                 await launchUrl(url, mode: LaunchMode.externalApplication);
               } else {
-                Get.snackbar('Error', 'Could not open URL');
+                Get.snackbar(S.current.error, S.current.couldNotOpenUrl);
               }
             },
           ),
@@ -334,13 +334,13 @@ class SettingsScreen extends StatelessWidget {
   void _showClearCacheDialog(BuildContext context) async {
     final confirmed = await _showConfirmDialog(
       context,
-      'Clear Cache',
-      'This will remove all cached data. Continue?',
+      S.current.clearCache,
+      S.current.clearCacheDesc,
     );
 
     if (confirmed) {
       // TODO: Clear cache
-      Get.snackbar('Success', 'Cache cleared');
+      Get.snackbar(S.current.success, S.current.cacheCleared);
     }
   }
 
@@ -388,11 +388,11 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(S.current.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirm'),
+            child: Text(S.current.confirm),
           ),
         ],
       ),

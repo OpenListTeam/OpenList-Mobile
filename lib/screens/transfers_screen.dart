@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
 
 /// Transfers screen showing uploads and downloads
 class TransfersScreen extends StatefulWidget {
@@ -42,12 +43,12 @@ class _TransfersScreenState extends State<TransfersScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transfers'),
+        title: Text(S.current.transfers),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Uploads'),
-            Tab(text: 'Downloads'),
+          tabs: [
+            Tab(text: S.current.uploads),
+            Tab(text: S.current.downloads),
           ],
         ),
         actions: [
@@ -56,7 +57,7 @@ class _TransfersScreenState extends State<TransfersScreen>
               switch (value) {
                 case 'pause_all':
                   // Pause is handled per-item
-                  Get.snackbar('Info', 'Pause individual transfers');
+                  Get.snackbar(S.current.info, S.current.pauseIndividualTransfers);
                   break;
                 case 'resume_all':
                   // Resume all failed/canceled uploads
@@ -73,8 +74,8 @@ class _TransfersScreenState extends State<TransfersScreen>
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'resume_all', child: Text('Retry Failed')),
-              const PopupMenuItem(value: 'clear_completed', child: Text('Clear Completed')),
+              PopupMenuItem(value: 'resume_all', child: Text(S.current.retryFailed)),
+              PopupMenuItem(value: 'clear_completed', child: Text(S.current.clearCompleted)),
             ],
           ),
         ],
@@ -101,10 +102,10 @@ class _UploadsTab extends StatelessWidget {
     final hasUploads = jobs.isNotEmpty;
 
     if (!hasUploads) {
-      return const _EmptyView(
+      return _EmptyView(
         icon: Icons.upload,
-        message: 'No uploads',
-        description: 'Upload files from the Files screen',
+        message: S.current.noUploads,
+        description: S.current.uploadFilesFromFilesScreen,
       );
     }
 
@@ -138,7 +139,7 @@ class _UploadsTab extends StatelessWidget {
   String _formatSpeed(UploadJob job) {
     if (job.state == UploadState.running && job.progress != null) {
       // Estimate speed (this is simplified, real implementation would track time)
-      return 'Uploading...';
+      return S.current.uploading;
     }
     return '';
   }
@@ -146,16 +147,16 @@ class _UploadsTab extends StatelessWidget {
   String _formatStatus(UploadJob job) {
     switch (job.state) {
       case UploadState.queued:
-        return 'Waiting';
+        return S.current.waiting;
       case UploadState.running:
         final progress = job.progress ?? 0.0;
         return '${(progress * 100).toStringAsFixed(0)}%';
       case UploadState.succeeded:
-        return 'Completed';
+        return S.current.completed;
       case UploadState.failed:
-        return 'Failed';
+        return S.current.failed;
       case UploadState.canceled:
-        return 'Canceled';
+        return S.current.canceled;
     }
   }
 }
@@ -166,10 +167,10 @@ class _DownloadsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Downloads not yet implemented
-    return const _EmptyView(
+    return _EmptyView(
       icon: Icons.download,
-      message: 'No downloads',
-      description: 'Downloaded files will appear here',
+      message: S.current.noDownloads,
+      description: S.current.downloadedFilesWillAppearHere,
     );
   }
 }

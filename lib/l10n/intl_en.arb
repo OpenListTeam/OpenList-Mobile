@@ -872,5 +872,132 @@
   "deleteStorage": "Delete Storage",
   "driver": "Driver",
   "remark": "Remark",
-  "systemDefault": "System Default"
+  "systemDefault": "System Default",
+  "files": "Files",
+  "sort": "Sort",
+  "refresh": "Refresh",
+  "newFolder": "New Folder",
+  "folderName": "Folder Name",
+  "enterFolderName": "Enter folder name",
+  "create": "Create",
+  "uploadPhotos": "Upload Photos",
+  "uploadVideos": "Upload Videos",
+  "uploadFiles": "Upload Files",
+  "connectToServer": "Connect to Server",
+  "retry": "Retry",
+  "deleteFiles": "Delete Files",
+  "deleteItemsConfirm": "Delete {count} item(s)?",
+  "@deleteItemsConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "delete": "Delete",
+  "notConnected": "Not Connected",
+  "failedToLoadFiles": "Failed to load files",
+  "noFilesHere": "No files here",
+  "uploadFilesOrCreateFolder": "Upload files or create a new folder",
+  "selected": "selected",
+  "selectedCount": "{count} selected",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "move": "Move",
+  "copy": "Copy",
+  "sortByName": "Name",
+  "sortByDate": "Date Modified",
+  "sortBySize": "Size",
+  "sortByType": "Type",
+  "error": "Error",
+  "failedToCreateFolder": "Failed to create folder: {error}",
+  "@failedToCreateFolder": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFunctionalityComingSoon": "Upload functionality coming soon",
+  "failedToDelete": "Failed to delete: {error}",
+  "@failedToDelete": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveFunctionalityComingSoon": "Move functionality coming soon",
+  "copyFunctionalityComingSoon": "Copy functionality coming soon",
+  "success": "Success",
+  "connectedToServer": "Connected to server",
+  "failedToConnectToServer": "Failed to connect to server",
+  "info": "Info",
+  "transfers": "Transfers",
+  "uploads": "Uploads",
+  "downloads": "Downloads",
+  "retryFailed": "Retry Failed",
+  "clearCompleted": "Clear Completed",
+  "pauseIndividualTransfers": "Pause individual transfers",
+  "noUploads": "No uploads",
+  "uploadFilesFromFilesScreen": "Upload files from the Files screen",
+  "noDownloads": "No downloads",
+  "downloadedFilesWillAppearHere": "Downloaded files will appear here",
+  "waiting": "Waiting",
+  "uploading": "Uploading...",
+  "completed": "Completed",
+  "failed": "Failed",
+  "canceled": "Canceled",
+  "remove": "Remove",
+  "serverDetails": "Server Details",
+  "status": "Status",
+  "serverRunning": "Server Running",
+  "serverStopped": "Server Stopped",
+  "allSystemsOperational": "All systems operational",
+  "startServerToAcceptConnections": "Start server to accept connections",
+  "connectionUrls": "Connection URLs",
+  "runtimeStatistics": "Runtime Statistics",
+  "uptime": "Uptime",
+  "goroutines": "Goroutines",
+  "memory": "Memory",
+  "configuration": "Configuration",
+  "httpPort": "HTTP Port",
+  "httpsPort": "HTTPS Port",
+  "mode": "Mode",
+  "storageDeleted": "Storage deleted",
+  "failedToDeleteStorage": "Failed to delete storage: {error}",
+  "@failedToDeleteStorage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "storageToggled": "Storage {action}",
+  "@storageToggled": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "enabled": "enabled",
+  "disabled": "disabled",
+  "failedToToggleStorage": "Failed to toggle storage: {error}",
+  "@failedToToggleStorage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "browseFunctionalityComingSoon": "Browse functionality coming soon",
+  "cacheCleared": "Cache cleared",
+  "couldNotOpenUrl": "Could not open URL",
+  "openSourceLicenses": "Open Source Licenses"
 }

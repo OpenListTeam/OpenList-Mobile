@@ -872,5 +872,132 @@
   "deleteStorage": "删除存储",
   "driver": "驱动",
   "remark": "备注",
-  "systemDefault": "系统默认"
+  "systemDefault": "系统默认",
+  "files": "文件",
+  "sort": "排序",
+  "refresh": "刷新",
+  "newFolder": "新建文件夹",
+  "folderName": "文件夹名称",
+  "enterFolderName": "输入文件夹名称",
+  "create": "创建",
+  "uploadPhotos": "上传图片",
+  "uploadVideos": "上传视频",
+  "uploadFiles": "上传文件",
+  "connectToServer": "连接到服务器",
+  "retry": "重试",
+  "deleteFiles": "删除文件",
+  "deleteItemsConfirm": "删除 {count} 个项目？",
+  "@deleteItemsConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "delete": "删除",
+  "notConnected": "未连接",
+  "failedToLoadFiles": "无法加载文件",
+  "noFilesHere": "这里没有文件",
+  "uploadFilesOrCreateFolder": "上传文件或创建新文件夹",
+  "selected": "已选择",
+  "selectedCount": "{count} 已选择",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "move": "移动",
+  "copy": "复制",
+  "sortByName": "名称",
+  "sortByDate": "修改日期",
+  "sortBySize": "大小",
+  "sortByType": "类型",
+  "error": "错误",
+  "failedToCreateFolder": "创建文件夹失败：{error}",
+  "@failedToCreateFolder": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadFunctionalityComingSoon": "上传功能即将推出",
+  "failedToDelete": "删除失败：{error}",
+  "@failedToDelete": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "moveFunctionalityComingSoon": "移动功能即将推出",
+  "copyFunctionalityComingSoon": "复制功能即将推出",
+  "success": "成功",
+  "connectedToServer": "已连接到服务器",
+  "failedToConnectToServer": "无法连接到服务器",
+  "info": "信息",
+  "transfers": "传输",
+  "uploads": "上传",
+  "downloads": "下载",
+  "retryFailed": "重试失败",
+  "clearCompleted": "清除已完成",
+  "pauseIndividualTransfers": "暂停单个传输",
+  "noUploads": "没有上传",
+  "uploadFilesFromFilesScreen": "从文件界面上传文件",
+  "noDownloads": "没有下载",
+  "downloadedFilesWillAppearHere": "下载的文件将显示在这里",
+  "waiting": "等待中",
+  "uploading": "上传中",
+  "completed": "已完成",
+  "failed": "失败",
+  "canceled": "已取消",
+  "remove": "移除",
+  "serverDetails": "服务器详情",
+  "status": "状态",
+  "serverRunning": "服务器运行中",
+  "serverStopped": "服务器已停止",
+  "allSystemsOperational": "所有系统正常运行",
+  "startServerToAcceptConnections": "启动服务器以接受连接",
+  "connectionUrls": "连接 URL",
+  "runtimeStatistics": "运行时统计",
+  "uptime": "运行时间",
+  "goroutines": "协程数",
+  "memory": "内存",
+  "configuration": "配置",
+  "httpPort": "HTTP 端口",
+  "httpsPort": "HTTPS 端口",
+  "mode": "模式",
+  "storageDeleted": "存储已删除",
+  "failedToDeleteStorage": "删除存储失败：{error}",
+  "@failedToDeleteStorage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "storageToggled": "存储已{action}",
+  "@storageToggled": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "enabled": "启用",
+  "disabled": "禁用",
+  "failedToToggleStorage": "切换存储状态失败：{error}",
+  "@failedToToggleStorage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "browseFunctionalityComingSoon": "浏览功能即将推出",
+  "cacheCleared": "缓存已清除",
+  "couldNotOpenUrl": "无法打开 URL",
+  "openSourceLicenses": "开源许可证"
 }

@@ -139,19 +139,19 @@ class _StoragesScreenState extends State<StoragesScreen> {
   Future<void> _deleteStorage(Storage storage) async {
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title: const Text('Delete Storage'),
-        content: Text('Delete storage "${storage.mountPath}"?'),
+        title: Text(S.current.deleteStorageTitle),
+        content: Text(S.current.deleteStorageMessage(storage.mountPath)),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
+            child: Text(S.current.cancel),
           ),
           FilledButton(
             onPressed: () => Get.back(result: true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(S.current.delete),
           ),
         ],
       ),
@@ -162,9 +162,9 @@ class _StoragesScreenState extends State<StoragesScreen> {
     try {
       await _session.admin.deleteStorage(storage.id);
       await _loadStorages();
-      Get.snackbar('Success', 'Storage deleted');
+      Get.snackbar(S.current.success, S.current.storageDeleted);
     } catch (e) {
-      Get.snackbar('Error', 'Failed to delete storage: $e');
+      Get.snackbar(S.current.error, S.current.failedToDeleteStorage(e.toString()));
     }
   }
 
@@ -176,9 +176,10 @@ class _StoragesScreenState extends State<StoragesScreen> {
         await _session.admin.disableStorage(storage.id);
       }
       await _loadStorages();
-      Get.snackbar('Success', storage.disabled ? 'Storage enabled' : 'Storage disabled');
+      final action = storage.disabled ? S.current.enabled : S.current.disabled;
+      Get.snackbar(S.current.success, S.current.storageToggled(action));
     } catch (e) {
-      Get.snackbar('Error', 'Failed to toggle storage: $e');
+      Get.snackbar(S.current.error, S.current.failedToToggleStorage(e.toString()));
     }
   }
 }
@@ -259,7 +260,7 @@ class _EmptyView extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onAddStorage,
               icon: const Icon(Icons.add),
-              label: const Text('Add Storage'),
+              label: Text(S.current.addStorage),
             ),
           ],
         ),
@@ -352,7 +353,7 @@ class _StorageDetailsSheet extends StatelessWidget {
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: const Text('Driver'),
+            title: Text(S.current.driver),
             trailing: Text(
               storage.driver,
               style: AppDesign.body1.copyWith(fontWeight: FontWeight.w500),
@@ -361,17 +362,17 @@ class _StorageDetailsSheet extends StatelessWidget {
           if (storage.remark.isNotEmpty)
             ListTile(
               leading: const Icon(Icons.note),
-              title: const Text('Remark'),
+              title: Text(S.current.remark),
               subtitle: Text(storage.remark),
             ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.folder_open),
-            title: const Text('Browse Files'),
+            title: Text(S.current.browseFiles),
             onTap: () {
               Navigator.pop(context);
               // Navigate to files screen filtered by this storage
-              Get.snackbar('Info', 'Browse functionality coming soon');
+              Get.snackbar(S.current.info, S.current.browseFunctionalityComingSoon);
             },
           ),
           ListTile(
@@ -379,18 +380,18 @@ class _StorageDetailsSheet extends StatelessWidget {
               storage.disabled ? Icons.toggle_off : Icons.toggle_on,
               color: storage.disabled ? Colors.grey : AppDesign.successGreen,
             ),
-            title: Text(storage.disabled ? 'Enable Storage' : 'Disable Storage'),
+            title: Text(storage.disabled ? S.current.enableStorage : S.current.disableStorage),
             onTap: onToggle,
           ),
           ListTile(
             leading: const Icon(Icons.edit),
-            title: const Text('Edit Storage'),
+            title: Text(S.current.editStorage),
             onTap: onEdit,
           ),
           ListTile(
             leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
             title: Text(
-              'Delete Storage',
+              S.current.deleteStorage,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             onTap: onDelete,

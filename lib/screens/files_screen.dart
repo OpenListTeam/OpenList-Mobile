@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/widgets/file_items.dart';
 
 /// Files browser screen with list/grid view modes
@@ -50,9 +51,9 @@ class _FilesScreenState extends State<FilesScreen> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'sort', child: Text('Sort')),
-              const PopupMenuItem(value: 'refresh', child: Text('Refresh')),
-              const PopupMenuItem(value: 'newfolder', child: Text('New Folder')),
+              PopupMenuItem(value: 'sort', child: Text(S.current.sort)),
+              PopupMenuItem(value: 'refresh', child: Text(S.current.refresh)),
+              PopupMenuItem(value: 'newfolder', child: Text(S.current.newFolder)),
             ],
           ),
         ],
@@ -116,19 +117,19 @@ class _FilesScreenState extends State<FilesScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Folder'),
+        title: Text(S.current.newFolder),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Folder Name',
-            hintText: 'Enter folder name',
+          decoration: InputDecoration(
+            labelText: S.current.folderName,
+            hintText: S.current.enterFolderName,
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(S.current.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -138,7 +139,7 @@ class _FilesScreenState extends State<FilesScreen> {
                 Navigator.pop(context);
               }
             },
-            child: const Text('Create'),
+            child: Text(S.current.create),
           ),
         ],
       ),
@@ -155,7 +156,7 @@ class _FilesScreenState extends State<FilesScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Upload Photos'),
+              title: Text(S.current.uploadPhotos),
               onTap: () {
                 Navigator.pop(context);
                 _controller.pickAndUploadFiles(FilePickType.image);
@@ -163,7 +164,7 @@ class _FilesScreenState extends State<FilesScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.videocam),
-              title: const Text('Upload Videos'),
+              title: Text(S.current.uploadVideos),
               onTap: () {
                 Navigator.pop(context);
                 _controller.pickAndUploadFiles(FilePickType.video);
@@ -171,7 +172,7 @@ class _FilesScreenState extends State<FilesScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.insert_drive_file),
-              title: const Text('Upload Files'),
+              title: Text(S.current.uploadFiles),
               onTap: () {
                 Navigator.pop(context);
                 _controller.pickAndUploadFiles(FilePickType.any);
@@ -179,7 +180,7 @@ class _FilesScreenState extends State<FilesScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.create_new_folder),
-              title: const Text('New Folder'),
+              title: Text(S.current.newFolder),
               onTap: () {
                 Navigator.pop(context);
                 _showCreateFolderDialog();
@@ -202,7 +203,7 @@ class _Breadcrumb extends StatelessWidget {
     final parts = path.split('/').where((p) => p.isNotEmpty).toList();
 
     if (parts.isEmpty) {
-      return const Text('Files');
+      return Text(S.current.files);
     }
 
     return Text(
@@ -303,7 +304,7 @@ class _ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
-              isConnectionError ? 'Not Connected' : 'Failed to load files',
+              isConnectionError ? S.current.notConnected : S.current.failedToLoadFiles,
               style: AppDesign.headline3,
               textAlign: TextAlign.center,
             ),
@@ -318,13 +319,13 @@ class _ErrorView extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onConnect,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Connect to Server'),
+                label: Text(S.current.connectToServer),
               ),
               const SizedBox(height: AppDesign.space12),
             ],
             OutlinedButton(
               onPressed: onRetry,
-              child: const Text('Retry'),
+              child: Text(S.current.retry),
             ),
           ],
         ),
@@ -353,12 +354,12 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
-              'No files here',
+              S.current.noFilesHere,
               style: AppDesign.headline3,
             ),
             const SizedBox(height: AppDesign.space12),
             Text(
-              'Upload files or create a new folder',
+              S.current.uploadFilesOrCreateFolder,
               style: AppDesign.body2,
               textAlign: TextAlign.center,
             ),
@@ -394,7 +395,7 @@ class _BatchActionBar extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            '$count selected',
+            S.current.selectedCount(count),
             style: AppDesign.body1.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
@@ -437,22 +438,22 @@ class _SortOptionsSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _SortOption(
-            title: 'Name',
+            title: S.current.sortByName,
             selected: currentSort == 'name',
             onTap: () => onSelected('name'),
           ),
           _SortOption(
-            title: 'Date Modified',
+            title: S.current.sortByDate,
             selected: currentSort == 'date',
             onTap: () => onSelected('date'),
           ),
           _SortOption(
-            title: 'Size',
+            title: S.current.sortBySize,
             selected: currentSort == 'size',
             onTap: () => onSelected('size'),
           ),
           _SortOption(
-            title: 'Type',
+            title: S.current.sortByType,
             selected: currentSort == 'type',
             onTap: () => onSelected('type'),
           ),
@@ -608,28 +609,28 @@ class _FilesController extends GetxController {
       await _session.fs.mkdir(path);
       await loadFiles();
     } catch (e) {
-      Get.snackbar('Error', 'Failed to create folder: $e');
+      Get.snackbar(S.current.error, S.current.failedToCreateFolder(e.toString()));
     }
   }
 
   Future<void> pickAndUploadFiles(FilePickType type) async {
     // TODO: Implement file picker and upload
-    Get.snackbar('Info', 'Upload functionality coming soon');
+    Get.snackbar(S.current.info, S.current.uploadFunctionalityComingSoon);
   }
 
   Future<void> deleteSelected() async {
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title: const Text('Delete Files'),
-        content: Text('Delete ${selectedFiles.length} item(s)?'),
+        title: Text(S.current.deleteFiles),
+        content: Text(S.current.deleteItemsConfirm(selectedFiles.length)),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
+            child: Text(S.current.cancel),
           ),
           FilledButton(
             onPressed: () => Get.back(result: true),
-            child: const Text('Delete'),
+            child: Text(S.current.delete),
           ),
         ],
       ),
@@ -642,16 +643,16 @@ class _FilesController extends GetxController {
       clearSelection();
       await loadFiles();
     } catch (e) {
-      Get.snackbar('Error', 'Failed to delete: $e');
+      Get.snackbar(S.current.error, S.current.failedToDelete(e.toString()));
     }
   }
 
   Future<void> moveSelected() async {
-    Get.snackbar('Info', 'Move functionality coming soon');
+    Get.snackbar(S.current.info, S.current.moveFunctionalityComingSoon);
   }
 
   Future<void> copySelected() async {
-    Get.snackbar('Info', 'Copy functionality coming soon');
+    Get.snackbar(S.current.info, S.current.copyFunctionalityComingSoon);
   }
 
   Future<void> handleConnect() async {
@@ -662,10 +663,10 @@ class _FilesController extends GetxController {
       await _session.connectLocal();
       await loadFiles();
 
-      Get.snackbar('Success', 'Connected to server');
+      Get.snackbar(S.current.success, S.current.connectedToServer);
     } catch (e) {
       error.value = 'Failed to connect: $e';
-      Get.snackbar('Error', 'Failed to connect to server');
+      Get.snackbar(S.current.error, S.current.failedToConnectToServer);
     } finally {
       isLoading.value = false;
     }
