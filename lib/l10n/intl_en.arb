@@ -938,6 +938,24 @@
   "connectedToServer": "Connected to server",
   "failedToConnectToServer": "Failed to connect to server",
   "info": "Info",
+  "moving": "Moving files...",
+  "copying": "Copying files...",
+  "failedToMove": "Failed to move: {error}",
+  "@failedToMove": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToCopy": "Failed to copy: {error}",
+  "@failedToCopy": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "transfers": "Transfers",
   "uploads": "Uploads",
   "downloads": "Downloads",

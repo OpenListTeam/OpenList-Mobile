@@ -3819,6 +3819,36 @@ class S {
     return Intl.message('信息', name: 'info', desc: '', args: []);
   }
 
+  /// `移动中...`
+  String get moving {
+    return Intl.message('移动中...', name: 'moving', desc: '', args: []);
+  }
+
+  /// `复制中...`
+  String get copying {
+    return Intl.message('复制中...', name: 'copying', desc: '', args: []);
+  }
+
+  /// `移动失败: {error}`
+  String failedToMove(String error) {
+    return Intl.message(
+      '移动失败: $error',
+      name: 'failedToMove',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `复制失败: {error}`
+  String failedToCopy(String error) {
+    return Intl.message(
+      '复制失败: $error',
+      name: 'failedToCopy',
+      desc: '',
+      args: [error],
+    );
+  }
+
   /// `传输`
   String get transfers {
     return Intl.message('传输', name: 'transfers', desc: '', args: []);

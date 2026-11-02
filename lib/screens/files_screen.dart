@@ -4,6 +4,7 @@ import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
+import 'package:openlist_mobile/pages/native/folder_picker_page.dart';
 import 'package:openlist_mobile/widgets/file_items.dart';
 
 /// Files browser screen with list/grid view modes
@@ -660,11 +661,67 @@ class _FilesController extends GetxController {
   }
 
   Future<void> moveSelected() async {
-    Get.snackbar(S.current.info, S.current.moveFunctionalityComingSoon);
+    final srcDir = currentPath.value;
+    try {
+      // Show folder picker for destination
+      final dstDir = await Get.to<String>(
+        () => FolderPickerPage(
+          title: S.current.moveTo,
+          initial: srcDir,
+        ),
+      );
+
+      if (dstDir == null || dstDir == srcDir) {
+        return;
+      }
+
+      // Show operation indicator
+      Get.snackbar(S.current.info, S.current.moving);
+
+      // Perform the move operation
+      await _session.fs.move(srcDir, dstDir, selectedFiles.toList());
+
+      // Clear selection and reload
+      clearSelection();
+      await loadFiles();
+
+      Get.snackbar(S.current.success, S.current.operationDone);
+    } catch (e) {
+      Get.snackbar(S.current.error, S.current.failedToMove(e.toString()));
+      debugPrint('Move failed: $e');
+    }
   }
 
   Future<void> copySelected() async {
-    Get.snackbar(S.current.info, S.current.copyFunctionalityComingSoon);
+    final srcDir = currentPath.value;
+    try {
+      // Show folder picker for destination
+      final dstDir = await Get.to<String>(
+        () => FolderPickerPage(
+          title: S.current.copyTo,
+          initial: srcDir,
+        ),
+      );
+
+      if (dstDir == null) {
+        return;
+      }
+
+      // Show operation indicator
+      Get.snackbar(S.current.info, S.current.copying);
+
+      // Perform the copy operation
+      await _session.fs.copy(srcDir, dstDir, selectedFiles.toList());
+
+      // Clear selection and reload (copying doesn't remove from source)
+      clearSelection();
+      await loadFiles();
+
+      Get.snackbar(S.current.success, S.current.operationDone);
+    } catch (e) {
+      Get.snackbar(S.current.error, S.current.failedToCopy(e.toString()));
+      debugPrint('Copy failed: $e');
+    }
   }
 
   Future<void> handleConnect() async {

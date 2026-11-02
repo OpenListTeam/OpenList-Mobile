@@ -938,6 +938,24 @@
   "connectedToServer": "已连接到服务器",
   "failedToConnectToServer": "无法连接到服务器",
   "info": "信息",
+  "moving": "移动中...",
+  "copying": "复制中...",
+  "failedToMove": "移动失败: {error}",
+  "@failedToMove": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToCopy": "复制失败: {error}",
+  "@failedToCopy": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "transfers": "传输",
   "uploads": "上传",
   "downloads": "下载",
