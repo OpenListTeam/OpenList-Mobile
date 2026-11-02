@@ -35,6 +35,19 @@ class FsApi {
   Future<void> mkdir(String path) =>
       client.post('/api/fs/mkdir', body: {'path': path});
 
+  /// Creates an empty file at [path] using PUT with empty body
+  Future<void> touchFile(String path, {bool overwrite = false}) async {
+    await client.put(
+      '/api/fs/put',
+      data: '',
+      headers: {
+        'File-Path': OpenListClient.encodePath(path),
+        'Overwrite': '$overwrite',
+        'Content-Type': 'application/octet-stream',
+      },
+    );
+  }
+
   Future<void> rename(String path, String name, {bool overwrite = false}) =>
       client.post('/api/fs/rename',
           body: {'path': path, 'name': name, 'overwrite': overwrite});

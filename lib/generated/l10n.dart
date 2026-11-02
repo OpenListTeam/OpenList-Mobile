@@ -629,9 +629,9 @@ class S {
     return Intl.message('文件信息', name: 'fileInfo', desc: '', args: []);
   }
 
-  /// `文件名`
+  /// `文件名称`
   String get fileName {
-    return Intl.message('文件名', name: 'fileName', desc: '', args: []);
+    return Intl.message('文件名称', name: 'fileName', desc: '', args: []);
   }
 
   /// `修改时间`
@@ -3619,9 +3619,19 @@ class S {
     return Intl.message('排序', name: 'sort', desc: '', args: []);
   }
 
+  /// `新建文件`
+  String get newFile {
+    return Intl.message('新建文件', name: 'newFile', desc: '', args: []);
+  }
+
   /// `输入文件夹名称`
   String get enterFolderName {
     return Intl.message('输入文件夹名称', name: 'enterFolderName', desc: '', args: []);
+  }
+
+  /// `输入文件名称`
+  String get enterFileName {
+    return Intl.message('输入文件名称', name: 'enterFileName', desc: '', args: []);
   }
 
   /// `创建`

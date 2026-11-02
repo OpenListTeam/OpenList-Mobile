@@ -509,6 +509,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "enabled": MessageLookupByLibrary.simpleMessage("enabled"),
     "english": MessageLookupByLibrary.simpleMessage("English"),
+    "enterFileName": MessageLookupByLibrary.simpleMessage("Enter file name"),
     "enterFolderName": MessageLookupByLibrary.simpleMessage(
       "Enter folder name",
     ),
@@ -539,7 +540,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "fileManagerOpened": MessageLookupByLibrary.simpleMessage(
       "File manager opened",
     ),
-    "fileName": MessageLookupByLibrary.simpleMessage("File name"),
+    "fileName": MessageLookupByLibrary.simpleMessage("File Name"),
     "fileNotFound": MessageLookupByLibrary.simpleMessage(
       "File not found or has been deleted",
     ),
@@ -700,6 +701,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Install permission is required to install APK files",
     ),
     "networkMode": MessageLookupByLibrary.simpleMessage("Network Mode"),
+    "newFile": MessageLookupByLibrary.simpleMessage("New File"),
     "newFolder": MessageLookupByLibrary.simpleMessage("New Folder"),
     "newName": MessageLookupByLibrary.simpleMessage("New name"),
     "newVersionFound": MessageLookupByLibrary.simpleMessage(

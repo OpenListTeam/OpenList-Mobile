@@ -177,6 +177,50 @@ class _FilesScreenState extends State<FilesScreen> {
     );
   }
 
+  Future<void> _showCreateFileDialog() {
+    final nameController = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(S.current.newFile),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(
+            labelText: S.current.fileName,
+            hintText: S.current.enterFileName,
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(S.current.cancel),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final name = nameController.text.trim();
+              if (name.isNotEmpty) {
+                Navigator.pop(context);
+                try {
+                  final filePath = _controller.currentPath.value == '/'
+                      ? '/$name'
+                      : '${_controller.currentPath.value}/$name';
+                  await _controller._session.fs.touchFile(filePath);
+                  await _controller.loadFiles();
+                  Get.snackbar(S.current.success, S.current.operationDone);
+                } catch (e) {
+                  Get.snackbar(S.current.error, 'Failed to create file: ${e.toString()}');
+                  debugPrint('Create file failed: $e');
+                }
+              }
+            },
+            child: Text(S.current.create),
+          ),
+        ],
+      ),
+    ).then((_) => nameController.dispose());
+  }
+
   void _showUploadOptions() {
     showModalBottomSheet(
       context: context,
@@ -207,6 +251,14 @@ class _FilesScreenState extends State<FilesScreen> {
               onTap: () {
                 Navigator.pop(context);
                 _controller.pickAndUploadFiles(FilePickType.any);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.note_add),
+              title: Text(S.current.newFile),
+              onTap: () {
+                Navigator.pop(context);
+                _showCreateFileDialog();
               },
             ),
             ListTile(
