@@ -11,7 +11,7 @@
 | Markdown | Existing `flutter_smooth_markdown` rendering | Yes | Yes | Markdown is rendered as native widgets; remote images/link behavior is package dependent. |
 | HTML | Not implemented as an HTML renderer | N/A | N/A | Deliberately not rendered as WebView to avoid executing untrusted scripts. Download/open externally instead. |
 | PDF | Native `pdfx` pinch viewer; file bytes are fetched with same-origin authentication headers | Android | iOS | Requires a PDF-capable Core response and platform plugin support. Large PDFs are buffered in memory before rendering; external open/download remains the fallback on load failure. |
-| Office documents | Not implemented natively | N/A | N/A | No built-in Office preview service was added. External viewer or download may be used by the user. |
+| Office documents | External open fallback through the existing download manager / `open_filex` after download | Android | iOS | No in-app renderer or cloud viewer is claimed; behavior depends on a compatible installed application and file association. |
 | HLS / transcoded media | Not verified | Unknown | Unknown | Depends on Core URL/transcode configuration and device decoder; no claim of support. |
 
 Verification in this workspace is limited to source inspection, dependency resolution and static analysis. No physical Android/iOS device or real remote media/archive/PDF files were available; video/audio codecs, range streaming, interrupted streams, PDF memory use and driver-specific extraction require device-backed acceptance testing.
