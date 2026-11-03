@@ -316,7 +316,7 @@ class DownloadManager {
         // 用户取消下载
         task.status = DownloadStatus.cancelled;
         task.endTime = DateTime.now();
-        log('下载已取消: $url');
+        log('下载已取消: ${task.filename}');
       } else {
         // 下载失败
         task.status = DownloadStatus.failed;
@@ -324,7 +324,7 @@ class DownloadManager {
             ? 'Download failed (${e.type.name})'
             : 'Download failed (${e.runtimeType})';
         task.endTime = DateTime.now();
-        log('下载失败: $e');
+        log('下载失败 (${task.errorMessage}): ${task.filename}');
 
         getx.Get.showSnackbar(getx.GetSnackBar(
           message: S.current.downloadFailedFile(finalFilename),
