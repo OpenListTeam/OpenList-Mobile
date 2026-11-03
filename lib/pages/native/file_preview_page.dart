@@ -10,6 +10,7 @@ import '../../generated/l10n.dart';
 import 'archive_preview_view.dart';
 import 'common.dart';
 import 'media_preview_view.dart';
+import 'pdf_preview_view.dart';
 
 /// Native preview dispatcher for Core file objects and supported archives.
 class FilePreviewPage extends StatefulWidget {
@@ -36,26 +37,14 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
 
   bool get _isMarkdown => _name.toLowerCase().endsWith('.md');
 
+  bool get _isPdf => _name.toLowerCase().endsWith('.pdf');
+
   /// raw_url may point to a third-party host, so fall back to the core's own
   /// signed /d link only when it is empty.
   String get _url {
     final o = _obj!;
     if (o.rawUrl.isNotEmpty) return o.rawUrl;
     return OpenListSession.instance.fs.downloadUrl(widget.path, sign: o.sign);
-  }
-
-  Map<String, String> _headersFor(String url) {
-    final session = OpenListSession.instance;
-    final client = session.client;
-    final uri = Uri.tryParse(url);
-    final base = Uri.tryParse(client?.baseUrl ?? '');
-    if (client == null ||
-        uri == null ||
-        base == null ||
-        uri.origin != base.origin) {
-      return const {};
-    }
-    return client.token.isEmpty ? const {} : {'Authorization': client.token};
   }
 
   @override
@@ -73,7 +62,7 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
       final session = OpenListSession.instance;
       final obj = await session.fs.get(widget.path, password: widget.password);
       _obj = obj;
-      _previewHeaders = _headersFor(_url);
+      _previewHeaders = session.archive.headersFor(_url);
       if (obj.type == ObjType.text && obj.size <= _maxTextBytes) {
         final headers = _previewHeaders;
         final res = await Dio().get<String>(_url,
@@ -140,6 +129,9 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
     final obj = _obj!;
     if (_isArchive) {
       return ArchivePreviewView(path: widget.path, password: widget.password);
+    }
+    if (_isPdf) {
+      return PdfPreviewView(url: _url, headers: _previewHeaders);
     }
     if (obj.type == ObjType.image) {
       return InteractiveViewer(

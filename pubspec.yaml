@@ -60,6 +60,7 @@ dependencies:
   package_info_plus: ^8.0.0
   url_launcher: ^6.3.0
   video_player: ^2.10.1
+  pdfx: ^2.11.0
 
 
 dev_dependencies:

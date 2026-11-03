@@ -10,8 +10,8 @@
 | Text / code | Existing text view, syntax-highlight package available in project but not wired here | Yes | Yes | Only text objects up to 2 MiB are loaded in memory; larger text falls back to download. |
 | Markdown | Existing `flutter_smooth_markdown` rendering | Yes | Yes | Markdown is rendered as native widgets; remote images/link behavior is package dependent. |
 | HTML | Not implemented as an HTML renderer | N/A | N/A | Deliberately not rendered as WebView to avoid executing untrusted scripts. Download/open externally instead. |
-| PDF | Not implemented natively | N/A | N/A | External open/download fallback only; no PDF package added. |
+| PDF | Native `pdfx` pinch viewer; file bytes are fetched with same-origin authentication headers | Android | iOS | Requires a PDF-capable Core response and platform plugin support. Large PDFs are buffered in memory before rendering; external open/download remains the fallback on load failure. |
 | Office documents | Not implemented natively | N/A | N/A | No built-in Office preview service was added. External viewer or download may be used by the user. |
 | HLS / transcoded media | Not verified | Unknown | Unknown | Depends on Core URL/transcode configuration and device decoder; no claim of support. |
 
-Verification in this workspace is limited to source inspection and static analysis. No physical Android/iOS device or real remote media/archive files were available; video/audio codecs, range streaming, interrupted streams and driver-specific extraction require device-backed acceptance testing.
+Verification in this workspace is limited to source inspection, dependency resolution and static analysis. No physical Android/iOS device or real remote media/archive/PDF files were available; video/audio codecs, range streaming, interrupted streams, PDF memory use and driver-specific extraction require device-backed acceptance testing.
