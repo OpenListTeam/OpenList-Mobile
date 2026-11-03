@@ -187,6 +187,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "appDetails": MessageLookupByLibrary.simpleMessage("App details"),
     "appName": MessageLookupByLibrary.simpleMessage("OpenList"),
     "appearance": MessageLookupByLibrary.simpleMessage("Appearance"),
+    "archiveExtractionUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Archive extraction URL unavailable",
+    ),
     "autoCheckForUpdates": MessageLookupByLibrary.simpleMessage(
       "Auto check for updates",
     ),
@@ -571,6 +574,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "folderPassword": MessageLookupByLibrary.simpleMessage("Folder password"),
     "followSystem": MessageLookupByLibrary.simpleMessage("Follow System"),
     "forceHttps": MessageLookupByLibrary.simpleMessage("Force HTTPS"),
+    "fullscreen": MessageLookupByLibrary.simpleMessage("Fullscreen"),
     "general": MessageLookupByLibrary.simpleMessage("General"),
     "getDownloadDirectoryFailed": m36,
     "getDownloadFileListFailed": m37,
@@ -670,6 +674,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "manageStorages": MessageLookupByLibrary.simpleMessage("Manage Storages"),
     "manageStoragesDesc": MessageLookupByLibrary.simpleMessage(
       "Add, edit, or remove storage locations",
+    ),
+    "mediaPlaybackInterrupted": MessageLookupByLibrary.simpleMessage(
+      "Playback stopped. Check the file format or connection.",
+    ),
+    "mediaPlaybackUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Media playback is unavailable on this device",
     ),
     "memory": MessageLookupByLibrary.simpleMessage("Memory"),
     "mode": MessageLookupByLibrary.simpleMessage("Mode"),
@@ -810,6 +820,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "passwordKeepHint": MessageLookupByLibrary.simpleMessage(
       "Leave empty to keep the current password",
     ),
+    "pause": MessageLookupByLibrary.simpleMessage("Pause"),
     "pauseIndividualTransfers": MessageLookupByLibrary.simpleMessage(
       "Pause individual transfers",
     ),
@@ -842,6 +853,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "permissions": MessageLookupByLibrary.simpleMessage("Permissions"),
     "photos": MessageLookupByLibrary.simpleMessage("Photos"),
+    "play": MessageLookupByLibrary.simpleMessage("Play"),
     "policyDeleteAlways": MessageLookupByLibrary.simpleMessage("Always delete"),
     "policyDeleteNever": MessageLookupByLibrary.simpleMessage("Never delete"),
     "policyDeleteOnUploadFailed": MessageLookupByLibrary.simpleMessage(

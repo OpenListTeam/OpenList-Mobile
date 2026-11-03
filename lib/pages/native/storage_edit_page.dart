@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
+import 'package:openlist_mobile/utils/driver_localization.dart';
 
 import '../../generated/l10n.dart';
 import 'common.dart';
@@ -58,6 +59,7 @@ class _StorageEditPageState extends State<StorageEditPage> {
   /// Current values keyed by item name, for common and additional items.
   final Map<String, dynamic> _common = {};
   final Map<String, dynamic> _addition = {};
+  Map<String, dynamic> _rawAddition = {};
 
   bool get _isNew => widget.storage == null;
 
@@ -102,11 +104,14 @@ class _StorageEditPageState extends State<StorageEditPage> {
           added = Map<String, dynamic>.from(jsonDecode(a));
         } catch (_) {}
       }
+      _rawAddition = added;
       for (final i in info.common) {
-        _common[i.name] = raw.containsKey(i.name) ? raw[i.name] : i.defaultValue;
+        _common[i.name] =
+            raw.containsKey(i.name) ? raw[i.name] : i.defaultValue;
       }
       for (final i in info.additional) {
-        _addition[i.name] = added.containsKey(i.name) ? added[i.name] : i.defaultValue;
+        _addition[i.name] =
+            added.containsKey(i.name) ? added[i.name] : i.defaultValue;
       }
       _info = info;
     } catch (e) {
@@ -124,7 +129,7 @@ class _StorageEditPageState extends State<StorageEditPage> {
     for (final i in info.common) {
       body[i.name] = typedValue(i.type, _common[i.name]);
     }
-    final addition = <String, dynamic>{};
+    final addition = Map<String, dynamic>.from(_rawAddition);
     for (final i in info.additional) {
       addition[i.name] = typedValue(i.type, _addition[i.name]);
     }
@@ -158,19 +163,37 @@ class _StorageEditPageState extends State<StorageEditPage> {
       'success' => (Icons.check_circle_outline, Colors.green),
       _ => (Icons.info_outline, scheme.primary),
     };
+    final displayText = DriverLocalization.alertText(
+      languageCode: Localizations.localeOf(context).languageCode,
+      driver: _driver ?? '',
+      text: info.alertText,
+    );
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: color.withValues(alpha: 0.08),
       child: ListTile(
         leading: Icon(icon, color: color),
-        title: Text(info.alertText),
+        title: Text(displayText),
       ),
     );
   }
 
   Widget _field(DriverItem item, Map<String, dynamic> values) {
-    final label = item.required ? '${item.name} *' : item.name;
-    final help = item.help.isEmpty ? null : item.help;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final translatedName = DriverLocalization.fieldLabel(
+      languageCode: languageCode,
+      driver: _driver ?? '',
+      field: item.name,
+      fallback: item.name,
+    );
+    final translatedHelp = DriverLocalization.fieldLabel(
+      languageCode: languageCode,
+      driver: _driver ?? '',
+      field: '${item.name}.help',
+      fallback: item.help,
+    );
+    final label = item.required ? '$translatedName *' : translatedName;
+    final help = translatedHelp.isEmpty ? null : translatedHelp;
     final value = values[item.name];
     // Keyed by driver so switching drivers resets the field state.
     final key = ValueKey('$_driver/${item.name}');
@@ -178,7 +201,7 @@ class _StorageEditPageState extends State<StorageEditPage> {
       return SwitchListTile(
         key: key,
         contentPadding: EdgeInsets.zero,
-        title: Text(item.name),
+        title: Text(translatedName),
         subtitle: help == null ? null : Text(help),
         value: typedValue('bool', value) as bool,
         onChanged: (v) => setState(() => values[item.name] = v),
@@ -191,11 +214,26 @@ class _StorageEditPageState extends State<StorageEditPage> {
         key: key,
         value: options.contains(current) ? current : null,
         isExpanded: true,
-        decoration: InputDecoration(labelText: label, helperText: help, helperMaxLines: 3),
-        items: [for (final o in options) DropdownMenuItem(value: o, child: Text(o))],
+        decoration: InputDecoration(
+            labelText: label, helperText: help, helperMaxLines: 3),
+        items: [
+          for (final o in options)
+            DropdownMenuItem(
+              value: o,
+              child: Text(
+                DriverLocalization.optionLabel(
+                  languageCode: languageCode,
+                  driver: _driver ?? '',
+                  field: item.name,
+                  option: o,
+                ),
+              ),
+            ),
+        ],
         onChanged: (v) => values[item.name] = v ?? '',
-        validator: (v) =>
-            item.required && (v == null || v.isEmpty) ? S.current.requiredField : null,
+        validator: (v) => item.required && (v == null || v.isEmpty)
+            ? S.current.requiredField
+            : null,
       );
     }
     final numeric = typedValue(item.type, '1') is num;
@@ -207,7 +245,8 @@ class _StorageEditPageState extends State<StorageEditPage> {
       keyboardType: numeric
           ? const TextInputType.numberWithOptions(signed: true, decimal: true)
           : null,
-      decoration: InputDecoration(labelText: label, helperText: help, helperMaxLines: 3),
+      decoration: InputDecoration(
+          labelText: label, helperText: help, helperMaxLines: 3),
       onChanged: (v) => values[item.name] = v,
       validator: (v) {
         final t = (v ?? '').trim();
@@ -225,7 +264,8 @@ class _StorageEditPageState extends State<StorageEditPage> {
     final info = _info;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isNew ? S.of(context).addStorage : S.of(context).editStorage),
+        title:
+            Text(_isNew ? S.of(context).addStorage : S.of(context).editStorage),
         actions: [
           IconButton(
             tooltip: S.of(context).save,
@@ -239,13 +279,17 @@ class _StorageEditPageState extends State<StorageEditPage> {
         child: Form(
           key: _formKey,
           child: ListView(padding: const EdgeInsets.all(16), children: [
-            if (_saving || (_loading && info != null)) const LinearProgressIndicator(),
+            if (_saving || (_loading && info != null))
+              const LinearProgressIndicator(),
             if (_isNew)
               DropdownButtonFormField<String>(
                 value: _driver,
                 isExpanded: true,
                 decoration: InputDecoration(labelText: S.of(context).driver),
-                items: [for (final d in _drivers) DropdownMenuItem(value: d, child: Text(d))],
+                items: [
+                  for (final d in _drivers)
+                    DropdownMenuItem(value: d, child: Text(d))
+                ],
                 onChanged: (d) {
                   if (d != null && d != _driver) _selectDriver(d);
                 },
@@ -269,7 +313,10 @@ class _StorageEditPageState extends State<StorageEditPage> {
                   leading: const Icon(Icons.upload_file_outlined),
                   title: Text(S.of(context).driverNoUpload),
                 ),
-              for (final i in info.common) ...[_field(i, _common), const SizedBox(height: 12)],
+              for (final i in info.common) ...[
+                _field(i, _common),
+                const SizedBox(height: 12)
+              ],
               const Divider(),
               for (final i in info.additional) ...[
                 _field(i, _addition),

@@ -4158,6 +4158,51 @@ class S {
   String get back {
     return Intl.message('返回', name: 'back', desc: '', args: []);
   }
+
+  /// `该设备不支持播放此媒体`
+  String get mediaPlaybackUnavailable {
+    return Intl.message(
+      '该设备不支持播放此媒体',
+      name: 'mediaPlaybackUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `播放已中断，请检查文件格式或网络连接。`
+  String get mediaPlaybackInterrupted {
+    return Intl.message(
+      '播放已中断，请检查文件格式或网络连接。',
+      name: 'mediaPlaybackInterrupted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `播放`
+  String get play {
+    return Intl.message('播放', name: 'play', desc: '', args: []);
+  }
+
+  /// `暂停`
+  String get pause {
+    return Intl.message('暂停', name: 'pause', desc: '', args: []);
+  }
+
+  /// `全屏`
+  String get fullscreen {
+    return Intl.message('全屏', name: 'fullscreen', desc: '', args: []);
+  }
+
+  /// `无法获取压缩包文件地址`
+  String get archiveExtractionUnavailable {
+    return Intl.message(
+      '无法获取压缩包文件地址',
+      name: 'archiveExtractionUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

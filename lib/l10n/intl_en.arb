@@ -1043,5 +1043,11 @@
   "emptyInput": "The input cannot be empty",
   "invalidFilenameChars": "The name contains invalid characters",
   "invalidRegex": "The pattern is not a valid regular expression",
-  "back": "Back"
+  "back": "Back",
+  "mediaPlaybackUnavailable": "Media playback is unavailable on this device",
+  "mediaPlaybackInterrupted": "Playback stopped. Check the file format or connection.",
+  "play": "Play",
+  "pause": "Pause",
+  "fullscreen": "Fullscreen",
+  "archiveExtractionUnavailable": "Archive extraction URL unavailable"
 }

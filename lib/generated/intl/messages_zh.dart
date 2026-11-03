@@ -170,6 +170,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "appDetails": MessageLookupByLibrary.simpleMessage("应用详情"),
     "appName": MessageLookupByLibrary.simpleMessage("OpenList"),
     "appearance": MessageLookupByLibrary.simpleMessage("外观"),
+    "archiveExtractionUnavailable": MessageLookupByLibrary.simpleMessage(
+      "无法获取压缩包文件地址",
+    ),
     "autoCheckForUpdates": MessageLookupByLibrary.simpleMessage("自动检查更新"),
     "autoCheckForUpdatesDesc": MessageLookupByLibrary.simpleMessage(
       "启动时自动检查更新",
@@ -448,6 +451,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "folderPassword": MessageLookupByLibrary.simpleMessage("文件夹密码"),
     "followSystem": MessageLookupByLibrary.simpleMessage("跟随系统"),
     "forceHttps": MessageLookupByLibrary.simpleMessage("强制 HTTPS"),
+    "fullscreen": MessageLookupByLibrary.simpleMessage("全屏"),
     "general": MessageLookupByLibrary.simpleMessage("通用"),
     "getDownloadDirectoryFailed": m36,
     "getDownloadFileListFailed": m37,
@@ -522,6 +526,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "logout": MessageLookupByLibrary.simpleMessage("退出登录"),
     "manageStorages": MessageLookupByLibrary.simpleMessage("管理存储"),
     "manageStoragesDesc": MessageLookupByLibrary.simpleMessage("添加、编辑或删除存储位置"),
+    "mediaPlaybackInterrupted": MessageLookupByLibrary.simpleMessage(
+      "播放已中断，请检查文件格式或网络连接。",
+    ),
+    "mediaPlaybackUnavailable": MessageLookupByLibrary.simpleMessage(
+      "该设备不支持播放此媒体",
+    ),
     "memory": MessageLookupByLibrary.simpleMessage("内存"),
     "mode": MessageLookupByLibrary.simpleMessage("模式"),
     "modeChangeFailed": m40,
@@ -625,6 +635,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "parseFilenameFailed": m50,
     "password": MessageLookupByLibrary.simpleMessage("密码"),
     "passwordKeepHint": MessageLookupByLibrary.simpleMessage("留空则保持当前密码"),
+    "pause": MessageLookupByLibrary.simpleMessage("暂停"),
     "pauseIndividualTransfers": MessageLookupByLibrary.simpleMessage("暂停单个传输"),
     "pending": MessageLookupByLibrary.simpleMessage("等待中"),
     "permAccessWithoutPassword": MessageLookupByLibrary.simpleMessage("无需密码访问"),
@@ -645,6 +656,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "permWrite": MessageLookupByLibrary.simpleMessage("创建文件夹和上传"),
     "permissions": MessageLookupByLibrary.simpleMessage("权限"),
     "photos": MessageLookupByLibrary.simpleMessage("照片"),
+    "play": MessageLookupByLibrary.simpleMessage("播放"),
     "policyDeleteAlways": MessageLookupByLibrary.simpleMessage("总是删除"),
     "policyDeleteNever": MessageLookupByLibrary.simpleMessage("从不删除"),
     "policyDeleteOnUploadFailed": MessageLookupByLibrary.simpleMessage(

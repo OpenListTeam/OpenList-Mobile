@@ -131,26 +131,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         bottomNavigationBar: NavigationBar(
           selectedIndex: _controller.selectedIndex.value,
           onDestinationSelected: _controller.setPageIndex,
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home',
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home),
+              label: S.of(context).home,
             ),
             NavigationDestination(
-              icon: Icon(Icons.folder_outlined),
-              selectedIcon: Icon(Icons.folder),
-              label: 'Files',
+              icon: const Icon(Icons.folder_outlined),
+              selectedIcon: const Icon(Icons.folder),
+              label: S.of(context).files,
             ),
             NavigationDestination(
-              icon: Icon(Icons.swap_vert),
-              selectedIcon: Icon(Icons.swap_vert),
-              label: 'Transfers',
+              icon: const Icon(Icons.swap_vert),
+              selectedIcon: const Icon(Icons.swap_vert),
+              label: S.of(context).transfers,
             ),
             NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Settings',
+              icon: const Icon(Icons.settings_outlined),
+              selectedIcon: const Icon(Icons.settings),
+              label: S.of(context).settings,
             ),
           ],
         ),

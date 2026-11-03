@@ -29,7 +29,7 @@ class _StoragesScreenState extends State<StoragesScreen> {
 
   Future<void> _loadStorages() async {
     if (!_session.isConnected) {
-      _error.value = 'Not connected to server';
+      _error.value = S.current.notConnected;
       return;
     }
 
@@ -164,7 +164,8 @@ class _StoragesScreenState extends State<StoragesScreen> {
       await _loadStorages();
       Get.snackbar(S.current.success, S.current.storageDeleted);
     } catch (e) {
-      Get.snackbar(S.current.error, S.current.failedToDeleteStorage(e.toString()));
+      Get.snackbar(
+          S.current.error, S.current.failedToDeleteStorage(e.toString()));
     }
   }
 
@@ -179,7 +180,8 @@ class _StoragesScreenState extends State<StoragesScreen> {
       final action = storage.disabled ? S.current.enabled : S.current.disabled;
       Get.snackbar(S.current.success, S.current.storageToggled(action));
     } catch (e) {
-      Get.snackbar(S.current.error, S.current.failedToToggleStorage(e.toString()));
+      Get.snackbar(
+          S.current.error, S.current.failedToToggleStorage(e.toString()));
     }
   }
 }
@@ -205,7 +207,7 @@ class _ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
-              'Failed to load storages',
+              S.of(context).loadStoragesFailed,
               style: AppDesign.headline3,
               textAlign: TextAlign.center,
             ),
@@ -243,16 +245,17 @@ class _EmptyView extends StatelessWidget {
             Icon(
               Icons.storage,
               size: 64,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
-              'No storages configured',
+              S.of(context).noStoragesConfigured,
               style: AppDesign.headline3,
             ),
             const SizedBox(height: AppDesign.space12),
             Text(
-              'Add a storage to get started',
+              S.of(context).noStoragesDesc,
               style: AppDesign.body2,
               textAlign: TextAlign.center,
             ),
@@ -302,7 +305,7 @@ class _StorageDetailsSheet extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     color: (isConnected ? AppDesign.primaryBlue : Colors.grey)
-                        .withOpacity(0.1),
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppDesign.radiusSmall),
                   ),
                   child: Icon(
@@ -336,7 +339,9 @@ class _StorageDetailsSheet extends StatelessWidget {
                           ),
                           const SizedBox(width: AppDesign.space8),
                           Text(
-                            isConnected ? 'Connected' : 'Disconnected',
+                            isConnected
+                                ? S.of(context).connectedToServer
+                                : S.of(context).notConnected,
                             style: AppDesign.body2.copyWith(
                               color: isDark ? Colors.white70 : Colors.black54,
                             ),
@@ -372,7 +377,8 @@ class _StorageDetailsSheet extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               // Navigate to files screen filtered by this storage
-              Get.snackbar(S.current.info, S.current.browseFunctionalityComingSoon);
+              Get.snackbar(
+                  S.current.info, S.current.browseFunctionalityComingSoon);
             },
           ),
           ListTile(
@@ -380,7 +386,9 @@ class _StorageDetailsSheet extends StatelessWidget {
               storage.disabled ? Icons.toggle_off : Icons.toggle_on,
               color: storage.disabled ? Colors.grey : AppDesign.successGreen,
             ),
-            title: Text(storage.disabled ? S.current.enableStorage : S.current.disableStorage),
+            title: Text(storage.disabled
+                ? S.current.enableStorage
+                : S.current.disableStorage),
             onTap: onToggle,
           ),
           ListTile(
@@ -389,7 +397,8 @@ class _StorageDetailsSheet extends StatelessWidget {
             onTap: onEdit,
           ),
           ListTile(
-            leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+            leading:
+                Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
             title: Text(
               S.current.deleteStorage,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
