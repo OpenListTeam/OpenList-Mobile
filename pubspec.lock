@@ -761,10 +761,10 @@ packages:
     dependency: "direct main"
     description:
       name: pdfx
-      sha256: "83bcd2b971fc2f6ee4299659c96d7d66b2ba4807748571a8a4889f1cde14b754"
+      sha256: "29db9b71d46bf2335e001f91693f2c3fbbf0760e4c2eb596bf4bafab211471c1"
       url: "https://pub.dev"
     source: hosted
-    version: "2.11.0"
+    version: "2.9.2"
   permission_handler:
     dependency: "direct main"
     description:
