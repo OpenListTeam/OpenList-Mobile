@@ -7,9 +7,11 @@ import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
 
 import '../../generated/l10n.dart';
+import 'archive_preview_view.dart';
 import 'common.dart';
+import 'media_preview_view.dart';
 
-/// Previews images, text and markdown; other types can be downloaded.
+/// Native preview dispatcher for Core file objects and supported archives.
 class FilePreviewPage extends StatefulWidget {
   const FilePreviewPage({super.key, required this.path, this.password = ''});
 
@@ -25,8 +27,10 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
 
   FsObject? _obj;
   String? _text;
+  bool _isArchive = false;
   Object? _error;
   bool _loading = true;
+  Map<String, String> _previewHeaders = const {};
 
   String get _name => widget.path.split('/').last;
 
@@ -38,6 +42,20 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
     final o = _obj!;
     if (o.rawUrl.isNotEmpty) return o.rawUrl;
     return OpenListSession.instance.fs.downloadUrl(widget.path, sign: o.sign);
+  }
+
+  Map<String, String> _headersFor(String url) {
+    final session = OpenListSession.instance;
+    final client = session.client;
+    final uri = Uri.tryParse(url);
+    final base = Uri.tryParse(client?.baseUrl ?? '');
+    if (client == null ||
+        uri == null ||
+        base == null ||
+        uri.origin != base.origin) {
+      return const {};
+    }
+    return client.token.isEmpty ? const {} : {'Authorization': client.token};
   }
 
   @override
@@ -52,13 +70,24 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
       _error = null;
     });
     try {
-      final obj = await OpenListSession.instance.fs.get(widget.path, password: widget.password);
+      final session = OpenListSession.instance;
+      final obj = await session.fs.get(widget.path, password: widget.password);
       _obj = obj;
+      _previewHeaders = _headersFor(_url);
       if (obj.type == ObjType.text && obj.size <= _maxTextBytes) {
-        // Plain Dio on purpose: never forward the OpenList token to raw_url.
+        final headers = _previewHeaders;
         final res = await Dio().get<String>(_url,
-            options: Options(responseType: ResponseType.plain));
+            options:
+                Options(responseType: ResponseType.plain, headers: headers));
         _text = res.data ?? '';
+      } else if (obj.type == ObjType.unknown) {
+        try {
+          final extensions = await session.archive.extensions();
+          _isArchive = extensions
+              .any((extension) => _name.toLowerCase().endsWith('.$extension'));
+        } catch (_) {
+          _isArchive = false;
+        }
       }
     } catch (e) {
       _error = e;
@@ -67,7 +96,9 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
   }
 
   Future<void> _download() async {
-    await DownloadManager.downloadFileWithProgress(url: _url, filename: _name);
+    final url = _url;
+    await DownloadManager.downloadFileWithProgress(
+        url: url, filename: _name, headers: _previewHeaders);
   }
 
   @override
@@ -107,14 +138,25 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
           onAction: _load);
     }
     final obj = _obj!;
+    if (_isArchive) {
+      return ArchivePreviewView(path: widget.path, password: widget.password);
+    }
     if (obj.type == ObjType.image) {
       return InteractiveViewer(
         maxScale: 8,
         child: Center(
           child: Image.network(_url,
+              headers: _previewHeaders,
               errorBuilder: (_, e, __) =>
                   StateMessage(icon: Icons.broken_image, text: '$e')),
         ),
+      );
+    }
+    if (obj.type == ObjType.video || obj.type == ObjType.audio) {
+      return MediaPreviewView(
+        url: _url,
+        headers: _previewHeaders,
+        isVideo: obj.type == ObjType.video,
       );
     }
     final text = _text;

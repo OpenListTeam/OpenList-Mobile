@@ -5,6 +5,7 @@ import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'admin_api.dart';
+import 'archive_api.dart';
 import 'auth_api.dart';
 import 'fs_api.dart';
 import 'models.dart';
@@ -45,6 +46,7 @@ class OpenListSession extends ChangeNotifier {
   FsApi get fs => FsApi(_require());
   TaskApi get tasks => TaskApi(_require());
   AdminApi get admin => AdminApi(_require());
+  ArchiveApi get archive => ArchiveApi(_require());
   AuthApi get auth => AuthApi(_require());
 
   OpenListClient _require() {

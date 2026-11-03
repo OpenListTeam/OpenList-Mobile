@@ -59,6 +59,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   package_info_plus: ^8.0.0
   url_launcher: ^6.3.0
+  video_player: ^2.10.1
 
 
 dev_dependencies:
