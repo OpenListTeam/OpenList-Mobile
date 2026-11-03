@@ -1021,5 +1021,27 @@
   "browseFunctionalityComingSoon": "Browse functionality coming soon",
   "cacheCleared": "Cache cleared",
   "couldNotOpenUrl": "Could not open URL",
-  "openSourceLicenses": "Open Source Licenses"
+  "openSourceLicenses": "Open Source Licenses",
+  "batchRename": "Batch rename",
+  "batchRenameDesc": "Rename {count} selected items",
+  "@batchRenameDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "regexRename": "Regex",
+  "sequentialRename": "Sequential",
+  "findReplace": "Find & replace",
+  "renamePattern": "Pattern (regular expression)",
+  "renameSearchText": "Text to find",
+  "renameReplacement": "Replacement",
+  "renameStartNumber": "Start number",
+  "renamePaddingZeros": "Zero padding",
+  "renameNoMatch": "No items match the pattern",
+  "emptyInput": "The input cannot be empty",
+  "invalidFilenameChars": "The name contains invalid characters",
+  "invalidRegex": "The pattern is not a valid regular expression",
+  "back": "Back"
 }

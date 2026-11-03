@@ -110,6 +110,22 @@ void main() {
     expect(res.content.last.type, ObjType.text);
   });
 
+  test('fs batch rename posts the rename pairs', () async {
+    final (c, adapter) = _client((_) => _ok(null));
+    await FsApi(c).batchRename('/dir', const [
+      RenameObj(srcName: 'a.txt', newName: 'b.txt'),
+      RenameObj(srcName: 'c.txt', newName: 'd.txt'),
+    ]);
+    final req = adapter.requests.single;
+    expect(req.method, 'POST');
+    expect(req.path, '/api/fs/batch_rename');
+    expect(req.data['src_dir'], '/dir');
+    expect(req.data['rename_objects'], [
+      {'src_name': 'a.txt', 'new_name': 'b.txt'},
+      {'src_name': 'c.txt', 'new_name': 'd.txt'},
+    ]);
+  });
+
   test('download url encodes path and sign', () {
     final (c, _) = _client((_) => _ok(null));
     expect(FsApi(c).downloadUrl('/a b/c.txt', sign: 'x=y'),

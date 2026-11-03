@@ -11,6 +11,7 @@ import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
+import 'package:openlist_mobile/pages/native/batch_rename_dialog.dart';
 import 'package:openlist_mobile/pages/native/file_preview_page.dart';
 import 'package:openlist_mobile/pages/native/folder_picker_page.dart';
 import 'package:openlist_mobile/pages/native/search_page.dart';
@@ -499,6 +500,10 @@ class _BatchActionBar extends StatelessWidget {
           ),
           const Spacer(),
           IconButton(
+            icon: const Icon(Icons.drive_file_rename_outline),
+            onPressed: () => controller.batchRenameSelected(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.drive_file_move),
             onPressed: controller.moveSelected,
           ),
@@ -805,6 +810,28 @@ class _FilesController extends GetxController {
     } catch (e) {
       Get.snackbar(S.current.error, S.current.failedToDelete(e.toString()));
     }
+  }
+
+  /// Renames the selected files in one batch request.
+  Future<void> batchRenameSelected(BuildContext context) async {
+    final selected = selectedFiles.toList();
+    if (selected.isEmpty) return;
+
+    final objects = files
+        .where((f) => selected.contains(f.name))
+        .toList(growable: false);
+    if (objects.isEmpty) return;
+
+    final dir = currentPath.value;
+    final ok = await showBatchRenameDialog(
+      context,
+      dir: dir,
+      objects: objects,
+    );
+    if (!ok) return;
+
+    clearSelection();
+    await loadFiles();
   }
 
   Future<void> moveSelected() async {

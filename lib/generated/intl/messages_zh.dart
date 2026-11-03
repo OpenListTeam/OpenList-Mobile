@@ -20,129 +20,131 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'zh';
 
-  static String m0(error) => "取消所有通知失败: ${error}";
+  static String m0(count) => "重命名选中的 ${count} 个项目";
 
-  static String m1(error) => "取消下载通知失败: ${error}";
+  static String m1(error) => "取消所有通知失败: ${error}";
 
-  static String m2(error) => "检查安装权限失败: ${error}";
+  static String m2(error) => "取消下载通知失败: ${error}";
 
-  static String m3(error) => "清理下载目录失败: ${error}";
+  static String m3(error) => "检查安装权限失败: ${error}";
 
-  static String m4(filename) => "确定要取消下载 \"${filename}\" 吗？";
+  static String m4(error) => "清理下载目录失败: ${error}";
 
-  static String m5(filename) => "确定要删除文件 \"${filename}\" 吗？此操作不可撤销。";
+  static String m5(filename) => "确定要取消下载 \"${filename}\" 吗？";
 
-  static String m6(names) => "确定删除 ${names}？";
+  static String m6(filename) => "确定要删除文件 \"${filename}\" 吗？此操作不可撤销。";
 
-  static String m7(filename) => "确定要删除 \"${filename}\" 的下载记录吗？";
+  static String m7(names) => "确定删除 ${names}？";
 
-  static String m8(name) => "确定删除存储 ${name}？";
+  static String m8(filename) => "确定要删除 \"${filename}\" 的下载记录吗？";
 
-  static String m9(name) => "删除用户 ${name}？";
+  static String m9(name) => "确定删除存储 ${name}？";
 
-  static String m10(error) => "创建OpenList目录失败: ${error}";
+  static String m10(name) => "删除用户 ${name}？";
 
-  static String m11(path) => "创建OpenList下载目录: ${path}";
+  static String m11(error) => "创建OpenList目录失败: ${error}";
 
-  static String m12(count) => "当前有 ${count} 个文件在下载";
+  static String m12(path) => "创建OpenList下载目录: ${path}";
 
-  static String m13(error) => "删除文件失败: ${error}";
+  static String m13(count) => "当前有 ${count} 个文件在下载";
 
-  static String m14(count) => "删除 ${count} 个项目？";
+  static String m14(error) => "删除文件失败: ${error}";
 
-  static String m15(name) => "删除存储 \"${name}\"？";
+  static String m15(count) => "删除 ${count} 个项目？";
 
-  static String m16(url) => "下载已取消: ${url}";
+  static String m16(name) => "删除存储 \"${name}\"？";
 
-  static String m17(filename) => "下载完成: ${filename}";
+  static String m17(url) => "下载已取消: ${url}";
 
   static String m18(filename) => "下载完成: ${filename}";
 
-  static String m19(filename) => "${filename} 下载完毕";
+  static String m19(filename) => "下载完成: ${filename}";
 
-  static String m20(filename) => "下载失败: ${filename}";
+  static String m20(filename) => "${filename} 下载完毕";
 
   static String m21(filename) => "下载失败: ${filename}";
 
-  static String m22(count) => "下载管理(${count})";
+  static String m22(filename) => "下载失败: ${filename}";
 
-  static String m23(progress) => "下载进度: ${progress}%";
+  static String m23(count) => "下载管理(${count})";
 
-  static String m24(current, total) => "正在下载第 ${current}/${total} 个文件";
+  static String m24(progress) => "下载进度: ${progress}%";
 
-  static String m25(error) => "复制失败: ${error}";
+  static String m25(current, total) => "正在下载第 ${current}/${total} 个文件";
 
-  static String m26(error) => "创建文件夹失败：${error}";
+  static String m26(error) => "复制失败: ${error}";
 
-  static String m27(error) => "删除失败：${error}";
+  static String m27(error) => "创建文件夹失败：${error}";
 
-  static String m28(error) => "删除存储失败：${error}";
+  static String m28(error) => "删除失败：${error}";
 
-  static String m29(error) => "移动失败: ${error}";
+  static String m29(error) => "删除存储失败：${error}";
 
-  static String m30(error) => "切换存储状态失败：${error}";
+  static String m30(error) => "移动失败: ${error}";
 
-  static String m31(filename) => "已删除文件: ${filename}";
+  static String m31(error) => "切换存储状态失败：${error}";
 
-  static String m32(index) => "第 ${index} 个文件下载失败";
+  static String m32(filename) => "已删除文件: ${filename}";
 
-  static String m33(size) => "大小: ${size}";
+  static String m33(index) => "第 ${index} 个文件下载失败";
 
-  static String m34(time) => "时间: ${time}";
+  static String m34(size) => "大小: ${size}";
 
-  static String m35(error) => "获取下载目录失败: ${error}";
+  static String m35(time) => "时间: ${time}";
 
-  static String m36(error) => "获取下载文件列表失败: ${error}";
+  static String m36(error) => "获取下载目录失败: ${error}";
 
-  static String m37(line, error) => "JSON格式错误,第${line}行:${error}";
+  static String m37(error) => "获取下载文件列表失败: ${error}";
 
-  static String m38(error) => "加载失败:${error}";
+  static String m38(line, error) => "JSON格式错误,第${line}行:${error}";
 
-  static String m39(error) => "更改模式失败：${error}";
+  static String m39(error) => "加载失败:${error}";
 
-  static String m40(count) => "${count} 个文件已完成，点击跳转到下载管理";
+  static String m40(error) => "更改模式失败：${error}";
 
-  static String m41(payload) => "通知被点击: ${payload}";
+  static String m41(count) => "${count} 个文件已完成，点击跳转到下载管理";
 
-  static String m42(error) => "通知管理器初始化失败: ${error}";
+  static String m42(payload) => "通知被点击: ${payload}";
 
-  static String m43(error) => "打开下载目录失败: ${error}";
+  static String m43(error) => "通知管理器初始化失败: ${error}";
 
-  static String m44(error) => "打开文件异常: ${error}";
+  static String m44(error) => "打开下载目录失败: ${error}";
 
-  static String m45(error) => "打开文件失败: ${error}";
+  static String m45(error) => "打开文件异常: ${error}";
 
-  static String m46(error) => "打开文件管理器失败: ${error}";
+  static String m46(error) => "打开文件失败: ${error}";
 
-  static String m47(type, message) => "打开文件结果: ${type} - ${message}";
+  static String m47(error) => "打开文件管理器失败: ${error}";
 
-  static String m48(path) => "OpenList下载目录: ${path}";
+  static String m48(type, message) => "打开文件结果: ${type} - ${message}";
 
-  static String m49(error) => "解析文件名失败: ${error}";
+  static String m49(path) => "OpenList下载目录: ${path}";
 
-  static String m50(error) => "恢复备份失败:${error}";
+  static String m50(error) => "解析文件名失败: ${error}";
 
-  static String m51(error) => "保存失败:${error}";
+  static String m51(error) => "恢复备份失败:${error}";
 
-  static String m52(count) => "${count} 已选择";
+  static String m52(error) => "保存失败:${error}";
 
-  static String m53(error) => "显示下载完成通知失败: ${error}";
+  static String m53(count) => "${count} 已选择";
 
-  static String m54(error) => "显示下载进度通知失败: ${error}";
+  static String m54(error) => "显示下载完成通知失败: ${error}";
 
-  static String m55(error) => "显示单个文件下载完成通知失败: ${error}";
+  static String m55(error) => "显示下载进度通知失败: ${error}";
 
-  static String m56(filename) => "开始下载: ${filename}";
+  static String m56(error) => "显示单个文件下载完成通知失败: ${error}";
 
   static String m57(filename) => "开始下载: ${filename}";
 
-  static String m58(action) => "存储已${action}";
+  static String m58(filename) => "开始下载: ${filename}";
 
-  static String m59(path) => "尝试打开文件: ${path}";
+  static String m59(action) => "存储已${action}";
 
-  static String m60(name) => "正在上传 ${name}";
+  static String m60(path) => "尝试打开文件: ${path}";
 
-  static String m61(count) => "${count} 个上传进行中";
+  static String m61(name) => "正在上传 ${name}";
+
+  static String m62(count) => "${count} 个上传进行中";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -182,11 +184,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "autoStartWebPage": MessageLookupByLibrary.simpleMessage("将网页设置为打开首页"),
     "autoStartWebPageDesc": MessageLookupByLibrary.simpleMessage("打开主界面时的首页"),
+    "back": MessageLookupByLibrary.simpleMessage("返回"),
     "backgroundRestricted": MessageLookupByLibrary.simpleMessage("系统限制了后台活动"),
     "backgroundRunning": MessageLookupByLibrary.simpleMessage("后台运行"),
     "backupRestored": MessageLookupByLibrary.simpleMessage("备份已恢复"),
     "basePath": MessageLookupByLibrary.simpleMessage("基础路径"),
     "batchDownloadComplete": MessageLookupByLibrary.simpleMessage("批量下载完成"),
+    "batchRename": MessageLookupByLibrary.simpleMessage("批量重命名"),
+    "batchRenameDesc": m0,
     "batteryOptimization": MessageLookupByLibrary.simpleMessage("电池优化"),
     "batteryOptimizationActive": MessageLookupByLibrary.simpleMessage(
       "受限制，系统可能会停止服务器。",
@@ -208,9 +213,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "cache": MessageLookupByLibrary.simpleMessage("缓存"),
     "cacheCleared": MessageLookupByLibrary.simpleMessage("缓存已清除"),
     "cancel": MessageLookupByLibrary.simpleMessage("取消"),
-    "cancelAllNotificationsFailed": m0,
+    "cancelAllNotificationsFailed": m1,
     "cancelDownload": MessageLookupByLibrary.simpleMessage("取消下载"),
-    "cancelDownloadNotificationFailed": m1,
+    "cancelDownloadNotificationFailed": m2,
     "canceled": MessageLookupByLibrary.simpleMessage("已取消"),
     "cancelled": MessageLookupByLibrary.simpleMessage("已取消"),
     "cannotGetBaseDownloadDirectory": MessageLookupByLibrary.simpleMessage(
@@ -246,7 +251,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "checkImageInDownloadFolder": MessageLookupByLibrary.simpleMessage(
       "请在下载目录查看图片",
     ),
-    "checkInstallPermissionFailed": m2,
+    "checkInstallPermissionFailed": m3,
     "checkNotInitialized": MessageLookupByLibrary.simpleMessage("服务器尚未初始化"),
     "checkS3Tls": MessageLookupByLibrary.simpleMessage("S3 服务使用 TLS"),
     "checkTls": MessageLookupByLibrary.simpleMessage("有效的 TLS 证书"),
@@ -256,7 +261,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearCache": MessageLookupByLibrary.simpleMessage("清除缓存"),
     "clearCacheDesc": MessageLookupByLibrary.simpleMessage("释放存储空间"),
     "clearCompleted": MessageLookupByLibrary.simpleMessage("清除已完成"),
-    "clearDownloadDirectoryFailed": m3,
+    "clearDownloadDirectoryFailed": m4,
     "clearFailed": MessageLookupByLibrary.simpleMessage("清空失败"),
     "clearFinished": MessageLookupByLibrary.simpleMessage("清除已结束"),
     "clearRecords": MessageLookupByLibrary.simpleMessage("清空记录"),
@@ -272,17 +277,17 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "configuration": MessageLookupByLibrary.simpleMessage("配置"),
     "confirm": MessageLookupByLibrary.simpleMessage("确认"),
-    "confirmCancelDownload": m4,
+    "confirmCancelDownload": m5,
     "confirmClear": MessageLookupByLibrary.simpleMessage("确认清空"),
     "confirmClearAllFiles": MessageLookupByLibrary.simpleMessage(
       "确定要清空所有下载文件吗？此操作不可撤销。",
     ),
     "confirmDelete": MessageLookupByLibrary.simpleMessage("确认删除"),
-    "confirmDeleteFile": m5,
-    "confirmDeleteItems": m6,
-    "confirmDeleteRecord": m7,
-    "confirmDeleteStorage": m8,
-    "confirmDeleteUser": m9,
+    "confirmDeleteFile": m6,
+    "confirmDeleteItems": m7,
+    "confirmDeleteRecord": m8,
+    "confirmDeleteStorage": m9,
+    "confirmDeleteUser": m10,
     "confirmDownload": MessageLookupByLibrary.simpleMessage("确认下载"),
     "confirmDownloadMessage": MessageLookupByLibrary.simpleMessage(
       "是否要下载这个文件？",
@@ -308,9 +313,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "couldNotOpenUrl": MessageLookupByLibrary.simpleMessage("无法打开 URL"),
     "cpuTime": MessageLookupByLibrary.simpleMessage("CPU 时间"),
     "create": MessageLookupByLibrary.simpleMessage("创建"),
-    "createOpenListDirectoryFailed": m10,
-    "createOpenListDownloadDirectory": m11,
-    "currentDownloadingFiles": m12,
+    "createOpenListDirectoryFailed": m11,
+    "createOpenListDownloadDirectory": m12,
+    "currentDownloadingFiles": m13,
     "currentIsLatestVersion": MessageLookupByLibrary.simpleMessage("已经是最新版本"),
     "currentlyDownloading": MessageLookupByLibrary.simpleMessage("正在下载"),
     "dataDirectory": MessageLookupByLibrary.simpleMessage("data 文件夹路径"),
@@ -321,13 +326,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("删除"),
     "deleteFailed": MessageLookupByLibrary.simpleMessage("删除失败"),
     "deleteFile": MessageLookupByLibrary.simpleMessage("删除文件"),
-    "deleteFileFailedLog": m13,
+    "deleteFileFailedLog": m14,
     "deleteFiles": MessageLookupByLibrary.simpleMessage("删除文件"),
-    "deleteItemsConfirm": m14,
+    "deleteItemsConfirm": m15,
     "deletePolicy": MessageLookupByLibrary.simpleMessage("删除策略"),
     "deleteRecord": MessageLookupByLibrary.simpleMessage("删除记录"),
     "deleteStorage": MessageLookupByLibrary.simpleMessage("删除存储"),
-    "deleteStorageMessage": m15,
+    "deleteStorageMessage": m16,
     "deleteStorageTitle": MessageLookupByLibrary.simpleMessage("删除存储"),
     "description": MessageLookupByLibrary.simpleMessage("说明："),
     "desktopShortcut": MessageLookupByLibrary.simpleMessage("桌面快捷方式"),
@@ -342,16 +347,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "disabled": MessageLookupByLibrary.simpleMessage("禁用"),
     "download": MessageLookupByLibrary.simpleMessage("下载"),
     "downloadApk": MessageLookupByLibrary.simpleMessage("下载APK"),
-    "downloadCancelled": m16,
+    "downloadCancelled": m17,
     "downloadCancelledStatus": MessageLookupByLibrary.simpleMessage("下载已取消"),
     "downloadCancelledText": MessageLookupByLibrary.simpleMessage("下载已取消"),
-    "downloadComplete": m17,
+    "downloadComplete": m18,
     "downloadCompleteChannel": MessageLookupByLibrary.simpleMessage("下载完成"),
     "downloadCompleteChannelDesc": MessageLookupByLibrary.simpleMessage(
       "文件下载完成通知",
     ),
-    "downloadCompleteFile": m18,
-    "downloadCompleteNotificationTitle": m19,
+    "downloadCompleteFile": m19,
+    "downloadCompleteNotificationTitle": m20,
     "downloadCompleteTitle": MessageLookupByLibrary.simpleMessage("下载完成"),
     "downloadDirectory": MessageLookupByLibrary.simpleMessage("下载目录"),
     "downloadDirectoryCleared": MessageLookupByLibrary.simpleMessage("已清理下载目录"),
@@ -360,15 +365,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "下载目录路径未知",
     ),
     "downloadFailed": MessageLookupByLibrary.simpleMessage("下载失败"),
-    "downloadFailedFile": m20,
-    "downloadFailedWithError": m21,
+    "downloadFailedFile": m21,
+    "downloadFailedWithError": m22,
     "downloadFunctionTest": MessageLookupByLibrary.simpleMessage("下载功能测试"),
     "downloadInstructions": MessageLookupByLibrary.simpleMessage(
       "• 文件将下载到系统下载目录\\n• 下载过程会显示进度通知\\n• 下载完成后可以选择打开文件\\n• 如果文件名重复会自动添加序号\\n• 请通过底部导航栏的\\\"下载管理\\\"查看下载文件",
     ),
     "downloadManager": MessageLookupByLibrary.simpleMessage("下载管理"),
-    "downloadManagerWithCount": m22,
-    "downloadProgress": m23,
+    "downloadManagerWithCount": m23,
+    "downloadProgress": m24,
     "downloadProgressChannel": MessageLookupByLibrary.simpleMessage("下载进度"),
     "downloadProgressDesc": MessageLookupByLibrary.simpleMessage("显示文件下载进度"),
     "downloadRecordsCleared": MessageLookupByLibrary.simpleMessage("已清空下载记录"),
@@ -378,7 +383,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "下载的文件将显示在这里",
     ),
     "downloading": MessageLookupByLibrary.simpleMessage("下载中"),
-    "downloadingFileProgress": m24,
+    "downloadingFileProgress": m25,
     "downloadingImage": MessageLookupByLibrary.simpleMessage("正在下载图片..."),
     "downloads": MessageLookupByLibrary.simpleMessage("下载"),
     "driver": MessageLookupByLibrary.simpleMessage("驱动"),
@@ -390,6 +395,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "editStorage": MessageLookupByLibrary.simpleMessage("编辑存储"),
     "editUser": MessageLookupByLibrary.simpleMessage("编辑用户"),
     "emptyFolder": MessageLookupByLibrary.simpleMessage("文件夹为空"),
+    "emptyInput": MessageLookupByLibrary.simpleMessage("输入不能为空"),
     "enable": MessageLookupByLibrary.simpleMessage("启用"),
     "enableStorage": MessageLookupByLibrary.simpleMessage("启用存储"),
     "enableWebBrowser": MessageLookupByLibrary.simpleMessage("启用内置网页浏览器"),
@@ -404,17 +410,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "exposureMode": MessageLookupByLibrary.simpleMessage("访问模式"),
     "failed": MessageLookupByLibrary.simpleMessage("失败"),
     "failedToConnectToServer": MessageLookupByLibrary.simpleMessage("无法连接到服务器"),
-    "failedToCopy": m25,
-    "failedToCreateFolder": m26,
-    "failedToDelete": m27,
-    "failedToDeleteStorage": m28,
+    "failedToCopy": m26,
+    "failedToCreateFolder": m27,
+    "failedToDelete": m28,
+    "failedToDeleteStorage": m29,
     "failedToLoadFiles": MessageLookupByLibrary.simpleMessage("无法加载文件"),
-    "failedToMove": m29,
-    "failedToToggleStorage": m30,
+    "failedToMove": m30,
+    "failedToToggleStorage": m31,
     "favorites": MessageLookupByLibrary.simpleMessage("收藏"),
     "fileDeleted": MessageLookupByLibrary.simpleMessage("文件已删除"),
-    "fileDeletedLog": m31,
-    "fileDownloadFailed": m32,
+    "fileDeletedLog": m32,
+    "fileDownloadFailed": m33,
     "fileInfo": MessageLookupByLibrary.simpleMessage("文件信息"),
     "fileLocation": MessageLookupByLibrary.simpleMessage("文件位置"),
     "fileLocationTip": MessageLookupByLibrary.simpleMessage(
@@ -431,19 +437,20 @@ class MessageLookup extends MessageLookupByLibrary {
       "文件权限被拒绝,请检查应用权限",
     ),
     "fileSavedTo": MessageLookupByLibrary.simpleMessage("文件已保存到:"),
-    "fileSize": m33,
-    "fileTime": m34,
+    "fileSize": m34,
+    "fileTime": m35,
     "files": MessageLookupByLibrary.simpleMessage("文件"),
     "findApkInDownloadFolder": MessageLookupByLibrary.simpleMessage(
       "请在下载目录找到APK文件进行安装",
     ),
+    "findReplace": MessageLookupByLibrary.simpleMessage("查找替换"),
     "folderName": MessageLookupByLibrary.simpleMessage("文件夹名称"),
     "folderPassword": MessageLookupByLibrary.simpleMessage("文件夹密码"),
     "followSystem": MessageLookupByLibrary.simpleMessage("跟随系统"),
     "forceHttps": MessageLookupByLibrary.simpleMessage("强制 HTTPS"),
     "general": MessageLookupByLibrary.simpleMessage("通用"),
-    "getDownloadDirectoryFailed": m35,
-    "getDownloadFileListFailed": m36,
+    "getDownloadDirectoryFailed": m36,
+    "getDownloadFileListFailed": m37,
     "getDownloadPathFailed": MessageLookupByLibrary.simpleMessage("获取失败"),
     "githubRepo": MessageLookupByLibrary.simpleMessage("GitHub 仓库"),
     "goTo": MessageLookupByLibrary.simpleMessage("前往"),
@@ -488,11 +495,13 @@ class MessageLookup extends MessageLookupByLibrary {
       "初始化通知管理器",
     ),
     "installNow": MessageLookupByLibrary.simpleMessage("立即安装"),
-    "invalidJsonFormat": m37,
+    "invalidFilenameChars": MessageLookupByLibrary.simpleMessage("名称包含非法字符"),
+    "invalidJsonFormat": m38,
     "invalidPem": MessageLookupByLibrary.simpleMessage("该文件不是 PEM 格式的证书或私钥"),
     "invalidPort": MessageLookupByLibrary.simpleMessage(
       "请输入 1 到 65535 的端口，或 -1 表示禁用",
     ),
+    "invalidRegex": MessageLookupByLibrary.simpleMessage("不是有效的正则表达式"),
     "iosBackgroundNote": MessageLookupByLibrary.simpleMessage(
       "iOS 仅在应用处于前台或刚切到后台的短时间内保持服务器运行。",
     ),
@@ -505,7 +514,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "later": MessageLookupByLibrary.simpleMessage("稍后"),
     "laterInstall": MessageLookupByLibrary.simpleMessage("稍后安装"),
     "loadDownloadFilesFailed": MessageLookupByLibrary.simpleMessage("加载下载文件失败"),
-    "loadFailed": m38,
+    "loadFailed": m39,
     "loadStoragesFailed": MessageLookupByLibrary.simpleMessage("加载存储失败"),
     "loadingStorages": MessageLookupByLibrary.simpleMessage("加载中..."),
     "localServer": MessageLookupByLibrary.simpleMessage("本机服务器"),
@@ -515,7 +524,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "manageStoragesDesc": MessageLookupByLibrary.simpleMessage("添加、编辑或删除存储位置"),
     "memory": MessageLookupByLibrary.simpleMessage("内存"),
     "mode": MessageLookupByLibrary.simpleMessage("模式"),
-    "modeChangeFailed": m39,
+    "modeChangeFailed": m40,
     "modeChangeRestart": MessageLookupByLibrary.simpleMessage("新模式在服务器重启后生效。"),
     "modeChangedRestart": MessageLookupByLibrary.simpleMessage(
       "模式已更改。重启服务器以应用。",
@@ -539,7 +548,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "moveTo": MessageLookupByLibrary.simpleMessage("移动到"),
     "moving": MessageLookupByLibrary.simpleMessage("移动中..."),
-    "multipleFilesCompleted": m40,
+    "multipleFilesCompleted": m41,
     "myStorages": MessageLookupByLibrary.simpleMessage("我的存储"),
     "nativeFiles": MessageLookupByLibrary.simpleMessage("文件"),
     "needInstallPermission": MessageLookupByLibrary.simpleMessage("需要安装权限"),
@@ -579,8 +588,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "noUploads": MessageLookupByLibrary.simpleMessage("没有上传"),
     "notConfigured": MessageLookupByLibrary.simpleMessage("未配置"),
     "notConnected": MessageLookupByLibrary.simpleMessage("未连接"),
-    "notificationClicked": m41,
-    "notificationManagerInitFailed": m42,
+    "notificationClicked": m42,
+    "notificationManagerInitFailed": m43,
     "notificationManagerInitialized": MessageLookupByLibrary.simpleMessage(
       "通知管理器初始化成功",
     ),
@@ -594,18 +603,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "ok": MessageLookupByLibrary.simpleMessage("确定"),
     "open": MessageLookupByLibrary.simpleMessage("打开"),
     "openDirectory": MessageLookupByLibrary.simpleMessage("打开目录"),
-    "openDownloadDirectoryFailed": m43,
+    "openDownloadDirectoryFailed": m44,
     "openDownloadManager": MessageLookupByLibrary.simpleMessage("打开下载管理"),
     "openDownloadTestPage": MessageLookupByLibrary.simpleMessage(
       "是否要打开下载测试页面？",
     ),
     "openFile": MessageLookupByLibrary.simpleMessage("打开文件"),
-    "openFileException": m44,
-    "openFileFailed": m45,
+    "openFileException": m45,
+    "openFileFailed": m46,
     "openFileManager": MessageLookupByLibrary.simpleMessage("打开文件管理器"),
-    "openFileManagerFailed": m46,
-    "openFileResult": m47,
-    "openListDownloadDirectory": m48,
+    "openFileManagerFailed": m47,
+    "openFileResult": m48,
+    "openListDownloadDirectory": m49,
     "openSourceLicenses": MessageLookupByLibrary.simpleMessage("开源许可证"),
     "openWebInterface": MessageLookupByLibrary.simpleMessage("打开网页界面"),
     "openlist": MessageLookupByLibrary.simpleMessage("OpenList"),
@@ -613,7 +622,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "operationDone": MessageLookupByLibrary.simpleMessage("完成"),
     "operationFailed": MessageLookupByLibrary.simpleMessage("操作失败"),
     "otpCode": MessageLookupByLibrary.simpleMessage("两步验证码（可选）"),
-    "parseFilenameFailed": m49,
+    "parseFilenameFailed": m50,
     "password": MessageLookupByLibrary.simpleMessage("密码"),
     "passwordKeepHint": MessageLookupByLibrary.simpleMessage("留空则保持当前密码"),
     "pauseIndividualTransfers": MessageLookupByLibrary.simpleMessage("暂停单个传输"),
@@ -661,12 +670,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "quickAccess": MessageLookupByLibrary.simpleMessage("快速访问"),
     "recentFiles": MessageLookupByLibrary.simpleMessage("最近文件"),
     "refresh": MessageLookupByLibrary.simpleMessage("刷新"),
+    "regexRename": MessageLookupByLibrary.simpleMessage("正则表达式"),
     "releasePage": MessageLookupByLibrary.simpleMessage("发布页面"),
     "reloadAll": MessageLookupByLibrary.simpleMessage("全部重新加载"),
     "remark": MessageLookupByLibrary.simpleMessage("备注"),
     "remoteServer": MessageLookupByLibrary.simpleMessage("远程服务器"),
     "remove": MessageLookupByLibrary.simpleMessage("移除"),
     "rename": MessageLookupByLibrary.simpleMessage("重命名"),
+    "renameNoMatch": MessageLookupByLibrary.simpleMessage("没有匹配的项目"),
+    "renamePaddingZeros": MessageLookupByLibrary.simpleMessage("补零位数"),
+    "renamePattern": MessageLookupByLibrary.simpleMessage("匹配规则（正则表达式）"),
+    "renameReplacement": MessageLookupByLibrary.simpleMessage("替换为"),
+    "renameSearchText": MessageLookupByLibrary.simpleMessage("查找文本"),
+    "renameStartNumber": MessageLookupByLibrary.simpleMessage("起始编号"),
     "requestIgnoreBattery": MessageLookupByLibrary.simpleMessage("允许后台运行"),
     "requiredField": MessageLookupByLibrary.simpleMessage("必填"),
     "reset2fa": MessageLookupByLibrary.simpleMessage("重置两步验证"),
@@ -675,7 +691,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "正在重启OpenList服务...",
     ),
     "restoreBackup": MessageLookupByLibrary.simpleMessage("恢复备份"),
-    "restoreBackupFailed": m50,
+    "restoreBackupFailed": m51,
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
     "retryFailed": MessageLookupByLibrary.simpleMessage("重试失败"),
     "role": MessageLookupByLibrary.simpleMessage("角色"),
@@ -687,7 +703,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "runtimeStatus": MessageLookupByLibrary.simpleMessage("运行状态"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveAndRestart": MessageLookupByLibrary.simpleMessage("保存并重启"),
-    "saveFailed": m51,
+    "saveFailed": m52,
     "saveOnly": MessageLookupByLibrary.simpleMessage("仅保存"),
     "saved": MessageLookupByLibrary.simpleMessage("已保存"),
     "search": MessageLookupByLibrary.simpleMessage("搜索"),
@@ -702,7 +718,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "selectNetworkMode": MessageLookupByLibrary.simpleMessage("选择网络模式"),
     "selectThisFolder": MessageLookupByLibrary.simpleMessage("选择此文件夹"),
     "selected": MessageLookupByLibrary.simpleMessage("已选择"),
-    "selectedCount": m52,
+    "selectedCount": m53,
+    "sequentialRename": MessageLookupByLibrary.simpleMessage("顺序编号"),
     "server": MessageLookupByLibrary.simpleMessage("服务器"),
     "serverDetails": MessageLookupByLibrary.simpleMessage("服务器详情"),
     "serverDetailsDesc": MessageLookupByLibrary.simpleMessage("查看运行信息和连接详情"),
@@ -727,10 +744,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "shareFile": MessageLookupByLibrary.simpleMessage("分享文件"),
     "shareLink": MessageLookupByLibrary.simpleMessage("分享链接"),
     "shareLinkDesc": MessageLookupByLibrary.simpleMessage("分享下载链接"),
-    "showDownloadCompleteNotificationFailed": m53,
-    "showDownloadProgressNotificationFailed": m54,
+    "showDownloadCompleteNotificationFailed": m54,
+    "showDownloadProgressNotificationFailed": m55,
     "showInFileManager": MessageLookupByLibrary.simpleMessage("在文件管理器中显示"),
-    "showSingleFileCompleteNotificationFailed": m55,
+    "showSingleFileCompleteNotificationFailed": m56,
     "signOut": MessageLookupByLibrary.simpleMessage("退出登录"),
     "signOutConfirmMessage": MessageLookupByLibrary.simpleMessage("确定要退出登录吗？"),
     "signOutConfirmTitle": MessageLookupByLibrary.simpleMessage("退出登录"),
@@ -745,8 +762,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "sortBySize": MessageLookupByLibrary.simpleMessage("大小"),
     "sortByType": MessageLookupByLibrary.simpleMessage("类型"),
     "standbyBucket": MessageLookupByLibrary.simpleMessage("待机分组"),
-    "startDownload": m56,
-    "startDownloadFile": m57,
+    "startDownload": m57,
+    "startDownloadFile": m58,
     "startServer": MessageLookupByLibrary.simpleMessage("启动服务器"),
     "startServerToAcceptConnections": MessageLookupByLibrary.simpleMessage(
       "启动服务器以接受连接",
@@ -765,7 +782,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "storageDisabled": MessageLookupByLibrary.simpleMessage("已禁用"),
     "storageManagement": MessageLookupByLibrary.simpleMessage("存储管理"),
     "storageManagementDesc": MessageLookupByLibrary.simpleMessage("配置存储后端"),
-    "storageToggled": m58,
+    "storageToggled": m59,
     "storages": MessageLookupByLibrary.simpleMessage("存储"),
     "success": MessageLookupByLibrary.simpleMessage("成功"),
     "systemDefault": MessageLookupByLibrary.simpleMessage("系统默认"),
@@ -802,7 +819,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "transfers": MessageLookupByLibrary.simpleMessage("传输"),
     "troubleshooting": MessageLookupByLibrary.simpleMessage("疑难解答"),
     "troubleshootingDesc": MessageLookupByLibrary.simpleMessage("常见问题与解决方案"),
-    "tryToOpenFile": m59,
+    "tryToOpenFile": m60,
     "uiSettings": MessageLookupByLibrary.simpleMessage("界面"),
     "upload": MessageLookupByLibrary.simpleMessage("上传"),
     "uploadCanceled": MessageLookupByLibrary.simpleMessage("已取消"),
@@ -825,9 +842,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "uploadSucceeded": MessageLookupByLibrary.simpleMessage("已完成"),
     "uploadVideos": MessageLookupByLibrary.simpleMessage("上传视频"),
     "uploading": MessageLookupByLibrary.simpleMessage("上传中"),
-    "uploadingFile": m60,
+    "uploadingFile": m61,
     "uploads": MessageLookupByLibrary.simpleMessage("上传"),
-    "uploadsActive": m61,
+    "uploadsActive": m62,
     "uploadsKeepAppAlive": MessageLookupByLibrary.simpleMessage(
       "上传会在应用进程存活期间继续；从最近任务中划掉应用会中止上传。",
     ),

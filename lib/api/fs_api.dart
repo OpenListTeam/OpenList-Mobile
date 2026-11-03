@@ -52,6 +52,13 @@ class FsApi {
       client.post('/api/fs/rename',
           body: {'path': path, 'name': name, 'overwrite': overwrite});
 
+  /// Renames every entry of [renames] inside [srcDir] in one request.
+  Future<void> batchRename(String srcDir, List<RenameObj> renames) =>
+      client.post('/api/fs/batch_rename', body: {
+        'src_dir': srcDir,
+        'rename_objects': [for (final r in renames) r.toJson()],
+      });
+
   Future<void> move(String srcDir, String dstDir, List<String> names,
           {bool overwrite = false}) =>
       client.post('/api/fs/move', body: {

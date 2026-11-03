@@ -1021,5 +1021,27 @@
   "browseFunctionalityComingSoon": "浏览功能即将推出",
   "cacheCleared": "缓存已清除",
   "couldNotOpenUrl": "无法打开 URL",
-  "openSourceLicenses": "开源许可证"
+  "openSourceLicenses": "开源许可证",
+  "batchRename": "批量重命名",
+  "batchRenameDesc": "重命名选中的 {count} 个项目",
+  "@batchRenameDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "regexRename": "正则表达式",
+  "sequentialRename": "顺序编号",
+  "findReplace": "查找替换",
+  "renamePattern": "匹配规则（正则表达式）",
+  "renameSearchText": "查找文本",
+  "renameReplacement": "替换为",
+  "renameStartNumber": "起始编号",
+  "renamePaddingZeros": "补零位数",
+  "renameNoMatch": "没有匹配的项目",
+  "emptyInput": "输入不能为空",
+  "invalidFilenameChars": "名称包含非法字符",
+  "invalidRegex": "不是有效的正则表达式",
+  "back": "返回"
 }

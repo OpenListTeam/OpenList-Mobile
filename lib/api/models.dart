@@ -29,6 +29,7 @@ class FsObject {
     required this.size,
     required this.isDir,
     this.modified,
+    this.created,
     this.sign = '',
     this.thumb = '',
     this.type = ObjType.unknown,
@@ -40,6 +41,9 @@ class FsObject {
   final int size;
   final bool isDir;
   final DateTime? modified;
+
+  /// Creation time, used by the batch rename date placeholders.
+  final DateTime? created;
   final String sign;
   final String thumb;
   final int type;
@@ -53,12 +57,26 @@ class FsObject {
         size: _int(j['size']),
         isDir: j['is_dir'] == true,
         modified: _time(j['modified']),
+        created: _time(j['created']),
         sign: _str(j['sign']),
         thumb: _str(j['thumb']),
         type: _int(j['type']),
         rawUrl: _str(j['raw_url']),
         provider: _str(j['provider']),
       );
+}
+
+/// A single rename pair of the `fs/batch_rename` endpoint.
+class RenameObj {
+  const RenameObj({required this.srcName, required this.newName});
+
+  final String srcName;
+  final String newName;
+
+  Map<String, dynamic> toJson() => {
+        'src_name': srcName,
+        'new_name': newName,
+      };
 }
 
 class FsListResult {

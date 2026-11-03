@@ -4068,6 +4068,96 @@ class S {
       args: [],
     );
   }
+
+  /// `批量重命名`
+  String get batchRename {
+    return Intl.message('批量重命名', name: 'batchRename', desc: '', args: []);
+  }
+
+  /// `重命名选中的 {count} 个项目`
+  String batchRenameDesc(int count) {
+    return Intl.message(
+      '重命名选中的 $count 个项目',
+      name: 'batchRenameDesc',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `正则表达式`
+  String get regexRename {
+    return Intl.message('正则表达式', name: 'regexRename', desc: '', args: []);
+  }
+
+  /// `顺序编号`
+  String get sequentialRename {
+    return Intl.message('顺序编号', name: 'sequentialRename', desc: '', args: []);
+  }
+
+  /// `查找替换`
+  String get findReplace {
+    return Intl.message('查找替换', name: 'findReplace', desc: '', args: []);
+  }
+
+  /// `匹配规则（正则表达式）`
+  String get renamePattern {
+    return Intl.message(
+      '匹配规则（正则表达式）',
+      name: 'renamePattern',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `查找文本`
+  String get renameSearchText {
+    return Intl.message('查找文本', name: 'renameSearchText', desc: '', args: []);
+  }
+
+  /// `替换为`
+  String get renameReplacement {
+    return Intl.message('替换为', name: 'renameReplacement', desc: '', args: []);
+  }
+
+  /// `起始编号`
+  String get renameStartNumber {
+    return Intl.message('起始编号', name: 'renameStartNumber', desc: '', args: []);
+  }
+
+  /// `补零位数`
+  String get renamePaddingZeros {
+    return Intl.message('补零位数', name: 'renamePaddingZeros', desc: '', args: []);
+  }
+
+  /// `没有匹配的项目`
+  String get renameNoMatch {
+    return Intl.message('没有匹配的项目', name: 'renameNoMatch', desc: '', args: []);
+  }
+
+  /// `输入不能为空`
+  String get emptyInput {
+    return Intl.message('输入不能为空', name: 'emptyInput', desc: '', args: []);
+  }
+
+  /// `名称包含非法字符`
+  String get invalidFilenameChars {
+    return Intl.message(
+      '名称包含非法字符',
+      name: 'invalidFilenameChars',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `不是有效的正则表达式`
+  String get invalidRegex {
+    return Intl.message('不是有效的正则表达式', name: 'invalidRegex', desc: '', args: []);
+  }
+
+  /// `返回`
+  String get back {
+    return Intl.message('返回', name: 'back', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
