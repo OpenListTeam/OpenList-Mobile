@@ -5,6 +5,30 @@
 class DriverLocalization {
   const DriverLocalization._();
 
+  static const _driverNames = <String, String>{
+    'Aliyundrive': '阿里云盘',
+    'AliyundriveOpen': '阿里云盘开放平台',
+    'BaiduNetdisk': '百度网盘',
+    'GoogleDrive': 'Google 云端硬盘',
+    'Onedrive': 'OneDrive',
+    'S3': 'S3 兼容存储',
+    'Doge': 'DogeCloud',
+    'WebDav': 'WebDAV',
+    'Local': '本地存储',
+    '123Pan': '123 云盘',
+    'Quark': '夸克网盘',
+    'QuarkOpen': '夸克网盘开放平台',
+    'PikPak': 'PikPak',
+    'FTP': 'FTP',
+    'SMB': 'SMB',
+    'OnedriveApp': 'OneDrive 应用版',
+    '115': '115 网盘',
+    '115 Open': '115 开放平台',
+    '189Cloud': '天翼云盘',
+    '189CloudPC': '天翼云盘个人版',
+    '139Yun': '移动云盘',
+  };
+
   static const _fields = <String, Map<String, String>>{
     'Aliyundrive': {
       'refresh_token': '刷新令牌',
@@ -110,6 +134,12 @@ class DriverLocalization {
       '请在阿里云盘开放平台创建应用并填写 refresh_token。': '请在阿里云盘开放平台创建应用并填写刷新令牌。',
     },
   };
+
+  static String driverLabel({
+    required String languageCode,
+    required String driver,
+  }) =>
+      _translate(_driverNames[driver], languageCode, driver);
 
   static String fieldLabel({
     required String languageCode,

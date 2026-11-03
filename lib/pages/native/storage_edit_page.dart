@@ -288,7 +288,14 @@ class _StorageEditPageState extends State<StorageEditPage> {
                 decoration: InputDecoration(labelText: S.of(context).driver),
                 items: [
                   for (final d in _drivers)
-                    DropdownMenuItem(value: d, child: Text(d))
+                    DropdownMenuItem(
+                      value: d,
+                      child: Text(DriverLocalization.driverLabel(
+                        languageCode:
+                            Localizations.localeOf(context).languageCode,
+                        driver: d,
+                      )),
+                    )
                 ],
                 onChanged: (d) {
                   if (d != null && d != _driver) _selectDriver(d);

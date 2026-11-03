@@ -5,6 +5,7 @@ import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/storage_edit_page.dart';
+import 'package:openlist_mobile/utils/driver_localization.dart';
 import 'package:openlist_mobile/widgets/cards.dart';
 
 /// Storages management screen
@@ -83,7 +84,9 @@ class _StoragesScreenState extends State<StoragesScreen> {
               final storage = _storages[index];
               return StorageCard(
                 name: storage.mountPath,
-                type: storage.driver,
+                type: DriverLocalization.driverLabel(
+                    languageCode: Localizations.localeOf(context).languageCode,
+                    driver: storage.driver),
                 status: storage.status,
                 usedBytes: 0, // TODO: Get actual usage
                 totalBytes: 0, // TODO: Get actual total
@@ -360,7 +363,9 @@ class _StorageDetailsSheet extends StatelessWidget {
             leading: const Icon(Icons.info_outline),
             title: Text(S.current.driver),
             trailing: Text(
-              storage.driver,
+              DriverLocalization.driverLabel(
+                  languageCode: Localizations.localeOf(context).languageCode,
+                  driver: storage.driver),
               style: AppDesign.body1.copyWith(fontWeight: FontWeight.w500),
             ),
           ),
