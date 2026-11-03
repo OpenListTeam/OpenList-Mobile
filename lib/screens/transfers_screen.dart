@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
+import 'package:openlist_mobile/utils/download_manager.dart';
 
 /// Transfers screen showing uploads and downloads
 class TransfersScreen extends StatefulWidget {
@@ -21,14 +24,15 @@ class _TransfersScreenState extends State<TransfersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-    // Listen to upload queue changes
     _uploadQueue.addListener(_onQueueUpdate);
+    DownloadManager.addListener(_onQueueUpdate);
+    unawaited(DownloadManager.initialize());
   }
 
   @override
   void dispose() {
     _uploadQueue.removeListener(_onQueueUpdate);
+    DownloadManager.removeListener(_onQueueUpdate);
     _tabController.dispose();
     super.dispose();
   }
@@ -57,7 +61,8 @@ class _TransfersScreenState extends State<TransfersScreen>
               switch (value) {
                 case 'pause_all':
                   // Pause is handled per-item
-                  Get.snackbar(S.current.info, S.current.pauseIndividualTransfers);
+                  Get.snackbar(
+                      S.current.info, S.current.pauseIndividualTransfers);
                   break;
                 case 'resume_all':
                   // Resume all failed/canceled uploads
@@ -70,12 +75,16 @@ class _TransfersScreenState extends State<TransfersScreen>
                   break;
                 case 'clear_completed':
                   _uploadQueue.clearFinished();
+                  DownloadManager.clearCompletedTasks();
                   break;
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(value: 'resume_all', child: Text(S.current.retryFailed)),
-              PopupMenuItem(value: 'clear_completed', child: Text(S.current.clearCompleted)),
+              PopupMenuItem(
+                  value: 'resume_all', child: Text(S.current.retryFailed)),
+              PopupMenuItem(
+                  value: 'clear_completed',
+                  child: Text(S.current.clearCompleted)),
             ],
           ),
         ],
@@ -117,8 +126,8 @@ class _UploadsTab extends StatelessWidget {
         return _TransferCard(
           key: ValueKey(job),
           name: job.name,
-          progress: job.progress ?? 0.0,
-          speed: _formatSpeed(job),
+          progress: job.progress,
+          detail: _formatDetail(job),
           status: _formatStatus(job),
           type: _TransferType.upload,
           state: job.state,
@@ -129,19 +138,20 @@ class _UploadsTab extends StatelessWidget {
             uploadQueue.retry(job);
           },
           onCancel: () {
-            uploadQueue.cancel(job);
+            if (job.isFinished) {
+              uploadQueue.remove(job);
+            } else {
+              uploadQueue.cancel(job);
+            }
           },
         );
       },
     );
   }
 
-  String _formatSpeed(UploadJob job) {
-    if (job.state == UploadState.running && job.progress != null) {
-      // Estimate speed (this is simplified, real implementation would track time)
-      return S.current.uploading;
-    }
-    return '';
+  String _formatDetail(UploadJob job) {
+    final error = job.error?.toString();
+    return [job.dir, if (error != null) error].join(' · ');
   }
 
   String _formatStatus(UploadJob job) {
@@ -149,8 +159,10 @@ class _UploadsTab extends StatelessWidget {
       case UploadState.queued:
         return S.current.waiting;
       case UploadState.running:
-        final progress = job.progress ?? 0.0;
-        return '${(progress * 100).toStringAsFixed(0)}%';
+        final progress = job.progress;
+        return progress == null
+            ? S.current.uploading
+            : '${(progress * 100).toStringAsFixed(0)}%';
       case UploadState.succeeded:
         return S.current.completed;
       case UploadState.failed:
@@ -166,11 +178,47 @@ class _DownloadsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Downloads not yet implemented
-    return _EmptyView(
-      icon: Icons.download,
-      message: S.current.noDownloads,
-      description: S.current.downloadedFilesWillAppearHere,
+    final tasks = DownloadManager.allTasks;
+    if (tasks.isEmpty) {
+      return _EmptyView(
+        icon: Icons.download,
+        message: S.current.noDownloads,
+        description: S.current.downloadedFilesWillAppearHere,
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: AppDesign.space16),
+      itemCount: tasks.length,
+      itemBuilder: (context, index) {
+        final task = tasks[index];
+        final state = switch (task.status) {
+          DownloadStatus.pending => UploadState.queued,
+          DownloadStatus.downloading => UploadState.running,
+          DownloadStatus.completed => UploadState.succeeded,
+          DownloadStatus.failed => UploadState.failed,
+          DownloadStatus.cancelled => UploadState.canceled,
+        };
+        return _TransferCard(
+          key: ValueKey('download-${task.id}'),
+          name: task.filename,
+          progress: task.totalBytes > 0 ? task.progress : null,
+          detail: [
+            Uri.tryParse(task.url)?.host,
+            task.progressText,
+            task.errorMessage,
+          ].where((value) => value != null && value.isNotEmpty).join(' · '),
+          status: task.statusText,
+          type: _TransferType.download,
+          state: state,
+          canRetry: false,
+          onPause: () => DownloadManager.cancelDownload(task.id),
+          onResume: () {},
+          onCancel: state == UploadState.running
+              ? () => DownloadManager.cancelDownload(task.id)
+              : () => DownloadManager.removeTask(task.id),
+        );
+      },
     );
   }
 }
@@ -197,7 +245,8 @@ class _EmptyView extends StatelessWidget {
             Icon(
               icon,
               size: 64,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
@@ -217,28 +266,30 @@ class _EmptyView extends StatelessWidget {
   }
 }
 
-enum _TransferType { upload }
+enum _TransferType { upload, download }
 
 class _TransferCard extends StatelessWidget {
   const _TransferCard({
     super.key,
     required this.name,
     required this.progress,
-    required this.speed,
+    required this.detail,
     required this.status,
     required this.type,
     required this.state,
+    this.canRetry = true,
     required this.onPause,
     required this.onResume,
     required this.onCancel,
   });
 
   final String name;
-  final double progress;
-  final String speed;
+  final double? progress;
+  final String detail;
   final String status;
   final _TransferType type;
   final UploadState state;
+  final bool canRetry;
   final VoidCallback onPause;
   final VoidCallback onResume;
   final VoidCallback onCancel;
@@ -290,13 +341,13 @@ class _TransferCard extends StatelessWidget {
                     color: AppDesign.successGreen,
                     size: 20,
                   )
-                else if (isFailed || isCanceled)
+                else if ((isFailed || isCanceled) && canRetry)
                   IconButton(
                     icon: const Icon(Icons.refresh, size: 20),
                     onPressed: onResume,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    tooltip: 'Retry',
+                    tooltip: S.current.retry,
                   )
                 else if (isActive)
                   IconButton(
@@ -304,7 +355,7 @@ class _TransferCard extends StatelessWidget {
                     onPressed: onPause,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    tooltip: 'Cancel',
+                    tooltip: S.current.cancel,
                   ),
                 const SizedBox(width: AppDesign.space8),
                 IconButton(
@@ -312,7 +363,7 @@ class _TransferCard extends StatelessWidget {
                   onPressed: onCancel,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  tooltip: 'Remove',
+                  tooltip: S.current.delete,
                 ),
               ],
             ),
@@ -343,11 +394,16 @@ class _TransferCard extends StatelessWidget {
                     color: isDark ? Colors.white70 : Colors.black54,
                   ),
                 ),
-                if (speed.isNotEmpty)
-                  Text(
-                    speed,
-                    style: AppDesign.caption.copyWith(
-                      color: isDark ? Colors.white70 : Colors.black54,
+                if (detail.isNotEmpty)
+                  Flexible(
+                    child: Text(
+                      detail,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: AppDesign.caption.copyWith(
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
                     ),
                   ),
               ],

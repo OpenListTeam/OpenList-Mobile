@@ -11,7 +11,8 @@ import 'package:openlist_mobile/generated_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _host = 'dev.flutter.pigeon.openlist_mobile.UploadApi.';
-const _events = 'dev.flutter.pigeon.openlist_mobile.UploadEventApi.onUploadEvent';
+const _events =
+    'dev.flutter.pigeon.openlist_mobile.UploadEventApi.onUploadEvent';
 
 /// Fake native host: records enqueue/cancel/restore calls and returns job ids.
 class _Host {
@@ -43,7 +44,10 @@ class _Host {
       final ids = (args[0]! as List<Object?>).cast<String>();
       restored.add(ids);
       return codec.encodeMessage(<Object?>[
-        [for (final id in ids) if (known[id] != null) known[id]],
+        [
+          for (final id in ids)
+            if (known[id] != null) known[id]
+        ],
       ]);
     });
   }
@@ -60,7 +64,8 @@ UploadEvent _event(String id, UploadEventState state,
         body: body);
 
 /// A stored job record as written by an earlier app process.
-String _record(String id, {String baseUrl = 'https://files.example.com/base'}) =>
+String _record(String id,
+        {String baseUrl = 'https://files.example.com/base'}) =>
     jsonEncode({
       'id': id,
       'name': '$id.bin',
@@ -82,7 +87,11 @@ Future<Set<String>> _recordIds() async {
 
 /// Delivers an event as the platform would through UploadEventApi.
 Future<void> _emit(String id, UploadEventState state,
-    {int sent = 0, int total = 0, int status = 0, String? body, String? error}) async {
+    {int sent = 0,
+    int total = 0,
+    int status = 0,
+    String? body,
+    String? error}) async {
   const codec = UploadEventApi.pigeonChannelCodec;
   final event = UploadEvent(
     id: id,
@@ -204,7 +213,8 @@ void main() {
 
     // Canceled from the notification: the queue must see a canceled token.
     final other = CancelToken();
-    final second = expectLater(upload(token: other), throwsA(isA<DioException>()));
+    final second =
+        expectLater(upload(token: other), throwsA(isA<DioException>()));
     await pumpEventQueue();
     await _emit('job2', UploadEventState.canceled);
     await second;
@@ -259,7 +269,8 @@ void main() {
         client: OpenListClient(baseUrl: 'https://127.0.0.1:5245', token: 't'));
     // iOS plain HTTP remote: blocked by ATS.
     await upload(
-        client: OpenListClient(baseUrl: 'http://files.example.com', token: 't'));
+        client:
+            OpenListClient(baseUrl: 'http://files.example.com', token: 't'));
     expect(fallbacks, 3);
     expect(host.requests, isEmpty);
 
@@ -329,6 +340,35 @@ void main() {
 
     setUp(() => queue = UploadQueue(concurrency: 1));
 
+    test('replays a saved terminal result without executing or losing it',
+        () async {
+      SharedPreferences.setMockInitialValues({
+        'native_upload_result.done': jsonEncode({
+          'id': 'done',
+          'timestamp': 1,
+          'name': 'done.bin',
+          'dir': '/dir',
+          'size': 10,
+          'success': true,
+        }),
+      });
+      uploader = NativeUploader(
+          platform: TargetPlatform.android, currentClient: () => _client);
+
+      await uploader.restore(queue: queue);
+      await pumpEventQueue();
+
+      expect(queue.jobs, hasLength(1));
+      expect(queue.jobs.single.state, UploadState.succeeded);
+      expect(host.restored, [<String>[]]);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.containsKey('native_upload_result.done'), isTrue);
+
+      queue.clearFinished();
+      await pumpEventQueue();
+      expect(prefs.containsKey('native_upload_result.done'), isFalse);
+    });
+
     test('shows a running job outside the concurrency limit', () async {
       final job = await restoreOne('old',
           state: _event('old', UploadEventState.running, sent: 3, total: 10));
@@ -369,9 +409,9 @@ void main() {
           state: _event('denied', UploadEventState.completed,
               status: 200, body: '{"code":403,"message":"permission denied"}'));
       expect(denied.state, UploadState.failed);
-      expect(denied.error,
-          isA<ApiException>().having((e) => e.code, 'code', 403));
-      expect(await _recordIds(), isEmpty);
+      expect(
+          denied.error, isA<ApiException>().having((e) => e.code, 'code', 403));
+      expect(await _recordIds(), {'denied'});
     });
 
     test('fails a job the platform no longer knows and drops its record',
@@ -389,7 +429,7 @@ void main() {
       await pumpEventQueue();
       expect(job.state, UploadState.canceled);
       expect(host.canceled, ['old']);
-      expect(await _recordIds(), isEmpty);
+      expect(await _recordIds(), {'old'});
     });
 
     test('retry re-enqueues the recorded file with the session client',

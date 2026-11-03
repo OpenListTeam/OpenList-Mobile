@@ -56,6 +56,7 @@ class NativeUploader {
   final TargetPlatform _platform;
   final OpenListClient? Function() _currentClient;
   final Map<String, _Attempt> _attempts = {};
+  final Map<String, _Record> _recordCache = {};
 
   /// Serializes record writes so a removal never overtakes its save.
   Future<void> _records = Future.value();
@@ -135,7 +136,7 @@ class NativeUploader {
       throw ApiException(-1, e.message ?? e.code);
     }
 
-    _save(_Record(
+    final record = _Record(
       id: id,
       name: title,
       dir: dir ?? _parentOf(dstPath),
@@ -143,7 +144,9 @@ class NativeUploader {
       filePath: filePath,
       size: size,
       baseUrl: client.baseUrl,
-    ));
+    );
+    _recordCache[id] = record;
+    _save(record);
 
     // Encrypt and save the folder password for retry.
     if (password.isNotEmpty) {
@@ -192,37 +195,55 @@ class NativeUploader {
       return;
     }
     final byId = {for (final e in events) e.id: e};
-    for (final r in records) {
-      // Already tracked: a new upload got the id while this was loading.
-      if (_attempts.containsKey(r.id)) continue;
+    final recordsById = {for (final r in records) r.id: r};
+    _recordCache.addAll(recordsById);
 
-      // Check if we have a saved result for this job (process died after completion)
-      final savedResult = savedResults[r.id];
-      if (savedResult != null) {
-        final job = UploadJob(
-          name: r.name,
-          dir: r.dir,
-          size: r.size,
-          run: (token, onProgress) => _retry(r, token, onProgress),
-        );
-        // Replay the saved result
-        if (savedResult['success'] == true) {
-          job.state = UploadState.succeeded;
-          job.sent = r.size;
-        } else if (savedResult['error'] != null) {
-          job.state = UploadState.failed;
-          final err = savedResult['error'] as Map<String, dynamic>;
-          job.error = err['message'] ?? 'Upload failed';
-        }
-        queue.adopt(job, (_, __) => Future.value());
-        _forget(r.id);
+    for (final entry in savedResults.entries) {
+      final id = entry.key;
+      final result = entry.value;
+      final record = recordsById[id];
+      final name = record?.name ?? result['name'] as String?;
+      final dir = record?.dir ?? result['dir'] as String?;
+      final size = record?.size ?? result['size'] as int?;
+      if (name == null || dir == null || size == null) continue;
+
+      final job = UploadJob(
+        name: name,
+        dir: dir,
+        size: size,
+        historyId: id,
+        onRemove: () => _forget(id),
+        run: (token, onProgress) async {
+          _forget(id);
+          if (record == null) {
+            throw ApiException(
+                -1, 'The original upload can no longer be retried');
+          }
+          await _retry(record, token, onProgress);
+        },
+      );
+      if (result['success'] == true) {
+        job
+          ..state = UploadState.succeeded
+          ..sent = size;
+      } else {
+        job
+          ..state = UploadState.failed
+          ..error = 'Upload failed';
+      }
+      queue.addHistory(job);
+    }
+
+    for (final r in records) {
+      if (_attempts.containsKey(r.id) || savedResults.containsKey(r.id)) {
         continue;
       }
-
       final job = UploadJob(
         name: r.name,
         dir: r.dir,
         size: r.size,
+        historyId: r.id,
+        onRemove: () => _forget(r.id),
         run: (token, onProgress) => _retry(r, token, onProgress),
       );
       final initial = byId[r.id];
@@ -349,11 +370,12 @@ class NativeUploader {
     if (attempt == null || attempt.done) return;
     attempt.done = true;
 
-    // Persist the result so it survives process death.
-    _saveResult(id, error: error);
-
-    // The job record is no longer needed for restore.
-    _forget(id);
+    // Persist terminal metadata without storing request URLs or credentials.
+    _saveResult(id, error: error, record: _recordCache[id]);
+    if (error == null) {
+      _forget(id, clearResult: false);
+      _recordCache.remove(id);
+    }
 
     if (error == null) {
       attempt.completer.complete();
@@ -362,38 +384,30 @@ class NativeUploader {
     }
   }
 
-  void _save(_Record r) => _writeRecords(
-      (prefs) => prefs.setString('$recordPrefix${r.id}', jsonEncode(r.toJson())));
+  void _save(_Record r) => _writeRecords((prefs) =>
+      prefs.setString('$recordPrefix${r.id}', jsonEncode(r.toJson())));
 
-  void _forget(String id) {
+  void _forget(String id, {bool clearResult = true}) {
+    _recordCache.remove(id);
     _writeRecords((prefs) => prefs.remove('$recordPrefix$id'));
-    _clearResult(id);
+    if (clearResult) _clearResult(id);
     _clearPassword(id);
   }
 
   /// Saves the upload result (success or error) so it survives process death.
-  void _saveResult(String id, {Object? error}) {
+  void _saveResult(String id, {Object? error, _Record? record}) {
     _writeRecords((prefs) async {
       final result = <String, dynamic>{
         'id': id,
         'timestamp': DateTime.now().millisecondsSinceEpoch,
+        if (record != null) ...{
+          'name': record.name,
+          'dir': record.dir,
+          'size': record.size,
+        },
       };
       if (error != null) {
-        if (error is ApiException) {
-          result['error'] = {
-            'code': error.code,
-            'message': error.message,
-          };
-        } else if (error is DioException) {
-          result['error'] = {
-            'type': error.type.name,
-            'message': error.message ?? 'Upload failed',
-          };
-        } else {
-          result['error'] = {
-            'message': error.toString(),
-          };
-        }
+        result['error'] = {'message': 'Upload failed'};
       } else {
         result['success'] = true;
       }

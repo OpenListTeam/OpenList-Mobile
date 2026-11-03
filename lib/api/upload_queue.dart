@@ -16,6 +16,9 @@ class UploadJob {
     required this.dir,
     required this.size,
     required this.run,
+    this.historyId,
+    this.onRemove,
+    this.canRetry = true,
   });
 
   final String name;
@@ -24,6 +27,9 @@ class UploadJob {
   final String dir;
   final int size;
   final UploadRunner run;
+  final String? historyId;
+  final VoidCallback? onRemove;
+  final bool canRetry;
 
   UploadState state = UploadState.queued;
   int sent = 0;
@@ -87,6 +93,32 @@ class UploadQueue extends ChangeNotifier {
     unawaited(_start(job, runner: attach));
   }
 
+  /// Inserts a persisted terminal job without running its upload runner.
+  void addHistory(UploadJob job) {
+    if (_jobs.any((existing) =>
+        job.historyId != null && existing.historyId == job.historyId)) {
+      return;
+    }
+    if (!job.isFinished) {
+      throw ArgumentError.value(
+          job.state, 'job.state', 'History jobs must be finished');
+    }
+    _jobs.add(job);
+    notifyListeners();
+  }
+
+  /// Removes a finished job, or cancels an active job before removing it.
+  void remove(UploadJob job) {
+    if (!job.isFinished) {
+      cancel(job);
+      if (!job.isFinished) return;
+    }
+    if (_jobs.remove(job)) {
+      job.onRemove?.call();
+      notifyListeners();
+    }
+  }
+
   void cancel(UploadJob job) {
     switch (job.state) {
       case UploadState.queued:
@@ -101,7 +133,9 @@ class UploadQueue extends ChangeNotifier {
   }
 
   void retry(UploadJob job) {
-    if (job.state != UploadState.failed && job.state != UploadState.canceled) {
+    if (!job.canRetry ||
+        (job.state != UploadState.failed &&
+            job.state != UploadState.canceled)) {
       return;
     }
     job
@@ -113,6 +147,9 @@ class UploadQueue extends ChangeNotifier {
   }
 
   void clearFinished() {
+    for (final job in _jobs.where((job) => job.isFinished)) {
+      job.onRemove?.call();
+    }
     _jobs.removeWhere((j) => j.isFinished);
     notifyListeners();
   }

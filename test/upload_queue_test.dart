@@ -49,8 +49,7 @@ void main() {
     expect(q.activeCount, 2);
   });
 
-  test('cancel stops queued and running jobs; retry runs them again',
-      () async {
+  test('cancel stops queued and running jobs; retry runs them again', () async {
     final q = UploadQueue(concurrency: 1);
     final a = _Job('a'), b = _Job('b');
     final finished = <String>[];
@@ -70,6 +69,37 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(a.job.state, UploadState.running);
     expect(a.attempts, 2);
+  });
+
+  test('restores terminal history without running it and removes it cleanly',
+      () async {
+    final q = UploadQueue();
+    var ran = false;
+    var removed = false;
+    var notifications = 0;
+    q.addListener(() => notifications++);
+    final job = UploadJob(
+      name: 'restored.bin',
+      dir: '/d',
+      size: 10,
+      historyId: 'native-1',
+      onRemove: () => removed = true,
+      run: (token, onProgress) async {
+        ran = true;
+      },
+    )..state = UploadState.failed;
+
+    q.addHistory(job);
+    await Future<void>.delayed(Duration.zero);
+    expect(q.jobs, [job]);
+    expect(job.state, UploadState.failed);
+    expect(ran, isFalse);
+    expect(notifications, 1);
+
+    q.remove(job);
+    expect(q.jobs, isEmpty);
+    expect(removed, isTrue);
+    expect(notifications, 2);
   });
 
   test('errors mark the job failed and keep the error', () async {
