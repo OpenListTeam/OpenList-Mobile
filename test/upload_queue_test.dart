@@ -117,6 +117,41 @@ void main() {
     expect(notifications, 2);
   });
 
+  test('normal completion wins over a late cancellation', () async {
+    final q = UploadQueue(concurrency: 1);
+    final job = UploadJob(
+      name: 'late-cancel.bin',
+      dir: '/d',
+      size: 10,
+      run: (token, onProgress) async {
+        token.cancel();
+      },
+    );
+
+    q.add(job);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(job.state, UploadState.succeeded);
+    expect(job.sent, 10);
+  });
+
+  test('remove waits for a cancelling job to finish before removing it',
+      () async {
+    final q = UploadQueue(concurrency: 1);
+    final a = _Job('a'), b = _Job('b');
+    q.addAll([a.job, b.job]);
+    await Future<void>.delayed(Duration.zero);
+
+    q.remove(a.job);
+    expect(a.job.state, UploadState.cancelling);
+    expect(q.jobs, contains(a.job));
+
+    await Future<void>.delayed(Duration.zero);
+    expect(q.jobs, isNot(contains(a.job)));
+    expect(q.jobs, contains(b.job));
+    expect(b.job.state, UploadState.running);
+  });
+
   test('errors mark the job failed and keep the error', () async {
     final q = UploadQueue();
     final a = _Job('a');

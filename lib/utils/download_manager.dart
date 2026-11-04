@@ -42,6 +42,8 @@ class DownloadTask {
   Completer<void>? resumeSignal;
   DateTime? lastUiProgressUpdate;
   DateTime? lastSystemProgressUpdate;
+  String? etag;
+  String? lastModified;
 
   DownloadTask({
     required this.id,
@@ -161,7 +163,11 @@ class DownloadManager {
   static final List<DownloadTask> _completedTasks = [];
   static final Set<String> _cancelledTaskIds = {};
   static final Set<String> _reservedFilePaths = {};
+  static final Set<String> _removeWhenFinished = {};
   static int _nextTaskId = 0;
+  static int _filesVersion = 0;
+
+  static int get filesVersion => _filesVersion;
 
   static void addListener(VoidCallback listener) =>
       _changes.addListener(listener);
@@ -188,7 +194,11 @@ class DownloadManager {
     }
   }
 
-  static void _notifyChanged({bool persistHistory = false}) {
+  static void _notifyChanged({
+    bool persistHistory = false,
+    bool filesChanged = false,
+  }) {
+    if (filesChanged) _filesVersion++;
     _changes.emit();
     if (persistHistory) {
       _historyWrites = _historyWrites.then((_) async {
@@ -278,14 +288,14 @@ class DownloadManager {
     if (dir == null) return false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_downloadDirectoryKey, dir.path);
-    _notifyChanged();
+    _notifyChanged(filesChanged: true);
     return true;
   }
 
   static Future<void> resetDownloadDirectory() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_downloadDirectoryKey);
-    _notifyChanged();
+    _notifyChanged(filesChanged: true);
   }
 
   static Future<Directory?> _getDownloadDirectoryForTask() async {
@@ -357,8 +367,10 @@ class DownloadManager {
         ..progress = 1.0;
       if (task.totalBytes == 0) task.totalBytes = task.receivedBytes;
       _activeTasks.remove(taskId);
-      _completedTasks.insert(0, task);
-      _notifyChanged(persistHistory: true);
+      if (!_removeWhenFinished.remove(taskId)) {
+        _completedTasks.insert(0, task);
+      }
+      _notifyChanged(persistHistory: true, filesChanged: true);
       unawaited(NotificationManager.showSingleFileCompleteNotification(task));
       getx.Get.showSnackbar(getx.GetSnackBar(
         message: S.current.downloadCompleteFile(finalFilename),
@@ -388,8 +400,10 @@ class DownloadManager {
       }
       await _deletePartialFile(partialFilePath);
       _activeTasks.remove(taskId);
-      _completedTasks.insert(0, task);
-      _notifyChanged(persistHistory: true);
+      if (!_removeWhenFinished.remove(taskId)) {
+        _completedTasks.insert(0, task);
+      }
+      _notifyChanged(persistHistory: true, filesChanged: true);
       if (_activeTasks.isEmpty) {
         unawaited(NotificationManager.cancelDownloadNotification());
       } else {
@@ -399,6 +413,7 @@ class DownloadManager {
     } finally {
       task.cancelToken = null;
       _cancelledTaskIds.remove(taskId);
+      _removeWhenFinished.remove(taskId);
       _reservedFilePaths.remove(filePath);
     }
   }
@@ -428,7 +443,10 @@ class DownloadManager {
         return;
       } catch (_) {
         task.cancelToken = null;
-        if (!task.pauseRequested) rethrow;
+        final pausedByUser = token.isCancelled &&
+            task.pauseRequested &&
+            !_cancelledTaskIds.contains(task.id);
+        if (!pausedByUser) rethrow;
         await _waitForResume(task);
       }
     }
@@ -436,69 +454,134 @@ class DownloadManager {
 
   static Future<void> _downloadHttpAttempt(
       DownloadTask task, Map<String, String> headers, CancelToken token) async {
-    final partialFile = File(task.partialFilePath!);
-    final offset = await partialFile.exists() ? await partialFile.length() : 0;
-    final response = await _dio.get<ResponseBody>(
-      task.url,
-      cancelToken: token,
-      options: Options(
-        responseType: ResponseType.stream,
-        headers: {
-          ...headers,
-          if (offset > 0) 'Range': 'bytes=$offset-',
-        },
-      ),
-    );
+    var restarted = false;
+    while (true) {
+      final partialFile = File(task.partialFilePath!);
+      final offset =
+          await partialFile.exists() ? await partialFile.length() : 0;
+      final resumableEtag =
+          task.etag != null && !task.etag!.startsWith('W/') ? task.etag : null;
+      final requestHeaders = <String, String>{
+        ...headers,
+        'Accept-Encoding': 'identity',
+        if (offset > 0) 'Range': 'bytes=$offset-',
+        if (offset > 0 && resumableEtag != null) 'If-Range': resumableEtag,
+        if (offset > 0 && resumableEtag == null && task.lastModified != null)
+          'If-Range': task.lastModified!,
+      };
+      final response = await _dio.get<ResponseBody>(
+        task.url,
+        cancelToken: token,
+        options: Options(
+          responseType: ResponseType.stream,
+          headers: requestHeaders,
+          validateStatus: (status) =>
+              status != null &&
+              (status == 416 || (status >= 200 && status < 300)),
+        ),
+      );
 
-    var writeOffset = offset;
-    final status = response.statusCode ?? 0;
-    if (offset > 0 && status == 200) {
-      writeOffset = 0;
-      task
-        ..receivedBytes = 0
-        ..progress = 0;
-    } else if (status == 206) {
-      final range = response.headers.value('content-range');
-      final match = range == null
-          ? null
-          : RegExp(r'bytes (\d+)-\d+/', caseSensitive: false).firstMatch(range);
-      if (match == null || int.parse(match.group(1)!) != offset) {
-        throw const FormatException('Invalid partial download response');
+      final status = response.statusCode ?? 0;
+      final contentEncoding =
+          response.headers.value('content-encoding')?.toLowerCase();
+      if (contentEncoding != null && contentEncoding != 'identity') {
+        throw const FormatException('Unsupported compressed download response');
       }
-    } else if (status != 200) {
-      throw HttpException('Unexpected download status: $status');
-    }
-
-    final contentLength =
-        int.tryParse(response.headers.value(Headers.contentLengthHeader) ?? '');
-    final range = response.headers.value('content-range');
-    final rangeMatch = range == null
-        ? null
-        : RegExp(r'bytes \d+-\d+/(\d+)', caseSensitive: false)
-            .firstMatch(range);
-    final int? totalFromRange =
-        rangeMatch == null ? null : int.tryParse(rangeMatch.group(1)!);
-    task.totalBytes = totalFromRange ??
-        (contentLength == null ? 0 : writeOffset + contentLength);
-    task.receivedBytes = writeOffset;
-
-    final output = await partialFile.open(
-        mode: writeOffset > 0 ? FileMode.append : FileMode.write);
-    try {
-      await for (final chunk in response.data!.stream) {
-        await output.writeFrom(chunk);
-        task.receivedBytes += chunk.length;
-        if (task.totalBytes > 0) {
-          task.progress = task.receivedBytes / task.totalBytes;
+      final responseEtag = response.headers.value('etag');
+      final responseLastModified = response.headers.value('last-modified');
+      final validatorChanged = offset > 0 &&
+          status == 206 &&
+          ((task.etag != null &&
+                  responseEtag != null &&
+                  task.etag != responseEtag) ||
+              (task.lastModified != null &&
+                  responseLastModified != null &&
+                  task.lastModified != responseLastModified));
+      if (validatorChanged) {
+        if (restarted) {
+          throw const FormatException('Download source changed while resuming');
         }
-        _notifyDownloadProgress(task);
+        await _deletePartialFile(task.partialFilePath!);
+        task
+          ..receivedBytes = 0
+          ..totalBytes = 0
+          ..progress = 0
+          ..etag = null
+          ..lastModified = null;
+        restarted = true;
+        continue;
       }
-    } finally {
-      await output.flush();
-      await output.close();
-    }
-    if (task.totalBytes > 0 && task.receivedBytes != task.totalBytes) {
-      throw const FormatException('Incomplete download response');
+      if (status == 416 && offset > 0) {
+        if (restarted) {
+          throw const FormatException('Invalid partial download response');
+        }
+        await _deletePartialFile(task.partialFilePath!);
+        task
+          ..receivedBytes = 0
+          ..totalBytes = 0
+          ..progress = 0
+          ..etag = null
+          ..lastModified = null;
+        restarted = true;
+        continue;
+      }
+
+      var writeOffset = offset;
+      if (offset > 0 && status == 200) {
+        writeOffset = 0;
+        task
+          ..receivedBytes = 0
+          ..totalBytes = 0
+          ..progress = 0;
+      } else if (status == 206) {
+        final range = response.headers.value('content-range');
+        final match = range == null
+            ? null
+            : RegExp(r'bytes (\d+)-\d+/', caseSensitive: false)
+                .firstMatch(range);
+        if (match == null || int.parse(match.group(1)!) != offset) {
+          throw const FormatException('Invalid partial download response');
+        }
+      } else if (status != 200) {
+        throw HttpException('Unexpected download status: $status');
+      }
+
+      if (responseEtag != null) task.etag = responseEtag;
+      if (responseLastModified != null) {
+        task.lastModified = responseLastModified;
+      }
+      final contentLength = int.tryParse(
+          response.headers.value(Headers.contentLengthHeader) ?? '');
+      final range = response.headers.value('content-range');
+      final rangeMatch = range == null
+          ? null
+          : RegExp(r'bytes \d+-\d+/(\d+)', caseSensitive: false)
+              .firstMatch(range);
+      final int? totalFromRange =
+          rangeMatch == null ? null : int.tryParse(rangeMatch.group(1)!);
+      task.totalBytes = totalFromRange ??
+          (contentLength == null ? 0 : writeOffset + contentLength);
+      task.receivedBytes = writeOffset;
+
+      final output = await partialFile.open(
+          mode: writeOffset > 0 ? FileMode.append : FileMode.write);
+      try {
+        await for (final chunk in response.data!.stream) {
+          await output.writeFrom(chunk);
+          task.receivedBytes += chunk.length;
+          if (task.totalBytes > 0) {
+            task.progress = task.receivedBytes / task.totalBytes;
+          }
+          _notifyDownloadProgress(task);
+        }
+      } finally {
+        await output.flush();
+        await output.close();
+      }
+      if (task.totalBytes > 0 && task.receivedBytes != task.totalBytes) {
+        throw const FormatException('Incomplete download response');
+      }
+      return;
     }
   }
 
@@ -651,8 +734,10 @@ class DownloadManager {
       task.endTime = DateTime.now();
       task.progress = 1.0;
       _activeTasks.remove(taskId);
-      _completedTasks.insert(0, task);
-      _notifyChanged(persistHistory: true);
+      if (!_removeWhenFinished.remove(taskId)) {
+        _completedTasks.insert(0, task);
+      }
+      _notifyChanged(persistHistory: true, filesChanged: true);
 
       await NotificationManager.showSingleFileCompleteNotification(task);
       getx.Get.showSnackbar(getx.GetSnackBar(
@@ -677,8 +762,10 @@ class DownloadManager {
       }
       task.endTime = DateTime.now();
       _activeTasks.remove(taskId);
-      _completedTasks.insert(0, task);
-      _notifyChanged(persistHistory: true);
+      if (!_removeWhenFinished.remove(taskId)) {
+        _completedTasks.insert(0, task);
+      }
+      _notifyChanged(persistHistory: true, filesChanged: true);
 
       try {
         await output?.close();
@@ -710,6 +797,7 @@ class DownloadManager {
       return false;
     } finally {
       _cancelledTaskIds.remove(taskId);
+      _removeWhenFinished.remove(taskId);
       _reservedFilePaths.remove(filePath);
     }
   }
@@ -754,6 +842,7 @@ class DownloadManager {
   /// 删除下载任务记录
   static void removeTask(String taskId) {
     if (_activeTasks.containsKey(taskId)) {
+      _removeWhenFinished.add(taskId);
       cancelDownload(taskId);
       return;
     }
@@ -1071,12 +1160,28 @@ class DownloadManager {
   }
 
   static Future<bool> clearDownloadDirectory() async {
+    if (_activeTasks.isNotEmpty) return false;
     try {
       final downloadDir = await _getOpenListDownloadDirectory();
-      if (downloadDir != null && await downloadDir.exists()) {
-        await downloadDir.delete(recursive: true);
-        return true;
+      if (downloadDir == null || !await downloadDir.exists()) return false;
+      final managedNames = _completedTasks.map((task) => task.filename).toSet();
+      var deleted = false;
+      await for (final entity in downloadDir.list(followLinks: false)) {
+        if (entity is! File) continue;
+        final name = entity.path.split(Platform.pathSeparator).last;
+        final managed = managedNames.contains(name) ||
+            (name.endsWith('.part') &&
+                managedNames.any((base) => name.startsWith('$base.')));
+        if (!managed) continue;
+        try {
+          await entity.delete();
+          deleted = true;
+        } catch (error) {
+          log('清理下载文件失败: $error');
+        }
       }
+      if (deleted) _notifyChanged(filesChanged: true);
+      return true;
     } catch (e) {
       log('清理下载目录失败: $e');
     }
@@ -1096,6 +1201,7 @@ class DownloadManager {
       final file = File(path);
       if (await file.exists()) {
         await file.delete();
+        _notifyChanged(filesChanged: true);
         return true;
       }
     } catch (e) {

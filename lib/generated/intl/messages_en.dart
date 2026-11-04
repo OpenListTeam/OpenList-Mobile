@@ -349,7 +349,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmCancelDownload": m5,
     "confirmClear": MessageLookupByLibrary.simpleMessage("Confirm Clear"),
     "confirmClearAllFiles": MessageLookupByLibrary.simpleMessage(
-      "Are you sure you want to clear all download files? This action cannot be undone.",
+      "Are you sure you want to clear all files managed by OpenList? This action cannot be undone.",
     ),
     "confirmDelete": MessageLookupByLibrary.simpleMessage("Confirm Delete"),
     "confirmDeleteFile": m6,

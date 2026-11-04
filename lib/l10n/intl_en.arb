@@ -80,7 +80,7 @@
   "deleteRecord": "Delete record",
   "deleteFile": "Delete file",
   "confirmClear": "Confirm Clear",
-  "confirmClearAllFiles": "Are you sure you want to clear all download files? This action cannot be undone.",
+  "confirmClearAllFiles": "Are you sure you want to clear all files managed by OpenList? This action cannot be undone.",
   "cleared": "Download directory cleared",
   "clearFailed": "Clear failed",
   "cancelDownload": "Cancel Download",

@@ -599,10 +599,10 @@ class S {
     return Intl.message('确认清空', name: 'confirmClear', desc: '', args: []);
   }
 
-  /// `确定要清空所有下载文件吗？此操作不可撤销。`
+  /// `确定要清空 OpenList 管理的所有文件吗？此操作不可撤销。`
   String get confirmClearAllFiles {
     return Intl.message(
-      '确定要清空所有下载文件吗？此操作不可撤销。',
+      '确定要清空 OpenList 管理的所有文件吗？此操作不可撤销。',
       name: 'confirmClearAllFiles',
       desc: '',
       args: [],

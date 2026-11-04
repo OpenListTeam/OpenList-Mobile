@@ -112,9 +112,10 @@ class _TransfersScreenState extends State<TransfersScreen>
                 PopupMenuItem(
                     value: 'open_download_directory',
                     child: Text(S.current.openDirectory)),
-                PopupMenuItem(
-                    value: 'clear_download_files',
-                    child: Text(S.current.clearAll)),
+                if (DownloadManager.activeTasks.isEmpty)
+                  PopupMenuItem(
+                      value: 'clear_download_files',
+                      child: Text(S.current.clearAll)),
               ],
             ],
           ),
@@ -219,30 +220,64 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   List<FileSystemEntity> _files = [];
   Map<String, FileStat?> _fileStats = {};
   bool _loadingFiles = true;
+  bool _refreshingFiles = false;
+  bool _refreshPending = false;
+  int _filesVersion = 0;
 
   @override
   void initState() {
     super.initState();
-    _refreshFiles();
+    _filesVersion = DownloadManager.filesVersion;
+    DownloadManager.addListener(_onDownloadManagerChanged);
+    unawaited(_refreshFiles());
+  }
+
+  @override
+  void dispose() {
+    DownloadManager.removeListener(_onDownloadManagerChanged);
+    super.dispose();
+  }
+
+  void _onDownloadManagerChanged() {
+    if (!mounted) return;
+    setState(() {});
+    if (_filesVersion == DownloadManager.filesVersion) return;
+    if (_refreshingFiles) {
+      _refreshPending = true;
+      return;
+    }
+    unawaited(_refreshFiles());
   }
 
   Future<void> _refreshFiles() async {
-    setState(() => _loadingFiles = true);
-    final files = await DownloadManager.getDownloadedFiles();
-    final stats = <String, FileStat?>{};
-    for (final file in files) {
-      try {
-        stats[file.path] = await file.stat();
-      } on FileSystemException {
-        stats[file.path] = null;
-      }
+    if (_refreshingFiles) {
+      _refreshPending = true;
+      return;
     }
-    if (!mounted) return;
-    setState(() {
-      _files = files;
-      _fileStats = stats;
-      _loadingFiles = false;
-    });
+    _refreshingFiles = true;
+    do {
+      _refreshPending = false;
+      if (mounted) setState(() => _loadingFiles = true);
+      final files = await DownloadManager.getDownloadedFiles();
+      final stats = <String, FileStat?>{};
+      for (final file in files) {
+        try {
+          stats[file.path] = await file.stat();
+        } on FileSystemException {
+          stats[file.path] = null;
+        }
+      }
+      final version = DownloadManager.filesVersion;
+      if (!mounted) break;
+      setState(() {
+        _files = files;
+        _fileStats = stats;
+        _filesVersion = version;
+        _loadingFiles = false;
+      });
+      if (version != DownloadManager.filesVersion) _refreshPending = true;
+    } while (_refreshPending && mounted);
+    _refreshingFiles = false;
   }
 
   @override
@@ -328,27 +363,13 @@ class _DownloadsTabState extends State<_DownloadsTab> {
       DownloadStatus.failed => UploadState.failed,
       DownloadStatus.cancelled => UploadState.canceled,
     };
-    return _TransferCard(
-      key: ValueKey('download-${task.id}'),
-      name: task.filename,
-      icon: _downloadFileIcon(task.filename),
-      progress: task.totalBytes > 0 ? task.progress : null,
-      detail: [
-        task.progressText,
-        _formatDateTime(task.startTime),
-        if (task.endTime != null) _formatDateTime(task.endTime!),
-        task.errorMessage,
-      ].where((value) => value != null && value.isNotEmpty).join(' · '),
-      status: task.statusText,
-      type: _TransferType.download,
-      state: state,
-      canRetry: false,
-      onPause: () => DownloadManager.pauseDownload(task.id),
-      onResume: () => DownloadManager.resumeDownload(task.id),
-      onCancel: state == UploadState.running || state == UploadState.paused
-          ? () => DownloadManager.cancelDownload(task.id)
-          : () => DownloadManager.removeTask(task.id),
-      trailing: PopupMenuButton<String>(
+    final activeTask = task.status == DownloadStatus.pending ||
+        task.status == DownloadStatus.downloading ||
+        task.status == DownloadStatus.paused ||
+        task.status == DownloadStatus.cancelling;
+    Widget? trailing;
+    if (!activeTask) {
+      trailing = PopupMenuButton<String>(
         onSelected: (value) => _handleTaskAction(task, filePath, value),
         itemBuilder: (context) => [
           if (filePath != null && task.status == DownloadStatus.completed)
@@ -364,7 +385,42 @@ class _DownloadsTabState extends State<_DownloadsTab> {
           PopupMenuItem(
               value: 'delete_record', child: Text(S.current.deleteRecord)),
         ],
-      ),
+      );
+    }
+    return _TransferCard(
+      key: ValueKey('download-${task.id}'),
+      name: task.filename,
+      icon: _downloadFileIcon(task.filename),
+      progress: task.totalBytes > 0 ? task.progress : null,
+      detail: [
+        task.progressText,
+        _formatDateTime(task.startTime),
+        if (task.endTime != null) _formatDateTime(task.endTime!),
+        task.errorMessage,
+      ].where((value) => value != null && value.isNotEmpty).join(' · '),
+      status: task.statusText,
+      type: _TransferType.download,
+      state: state,
+      canRetry: false,
+      onPause: () {
+        switch (task.status) {
+          case DownloadStatus.pending:
+            DownloadManager.cancelDownload(task.id);
+          case DownloadStatus.downloading:
+            DownloadManager.pauseDownload(task.id);
+          case DownloadStatus.paused:
+          case DownloadStatus.cancelling:
+          case DownloadStatus.completed:
+          case DownloadStatus.failed:
+          case DownloadStatus.cancelled:
+            break;
+        }
+      },
+      onResume: () => DownloadManager.resumeDownload(task.id),
+      onCancel: activeTask && task.status != DownloadStatus.cancelling
+          ? () => DownloadManager.cancelDownload(task.id)
+          : () => DownloadManager.removeTask(task.id),
+      trailing: trailing,
     );
   }
 
@@ -409,7 +465,13 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   }
 
   Future<void> _showFileInfo(String path) async {
-    final stat = await File(path).stat();
+    late final FileStat stat;
+    try {
+      stat = await File(path).stat();
+    } on FileSystemException {
+      await _refreshFiles();
+      return;
+    }
     if (!mounted) return;
     await showDialog<void>(
       context: context,
@@ -449,8 +511,10 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   }
 
   Future<void> _clearDownloadFiles() async {
-    if (!await _confirm(S.current.confirmClear, S.current.confirmClearAllFiles))
+    if (!await _confirm(
+        S.current.confirmClear, S.current.confirmClearAllFiles)) {
       return;
+    }
     final cleared = await DownloadManager.clearDownloadDirectory();
     if (!cleared || !mounted) return;
     DownloadManager.clearCompletedTasks();
@@ -547,7 +611,13 @@ class _DownloadedFileTile extends StatelessWidget {
                   iosConfig: IosConfig(folderPath: directory),
                 );
               case 'info':
-                final refreshedStat = await file.stat();
+                late final FileStat refreshedStat;
+                try {
+                  refreshedStat = await file.stat();
+                } on FileSystemException {
+                  await onChanged();
+                  return;
+                }
                 if (!context.mounted) return;
                 await showDialog<void>(
                   context: context,
@@ -772,14 +842,15 @@ class _TransferCard extends StatelessWidget {
                           : Icons.cancel_outlined,
                       size: 20,
                     ),
-                    onPressed: onPause,
+                    onPressed: isQueued ? onCancel : onPause,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     tooltip: type == _TransferType.download && isActive
                         ? S.current.pause
                         : S.current.cancel,
                   ),
-                if (isPaused || isQueued) ...[
+                if (isPaused ||
+                    (isActive && type == _TransferType.download)) ...[
                   const SizedBox(width: AppDesign.space8),
                   IconButton(
                     icon: const Icon(Icons.cancel_outlined, size: 20),
@@ -788,7 +859,10 @@ class _TransferCard extends StatelessWidget {
                     constraints: const BoxConstraints(),
                     tooltip: S.current.cancel,
                   ),
-                ] else if (!isActive && !isCancelling) ...[
+                ] else if (!isActive &&
+                    !isQueued &&
+                    !isCancelling &&
+                    trailing == null) ...[
                   const SizedBox(width: AppDesign.space8),
                   IconButton(
                     icon: const Icon(Icons.close, size: 20),

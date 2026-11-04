@@ -80,7 +80,7 @@
   "deleteRecord": "删除记录",
   "deleteFile": "删除文件",
   "confirmClear": "确认清空",
-  "confirmClearAllFiles": "确定要清空所有下载文件吗？此操作不可撤销。",
+  "confirmClearAllFiles": "确定要清空 OpenList 管理的所有文件吗？此操作不可撤销。",
   "cleared": "已清空下载目录",
   "clearFailed": "清空失败",
   "cancelDownload": "取消下载",

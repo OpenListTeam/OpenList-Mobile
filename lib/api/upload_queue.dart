@@ -47,6 +47,8 @@ class UploadJob {
   /// Running through [UploadQueue.adopt], outside the concurrency limit.
   bool _adopted = false;
 
+  bool _removeWhenFinished = false;
+
   double? get progress =>
       size > 0 ? (sent / size).clamp(0.0, 1.0).toDouble() : null;
 
@@ -117,11 +119,14 @@ class UploadQueue extends ChangeNotifier {
 
   /// Removes a finished job, or cancels an active job before removing it.
   void remove(UploadJob job) {
+    if (!_jobs.contains(job)) return;
     if (!job.isFinished) {
+      job._removeWhenFinished = true;
       cancel(job);
       if (!job.isFinished) return;
     }
     if (_jobs.remove(job)) {
+      job._removeWhenFinished = false;
       job.onRemove?.call();
       notifyListeners();
     }
@@ -145,12 +150,14 @@ class UploadQueue extends ChangeNotifier {
   }
 
   void retry(UploadJob job) {
-    if (!job.canRetry ||
+    if (!_jobs.contains(job) ||
+        !job.canRetry ||
         (job.state != UploadState.failed &&
             job.state != UploadState.canceled)) {
       return;
     }
     job
+      .._removeWhenFinished = false
       ..state = UploadState.queued
       ..sent = 0
       ..error = null;
@@ -199,9 +206,8 @@ class UploadQueue extends ChangeNotifier {
           notifyListeners();
         }
       });
-      job.state =
-          token.isCancelled ? UploadState.canceled : UploadState.succeeded;
-      if (job.state == UploadState.succeeded) job.sent = job.size;
+      job.state = UploadState.succeeded;
+      job.sent = job.size;
     } catch (e) {
       job.state = token.isCancelled ? UploadState.canceled : UploadState.failed;
       job.error = token.isCancelled ? null : e;
@@ -209,6 +215,10 @@ class UploadQueue extends ChangeNotifier {
     job
       .._cancelToken = null
       .._adopted = false;
+    if (job._removeWhenFinished && _jobs.remove(job)) {
+      job._removeWhenFinished = false;
+      job.onRemove?.call();
+    }
     notifyListeners();
     _finished.add(job);
     _pump();

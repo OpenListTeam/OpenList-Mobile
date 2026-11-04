@@ -290,7 +290,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "confirmCancelDownload": m5,
     "confirmClear": MessageLookupByLibrary.simpleMessage("确认清空"),
     "confirmClearAllFiles": MessageLookupByLibrary.simpleMessage(
-      "确定要清空所有下载文件吗？此操作不可撤销。",
+      "确定要清空 OpenList 管理的所有文件吗？此操作不可撤销。",
     ),
     "confirmDelete": MessageLookupByLibrary.simpleMessage("确认删除"),
     "confirmDeleteFile": m6,

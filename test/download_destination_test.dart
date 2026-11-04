@@ -50,6 +50,24 @@ void main() {
     }
   });
 
+  test('clearing downloads keeps files not managed by DownloadManager',
+      () async {
+    final directory =
+        await Directory.systemTemp.createTemp('openlist-download-clear-');
+    final unrelated = File('${directory.path}/unrelated.txt');
+    try {
+      await unrelated.writeAsString('keep');
+      expect(
+          await DownloadManager.setDownloadDirectory(directory.path), isTrue);
+
+      expect(await DownloadManager.clearDownloadDirectory(), isTrue);
+      expect(await unrelated.exists(), isTrue);
+    } finally {
+      await DownloadManager.resetDownloadDirectory();
+      await directory.delete(recursive: true);
+    }
+  });
+
   test('dismissing the save-directory picker creates no download task',
       () async {
     FilePicker.platform = _FilePicker(null);
