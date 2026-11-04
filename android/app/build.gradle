@@ -166,7 +166,8 @@ dependencies {
     // Core library desugaring for flutter_local_notifications
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 
-    // WorkManager for background tasks
+    // WorkManager's public API exposes Guava's ListenableFuture type.
+    implementation 'com.google.guava:listenablefuture:1.0'
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
 
     // Instrumented tests (android/app/src/androidTest)
