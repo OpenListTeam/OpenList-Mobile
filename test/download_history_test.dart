@@ -53,6 +53,7 @@ void main() {
       url: 'https://example.test/file?token=secret',
       filename: 'file.bin',
       filePath: '/private/file.bin',
+      directoryReference: 'directory-3',
       status: DownloadStatus.failed,
       errorMessage: 'https://example.test/file?token=secret failed',
     );
@@ -61,6 +62,7 @@ void main() {
     final serialized = jsonEncode(history);
     expect(history, isNot(contains('url')));
     expect(history, isNot(contains('filePath')));
+    expect(history['directoryReference'], 'directory-3');
     expect(serialized, isNot(contains('secret')));
     expect(DownloadTask.fromHistory(history)?.status, DownloadStatus.failed);
   });

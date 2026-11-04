@@ -28,8 +28,9 @@ class DownloadTask {
   final String id;
   final String url;
   final String filename;
-  final String filePath;
+  String filePath;
   final String? partialFilePath;
+  final String? directoryReference;
   DownloadStatus status;
   double progress;
   int receivedBytes;
@@ -51,6 +52,7 @@ class DownloadTask {
     required this.filename,
     required this.filePath,
     this.partialFilePath,
+    this.directoryReference,
     this.status = DownloadStatus.pending,
     this.progress = 0.0,
     this.receivedBytes = 0,
@@ -71,6 +73,8 @@ class DownloadTask {
         'startTime': startTime.millisecondsSinceEpoch,
         'endTime': endTime?.millisecondsSinceEpoch,
         'errorMessage': errorMessage == null ? null : 'Download failed',
+        if (directoryReference != null)
+          'directoryReference': directoryReference,
       };
 
   static DownloadTask? fromHistory(Map<String, dynamic> data) {
@@ -87,6 +91,7 @@ class DownloadTask {
         url: '',
         filename: data['filename'] as String,
         filePath: '',
+        directoryReference: data['directoryReference'] as String?,
         status: status,
         progress: (data['progress'] as num?)?.toDouble() ?? 0,
         receivedBytes: data['receivedBytes'] as int? ?? 0,
@@ -154,9 +159,13 @@ class DownloadManager {
   static const String _downloadDirectoryKey = 'download_directory.v1';
   static const String _askForDownloadDirectoryKey =
       'ask_for_download_directory.v1';
+  static const String _directoryReferencesKey =
+      'download_directory_references.v1';
   static const int _historyLimit = 100;
   static Future<void>? _historyLoading;
   static Future<void> _historyWrites = Future.value();
+  static Future<void>? _directoryReferencesLoading;
+  static Future<void> _directoryReferenceWrites = Future.value();
   static const _uiProgressInterval = Duration(milliseconds: 100);
   static const _systemProgressInterval = Duration(milliseconds: 250);
   static final Map<String, DownloadTask> _activeTasks = {};
@@ -164,7 +173,9 @@ class DownloadManager {
   static final Set<String> _cancelledTaskIds = {};
   static final Set<String> _reservedFilePaths = {};
   static final Set<String> _removeWhenFinished = {};
+  static final Map<String, String> _directoryReferences = {};
   static int _nextTaskId = 0;
+  static int _nextDirectoryReference = 0;
   static int _filesVersion = 0;
 
   static int get filesVersion => _filesVersion;
@@ -174,10 +185,67 @@ class DownloadManager {
   static void removeListener(VoidCallback listener) =>
       _changes.removeListener(listener);
 
+  static Future<void> _loadDirectoryReferences() {
+    return _directoryReferencesLoading ??= () async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final raw = prefs.getString(_directoryReferencesKey);
+        if (raw == null) return;
+        final values = jsonDecode(raw);
+        if (values is! Map<String, dynamic>) return;
+        for (final entry in values.entries) {
+          if (entry.value is! String) continue;
+          _directoryReferences[entry.key] = entry.value as String;
+          final match = RegExp(r'^directory-(\d+)$').firstMatch(entry.key);
+          final id = match == null ? null : int.tryParse(match.group(1)!);
+          if (id != null && id >= _nextDirectoryReference) {
+            _nextDirectoryReference = id + 1;
+          }
+        }
+      } catch (error) {
+        log('Failed to load download directory references: $error');
+      }
+    }();
+  }
+
+  static Future<String?> _registerDirectoryReference(
+      Directory directory) async {
+    await _loadDirectoryReferences();
+    final path = directory.absolute.path;
+    for (final entry in _directoryReferences.entries) {
+      if (entry.value == path) return entry.key;
+    }
+    final reference = 'directory-${_nextDirectoryReference++}';
+    _directoryReferences[reference] = path;
+    _directoryReferenceWrites = _directoryReferenceWrites.then((_) async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+            _directoryReferencesKey, jsonEncode(_directoryReferences));
+      } catch (error) {
+        log('Failed to save download directory reference: $error');
+      }
+    });
+    await _directoryReferenceWrites;
+    return reference;
+  }
+
+  static void _resolveHistoricalFilePaths() {
+    for (final task in _completedTasks) {
+      final directory = task.directoryReference == null
+          ? null
+          : _directoryReferences[task.directoryReference!];
+      if (directory == null || task.filePath.isNotEmpty) continue;
+      final filename = task.filename.replaceAll('\\', '/').split('/').last;
+      task.filePath = File('$directory${Platform.pathSeparator}$filename').path;
+    }
+  }
+
   static Future<void> initialize() => _historyLoading ??= _loadHistory();
 
   static Future<void> _loadHistory() async {
     try {
+      await _loadDirectoryReferences();
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_historyKey);
       if (raw == null) return;
@@ -188,6 +256,7 @@ class DownloadManager {
             .whereType<Map<String, dynamic>>()
             .map(DownloadTask.fromHistory)
             .whereType<DownloadTask>());
+      _resolveHistoricalFilePaths();
       _changes.emit();
     } catch (e) {
       log('Failed to load download history: $e');
@@ -286,6 +355,7 @@ class DownloadManager {
     if (path.trim().isEmpty) return false;
     final dir = await _prepareDownloadDirectory(path);
     if (dir == null) return false;
+    await _registerDirectoryReference(dir);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_downloadDirectoryKey, dir.path);
     _notifyChanged(filesChanged: true);
@@ -330,6 +400,7 @@ class DownloadManager {
     final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
     final downloadDir = await _getDownloadDirectoryForTask();
     if (downloadDir == null) return false;
+    final directoryReference = await _registerDirectoryReference(downloadDir);
     var finalFilename = filename ?? _getFilenameFromUrl(url);
     final filePath = _getUniqueFilePath('${downloadDir.path}/$finalFilename');
     final partialFilePath = '$filePath.$taskId.part';
@@ -341,6 +412,7 @@ class DownloadManager {
       filename: finalFilename,
       filePath: filePath,
       partialFilePath: partialFilePath,
+      directoryReference: directoryReference,
     );
     _activeTasks[taskId] = task;
     _notifyChanged();
@@ -672,6 +744,7 @@ class DownloadManager {
     final downloadDir = await _getDownloadDirectoryForTask();
     if (downloadDir == null) return false;
 
+    final directoryReference = await _registerDirectoryReference(downloadDir);
     var finalFilename = filename ?? _getFilenameFromUrl(source);
     var filePath = _getUniqueFilePath('${downloadDir.path}/$finalFilename');
     _reservedFilePaths.add(filePath);
@@ -683,6 +756,7 @@ class DownloadManager {
       filename: finalFilename,
       filePath: filePath,
       partialFilePath: temporaryFile.path,
+      directoryReference: directoryReference,
       totalBytes: totalBytes,
     );
     _activeTasks[taskId] = task;
@@ -1148,15 +1222,27 @@ class DownloadManager {
 
   /// 列出已下载的文件
   static Future<List<FileSystemEntity>> getDownloadedFiles() async {
+    final files = <FileSystemEntity>[];
     try {
-      final downloadDir = await _getOpenListDownloadDirectory();
-      if (downloadDir != null && await downloadDir.exists()) {
-        return await downloadDir.list(followLinks: false).toList();
+      await _loadDirectoryReferences();
+      final paths = <String>{
+        ..._directoryReferences.values,
+      };
+      final currentDirectory = await _getOpenListDownloadDirectory();
+      if (currentDirectory != null) paths.add(currentDirectory.path);
+      for (final path in paths) {
+        final directory = Directory(path);
+        if (!await directory.exists()) continue;
+        try {
+          files.addAll(await directory.list(followLinks: false).toList());
+        } catch (error) {
+          log('获取下载文件列表失败: $error');
+        }
       }
     } catch (e) {
       log('获取下载文件列表失败: $e');
     }
-    return [];
+    return files;
   }
 
   static Future<bool> clearDownloadDirectory() async {

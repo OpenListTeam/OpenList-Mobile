@@ -68,6 +68,24 @@ void main() {
     }
   });
 
+  test('keeps previously configured directories discoverable', () async {
+    final directory =
+        await Directory.systemTemp.createTemp('openlist-download-history-');
+    final file = File('${directory.path}${Platform.pathSeparator}old.bin');
+    try {
+      await file.writeAsBytes(const [1, 2, 3]);
+      expect(
+          await DownloadManager.setDownloadDirectory(directory.path), isTrue);
+      await DownloadManager.resetDownloadDirectory();
+
+      final files = await DownloadManager.getDownloadedFiles();
+      expect(files.any((entry) => entry.path == file.path), isTrue);
+    } finally {
+      await DownloadManager.resetDownloadDirectory();
+      await directory.delete(recursive: true);
+    }
+  });
+
   test('dismissing the save-directory picker creates no download task',
       () async {
     FilePicker.platform = _FilePicker(null);
