@@ -257,6 +257,7 @@ class _DownloadsTabState extends State<_DownloadsTab> {
     _refreshingFiles = true;
     do {
       _refreshPending = false;
+      final version = DownloadManager.filesVersion;
       if (mounted) setState(() => _loadingFiles = true);
       final files = await DownloadManager.getDownloadedFiles();
       final stats = <String, FileStat?>{};
@@ -267,8 +268,11 @@ class _DownloadsTabState extends State<_DownloadsTab> {
           stats[file.path] = null;
         }
       }
-      final version = DownloadManager.filesVersion;
       if (!mounted) break;
+      if (version != DownloadManager.filesVersion) {
+        _refreshPending = true;
+        continue;
+      }
       setState(() {
         _files = files;
         _fileStats = stats;
@@ -291,18 +295,17 @@ class _DownloadsTabState extends State<_DownloadsTab> {
             task.status == DownloadStatus.cancelling)
         .toList();
     final completed = tasks.where((task) => !active.contains(task)).toList();
-    final trackedPaths = tasks.map((task) => task.filePath).toSet();
-    final trackedNames = tasks
-        .where((task) => task.status == DownloadStatus.completed)
-        .map((task) => task.filename)
+    final trackedPaths = tasks
+        .map((task) => task.filePath)
+        .where((path) => path.isNotEmpty)
         .toSet();
+    final activePartialPaths =
+        active.map((task) => task.partialFilePath).toSet();
     final untrackedFiles = _files
         .where((file) =>
             file is File &&
-            !file.path.endsWith('.part') &&
-            !trackedPaths.contains(file.path) &&
-            !trackedNames
-                .contains(file.path.split(Platform.pathSeparator).last))
+            !activePartialPaths.contains(file.path) &&
+            !trackedPaths.contains(file.path))
         .toList();
 
     if (tasks.isEmpty && untrackedFiles.isEmpty && !_loadingFiles) {
@@ -347,13 +350,10 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   }
 
   Widget _downloadTaskCard(DownloadTask task) {
-    final matchingFiles = _files.where((file) =>
-        file.path.split(Platform.pathSeparator).last == task.filename);
-    final filePath = task.filePath.isNotEmpty
+    final filePath = task.filePath.isNotEmpty &&
+            _fileStats[task.filePath]?.type == FileSystemEntityType.file
         ? task.filePath
-        : matchingFiles.isEmpty
-            ? null
-            : matchingFiles.first.path;
+        : null;
     final state = switch (task.status) {
       DownloadStatus.pending => UploadState.queued,
       DownloadStatus.downloading => UploadState.running,
@@ -437,11 +437,15 @@ class _DownloadsTabState extends State<_DownloadsTab> {
         if (filePath != null &&
             await _confirm(S.current.confirmDelete,
                 S.current.confirmDeleteFile(task.filename))) {
-          await DownloadManager.deleteFileAtPath(filePath);
+          final deleted = await DownloadManager.deleteFileAtPath(filePath);
+          if (deleted) DownloadManager.removeTask(task.id);
           await _refreshFiles();
         }
       case 'delete_record':
-        DownloadManager.removeTask(task.id);
+        if (await _confirm(S.current.confirmDelete,
+            S.current.confirmDeleteRecord(task.filename))) {
+          DownloadManager.removeTask(task.id);
+        }
     }
   }
 
@@ -511,13 +515,19 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   }
 
   Future<void> _clearDownloadFiles() async {
+    if (DownloadManager.activeTasks.isNotEmpty) return;
+    final path = await DownloadManager.getDownloadDirectoryPath();
+    if (path == null || !mounted) return;
     if (!await _confirm(
-        S.current.confirmClear, S.current.confirmClearAllFiles)) {
+        S.current.confirmClear, '${S.current.confirmClearAllFiles}\n\n$path')) {
       return;
     }
     final cleared = await DownloadManager.clearDownloadDirectory();
-    if (!cleared || !mounted) return;
-    DownloadManager.clearCompletedTasks();
+    if (!mounted) return;
+    if (!cleared) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(S.current.clearFailed)));
+    }
     await _refreshFiles();
   }
 
