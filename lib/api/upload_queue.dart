@@ -3,7 +3,15 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-enum UploadState { queued, running, succeeded, failed, canceled }
+enum UploadState {
+  queued,
+  running,
+  paused,
+  cancelling,
+  succeeded,
+  failed,
+  canceled
+}
 
 /// Performs one upload attempt; must open a fresh data stream on every call
 /// so failed or canceled jobs can be retried.
@@ -126,7 +134,11 @@ class UploadQueue extends ChangeNotifier {
         notifyListeners();
         _finished.add(job);
       case UploadState.running:
-        job._cancelToken?.cancel();
+        final token = job._cancelToken;
+        if (token == null || token.isCancelled) return;
+        job.state = UploadState.cancelling;
+        notifyListeners();
+        token.cancel();
       default:
         break;
     }
@@ -156,7 +168,10 @@ class UploadQueue extends ChangeNotifier {
 
   void _pump() {
     var running = _jobs
-        .where((j) => j.state == UploadState.running && !j._adopted)
+        .where((j) =>
+            (j.state == UploadState.running ||
+                j.state == UploadState.cancelling) &&
+            !j._adopted)
         .length;
     for (final job in _jobs) {
       if (running >= concurrency) break;
@@ -184,9 +199,9 @@ class UploadQueue extends ChangeNotifier {
           notifyListeners();
         }
       });
-      job
-        ..state = UploadState.succeeded
-        ..sent = job.size;
+      job.state =
+          token.isCancelled ? UploadState.canceled : UploadState.succeeded;
+      if (job.state == UploadState.succeeded) job.sent = job.size;
     } catch (e) {
       job.state = token.isCancelled ? UploadState.canceled : UploadState.failed;
       job.error = token.isCancelled ? null : e;

@@ -44,7 +44,12 @@
   "webBrowserStopped": "The embedded web browser is stopped",
   "startWebBrowser": "Start web browser",
   "webBrowserDownloadInProgress": "The browser cannot stop while a download is in progress",
-  "dataDirectory": "data Directory",
+  "dataDirectory": "Data directory",
+  "dataDirectoryChangeWarning": "The server will use the selected directory without moving existing data. Select only an accessible local folder.",
+  "defaultDirectory": "Default directory",
+  "askForDownloadDirectory": "Choose save location for every download",
+  "askForDownloadDirectoryDesc": "Ask where to save each downloaded file",
+  "downloadDirectoryNotWritable": "The selected directory is not writable by OpenList",
   "setDefaultDirectory": "Set as default directory?",
   "silentJumpApp": "Silent jump app",
   "silentJumpAppDesc": "Jump to other app without prompt",
@@ -345,7 +350,7 @@
       }
     }
   },
-  "clickToJumpToDownloadManager": "Click to jump to download manager",
+  "clickToJumpToDownloadManager": "Tap to view downloads",
   "downloadCompleteTitle": "Download Complete",
   "multipleFilesCompleted": "{count} files completed, click to jump to download manager",
   "@multipleFilesCompleted": {
@@ -357,7 +362,7 @@
   },
   "downloadCompleteChannel": "Download Complete",
   "downloadCompleteChannelDesc": "File download complete notification",
-  "openDownloadManager": "Open Download Manager",
+  "openDownloadManager": "Open Downloads",
   "showDownloadCompleteNotificationFailed": "Failed to show download complete notification: {error}",
   "@showDownloadCompleteNotificationFailed": {
     "placeholders": {
@@ -1048,6 +1053,9 @@
   "mediaPlaybackInterrupted": "Playback stopped. Check the file format or connection.",
   "play": "Play",
   "pause": "Pause",
+  "resume": "Resume",
+  "paused": "Paused",
+  "cancelling": "Cancelling",
   "fullscreen": "Fullscreen",
   "archiveExtractionUnavailable": "Archive extraction URL unavailable"
 }

@@ -394,6 +394,51 @@ class S {
     );
   }
 
+  /// `服务将直接使用所选目录，不会迁移现有数据。请只选择应用可访问的本地目录。`
+  String get dataDirectoryChangeWarning {
+    return Intl.message(
+      '服务将直接使用所选目录，不会迁移现有数据。请只选择应用可访问的本地目录。',
+      name: 'dataDirectoryChangeWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `默认目录`
+  String get defaultDirectory {
+    return Intl.message('默认目录', name: 'defaultDirectory', desc: '', args: []);
+  }
+
+  /// `每次下载选择保存位置`
+  String get askForDownloadDirectory {
+    return Intl.message(
+      '每次下载选择保存位置',
+      name: 'askForDownloadDirectory',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `每次下载前询问文件保存位置`
+  String get askForDownloadDirectoryDesc {
+    return Intl.message(
+      '每次下载前询问文件保存位置',
+      name: 'askForDownloadDirectoryDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OpenList 无法写入所选目录`
+  String get downloadDirectoryNotWritable {
+    return Intl.message(
+      'OpenList 无法写入所选目录',
+      name: 'downloadDirectoryNotWritable',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `是否设为初始目录？`
   String get setDefaultDirectory {
     return Intl.message(
@@ -1174,10 +1219,10 @@ class S {
     );
   }
 
-  /// `点击跳转到下载管理`
+  /// `点击查看下载`
   String get clickToJumpToDownloadManager {
     return Intl.message(
-      '点击跳转到下载管理',
+      '点击查看下载',
       name: 'clickToJumpToDownloadManager',
       desc: '',
       args: [],
@@ -1224,10 +1269,10 @@ class S {
     );
   }
 
-  /// `打开下载管理`
+  /// `打开下载`
   String get openDownloadManager {
     return Intl.message(
-      '打开下载管理',
+      '打开下载',
       name: 'openDownloadManager',
       desc: '',
       args: [],
@@ -4187,6 +4232,21 @@ class S {
   /// `暂停`
   String get pause {
     return Intl.message('暂停', name: 'pause', desc: '', args: []);
+  }
+
+  /// `继续`
+  String get resume {
+    return Intl.message('继续', name: 'resume', desc: '', args: []);
+  }
+
+  /// `已暂停`
+  String get paused {
+    return Intl.message('已暂停', name: 'paused', desc: '', args: []);
+  }
+
+  /// `正在取消`
+  String get cancelling {
+    return Intl.message('正在取消', name: 'cancelling', desc: '', args: []);
   }
 
   /// `全屏`

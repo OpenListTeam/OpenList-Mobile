@@ -45,6 +45,11 @@
   "startWebBrowser": "启动网页浏览器",
   "webBrowserDownloadInProgress": "下载进行中，无法停止浏览器",
   "dataDirectory": "data 文件夹路径",
+  "dataDirectoryChangeWarning": "服务将直接使用所选目录，不会迁移现有数据。请只选择应用可访问的本地目录。",
+  "defaultDirectory": "默认目录",
+  "askForDownloadDirectory": "每次下载选择保存位置",
+  "askForDownloadDirectoryDesc": "每次下载前询问文件保存位置",
+  "downloadDirectoryNotWritable": "OpenList 无法写入所选目录",
   "setDefaultDirectory": "是否设为初始目录？",
   "silentJumpApp": "静默跳转APP",
   "silentJumpAppDesc": "跳转APP时，不弹出提示框",
@@ -345,7 +350,7 @@
       }
     }
   },
-  "clickToJumpToDownloadManager": "点击跳转到下载管理",
+  "clickToJumpToDownloadManager": "点击查看下载",
   "downloadCompleteTitle": "下载完成",
   "multipleFilesCompleted": "{count} 个文件已完成，点击跳转到下载管理",
   "@multipleFilesCompleted": {
@@ -357,7 +362,7 @@
   },
   "downloadCompleteChannel": "下载完成",
   "downloadCompleteChannelDesc": "文件下载完成通知",
-  "openDownloadManager": "打开下载管理",
+  "openDownloadManager": "打开下载",
   "showDownloadCompleteNotificationFailed": "显示下载完成通知失败: {error}",
   "@showDownloadCompleteNotificationFailed": {
     "placeholders": {
@@ -1048,6 +1053,9 @@
   "mediaPlaybackInterrupted": "播放已中断，请检查文件格式或网络连接。",
   "play": "播放",
   "pause": "暂停",
+  "resume": "继续",
+  "paused": "已暂停",
+  "cancelling": "正在取消",
   "fullscreen": "全屏",
   "archiveExtractionUnavailable": "无法获取压缩包文件地址"
 }

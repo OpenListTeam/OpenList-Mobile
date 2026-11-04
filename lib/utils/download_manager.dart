@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:developer';
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart' as getx;
@@ -9,23 +11,25 @@ import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'notification_manager.dart';
-import '../generated/l10n.dart';
+import 'package:openlist_mobile/generated/l10n.dart';
 
 /// 下载任务状态
 enum DownloadStatus {
-  pending, // 等待中
-  downloading, // 下载中
-  completed, // 已完成
-  failed, // 失败
-  cancelled, // 已取消
+  pending,
+  downloading,
+  paused,
+  cancelling,
+  completed,
+  failed,
+  cancelled,
 }
 
-/// 下载任务
 class DownloadTask {
   final String id;
   final String url;
   final String filename;
   final String filePath;
+  final String? partialFilePath;
   DownloadStatus status;
   double progress;
   int receivedBytes;
@@ -34,12 +38,17 @@ class DownloadTask {
   DateTime startTime;
   DateTime? endTime;
   CancelToken? cancelToken;
+  bool pauseRequested = false;
+  Completer<void>? resumeSignal;
+  DateTime? lastUiProgressUpdate;
+  DateTime? lastSystemProgressUpdate;
 
   DownloadTask({
     required this.id,
     required this.url,
     required this.filename,
     required this.filePath,
+    this.partialFilePath,
     this.status = DownloadStatus.pending,
     this.progress = 0.0,
     this.receivedBytes = 0,
@@ -66,7 +75,9 @@ class DownloadTask {
     try {
       final status = DownloadStatus.values.byName(data['status'] as String);
       if (status == DownloadStatus.pending ||
-          status == DownloadStatus.downloading) {
+          status == DownloadStatus.downloading ||
+          status == DownloadStatus.paused ||
+          status == DownloadStatus.cancelling) {
         return null;
       }
       return DownloadTask(
@@ -96,6 +107,10 @@ class DownloadTask {
         return S.current.pending;
       case DownloadStatus.downloading:
         return S.current.downloading;
+      case DownloadStatus.paused:
+        return S.current.paused;
+      case DownloadStatus.cancelling:
+        return S.current.cancelling;
       case DownloadStatus.completed:
         return S.current.completed;
       case DownloadStatus.failed:
@@ -134,11 +149,14 @@ class DownloadManager {
   static final Dio _dio = Dio();
   static final _DownloadChangeNotifier _changes = _DownloadChangeNotifier();
   static const String _historyKey = 'download_task_history.v1';
+  static const String _downloadDirectoryKey = 'download_directory.v1';
+  static const String _askForDownloadDirectoryKey =
+      'ask_for_download_directory.v1';
   static const int _historyLimit = 100;
   static Future<void>? _historyLoading;
   static Future<void> _historyWrites = Future.value();
-  static DateTime _lastProgressNotification =
-      DateTime.fromMillisecondsSinceEpoch(0);
+  static const _uiProgressInterval = Duration(milliseconds: 100);
+  static const _systemProgressInterval = Duration(milliseconds: 250);
   static final Map<String, DownloadTask> _activeTasks = {};
   static final List<DownloadTask> _completedTasks = [];
   static final Set<String> _cancelledTaskIds = {};
@@ -195,52 +213,128 @@ class DownloadManager {
   static List<DownloadTask> get allTasks =>
       [..._activeTasks.values, ..._completedTasks];
 
-  /// 带进度条的下载（后台下载，不阻塞UI）
+  static Future<bool> getAskForDownloadDirectory() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_askForDownloadDirectoryKey) ?? false;
+  }
+
+  static Future<void> setAskForDownloadDirectory(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_askForDownloadDirectoryKey, enabled);
+  }
+
+  static Future<String?> getConfiguredDownloadDirectory() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_downloadDirectoryKey);
+  }
+
+  static Future<Directory?> _prepareDownloadDirectory(String path) async {
+    try {
+      var directoryPath = path.trim();
+      if (directoryPath.isEmpty) return null;
+      if (Platform.isAndroid || Platform.isIOS) {
+        final uri = Uri.tryParse(directoryPath);
+        if (uri?.hasScheme == true && uri!.scheme != 'file') return null;
+        if (uri?.scheme == 'file') directoryPath = uri!.toFilePath();
+      }
+      final dir = Directory(directoryPath);
+      await dir.create(recursive: true);
+      if (Platform.isAndroid) {
+        final appDirectory = await getExternalStorageDirectory();
+        final privatePath = appDirectory?.absolute.path;
+        final selectedPath = dir.absolute.path;
+        final isAppPrivate = privatePath != null &&
+            (selectedPath == privatePath ||
+                selectedPath
+                    .startsWith('$privatePath${Platform.pathSeparator}'));
+        if (!isAppPrivate) {
+          var storageGranted = await Permission.storage.isGranted;
+          var allFilesGranted =
+              await Permission.manageExternalStorage.isGranted;
+          if (!storageGranted && !allFilesGranted) {
+            storageGranted = (await Permission.storage.request()).isGranted;
+            if (!storageGranted) {
+              allFilesGranted =
+                  (await Permission.manageExternalStorage.request()).isGranted;
+            }
+          }
+          if (!storageGranted && !allFilesGranted) return null;
+        }
+      }
+      final probe = File(
+          '${dir.path}${Platform.pathSeparator}.openlist-${DateTime.now().microsecondsSinceEpoch}.tmp');
+      await probe.writeAsBytes(const [], flush: true);
+      await probe.delete();
+      return dir;
+    } catch (error) {
+      log('Download directory is not writable: $error');
+      return null;
+    }
+  }
+
+  static Future<bool> setDownloadDirectory(String path) async {
+    if (path.trim().isEmpty) return false;
+    final dir = await _prepareDownloadDirectory(path);
+    if (dir == null) return false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_downloadDirectoryKey, dir.path);
+    _notifyChanged();
+    return true;
+  }
+
+  static Future<void> resetDownloadDirectory() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_downloadDirectoryKey);
+    _notifyChanged();
+  }
+
+  static Future<Directory?> _getDownloadDirectoryForTask() async {
+    if (!await getAskForDownloadDirectory()) {
+      final configured = await getConfiguredDownloadDirectory();
+      return configured == null || configured.isEmpty
+          ? _getOpenListDownloadDirectory()
+          : _prepareDownloadDirectory(configured);
+    }
+    final path = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: S.current.downloadDirectory,
+    );
+    if (path == null || path.trim().isEmpty) return null;
+    final directory = await _prepareDownloadDirectory(path);
+    if (directory == null) {
+      getx.Get.showSnackbar(getx.GetSnackBar(
+        message: S.current.downloadDirectoryNotWritable,
+        duration: const Duration(seconds: 4),
+      ));
+    }
+    return directory;
+  }
+
+  /// Downloads a file into the selected download directory.
   static Future<bool> downloadFileWithProgress({
     required String url,
     String? filename,
     Map<String, String>? headers,
   }) async {
     await initialize();
-    // 初始化通知管理器
-    await NotificationManager.initialize();
 
-    // 生成任务ID
-    String taskId = DateTime.now().millisecondsSinceEpoch.toString();
-
-    // 获取下载目录
-    Directory? downloadDir = await _getOpenListDownloadDirectory();
-    if (downloadDir == null) {
-      getx.Get.showSnackbar(getx.GetSnackBar(
-        message: S.current.cannotGetDownloadDirectory,
-        duration: const Duration(seconds: 3),
-      ));
-      return false;
-    }
-
-    // 确定文件名和路径
-    String finalFilename = filename ?? _getFilenameFromUrl(url);
-    String filePath = '${downloadDir.path}/$finalFilename';
-    filePath = _getUniqueFilePath(filePath);
+    final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
+    final downloadDir = await _getDownloadDirectoryForTask();
+    if (downloadDir == null) return false;
+    var finalFilename = filename ?? _getFilenameFromUrl(url);
+    final filePath = _getUniqueFilePath('${downloadDir.path}/$finalFilename');
+    final partialFilePath = '$filePath.$taskId.part';
     _reservedFilePaths.add(filePath);
     finalFilename = filePath.split('/').last;
-
-    // 创建下载任务
-    CancelToken cancelToken = CancelToken();
-    DownloadTask task = DownloadTask(
+    final task = DownloadTask(
       id: taskId,
       url: url,
       filename: finalFilename,
       filePath: filePath,
-      status: DownloadStatus.pending,
-      cancelToken: cancelToken,
+      partialFilePath: partialFilePath,
     );
-
-    // 添加到活跃任务列表
     _activeTasks[taskId] = task;
     _notifyChanged();
 
-    // 显示开始下载提示（只显示一次）
     getx.Get.showSnackbar(getx.GetSnackBar(
       message: S.current.startDownloadFile(finalFilename),
       duration: const Duration(seconds: 2),
@@ -248,106 +342,210 @@ class DownloadManager {
     ));
 
     try {
-      // 更新任务状态
       task.status = DownloadStatus.downloading;
       _notifyChanged();
+      unawaited(NotificationManager.showDownloadProgressNotification());
+      await _runHttpDownload(task, headers ?? const {});
+      if (_cancelledTaskIds.contains(taskId)) {
+        throw const FileSystemException('Download cancelled');
+      }
 
-      // 显示初始通知
-      await NotificationManager.showDownloadProgressNotification();
-
-      // 执行下载
-      await _dio.download(
-        url,
-        filePath,
-        options: Options(headers: headers),
-        cancelToken: cancelToken,
-        onReceiveProgress: (received, total) {
-          if (task.status == DownloadStatus.cancelled) return;
-
-          task.receivedBytes = received;
-          task.totalBytes = total;
-          if (total > 0) {
-            task.progress = received / total;
-          }
-          final now = DateTime.now();
-          if (now.difference(_lastProgressNotification) >=
-              const Duration(milliseconds: 250)) {
-            _lastProgressNotification = now;
-            _notifyChanged();
-          }
-
-          // 更新通知进度
-          NotificationManager.showDownloadProgressNotification();
-
-          log('下载进度: ${(task.progress * 100).toStringAsFixed(1)}%');
-        },
-      );
-
-      // 下载完成
-      task.status = DownloadStatus.completed;
-      task.endTime = DateTime.now();
-      task.progress = 1.0;
-
-      // 移动到已完成列表
+      await File(partialFilePath).rename(filePath);
+      task
+        ..status = DownloadStatus.completed
+        ..endTime = DateTime.now()
+        ..progress = 1.0;
+      if (task.totalBytes == 0) task.totalBytes = task.receivedBytes;
       _activeTasks.remove(taskId);
-      _completedTasks.insert(0, task); // 插入到开头，最新的在前面
+      _completedTasks.insert(0, task);
       _notifyChanged(persistHistory: true);
-
-      // 显示单个文件完成通知
-      await NotificationManager.showSingleFileCompleteNotification(task);
-
-      // 显示完成提示
+      unawaited(NotificationManager.showSingleFileCompleteNotification(task));
       getx.Get.showSnackbar(getx.GetSnackBar(
         message: S.current.downloadCompleteFile(finalFilename),
         duration: const Duration(seconds: 3),
         backgroundColor: Colors.blue,
         mainButton: TextButton(
-          onPressed: () {
-            _openFile(filePath);
-          },
+          onPressed: () => _openFile(filePath),
           child: Text(S.current.open),
         ),
       ));
-
-      log('文件下载完成: $filePath');
       return true;
-    } catch (e) {
-      if (e is DioException && e.type == DioExceptionType.cancel) {
-        // 用户取消下载
-        task.status = DownloadStatus.cancelled;
-        task.endTime = DateTime.now();
-        log('下载已取消: ${task.filename}');
-      } else {
-        // 下载失败
-        task.status = DownloadStatus.failed;
-        task.errorMessage = e is DioException
-            ? 'Download failed (${e.type.name})'
-            : 'Download failed (${e.runtimeType})';
-        task.endTime = DateTime.now();
-        log('下载失败 (${task.errorMessage}): ${task.filename}');
-
+    } catch (error) {
+      final cancelled = task.status == DownloadStatus.cancelling ||
+          _cancelledTaskIds.contains(taskId);
+      task
+        ..status = cancelled ? DownloadStatus.cancelled : DownloadStatus.failed
+        ..endTime = DateTime.now();
+      if (!cancelled) {
+        task.errorMessage = error is DioException
+            ? 'Download failed (${error.type.name})'
+            : 'Download failed (${error.runtimeType})';
         getx.Get.showSnackbar(getx.GetSnackBar(
           message: S.current.downloadFailedFile(finalFilename),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.red,
         ));
       }
-
-      // 移动到已完成列表
+      await _deletePartialFile(partialFilePath);
       _activeTasks.remove(taskId);
       _completedTasks.insert(0, task);
       _notifyChanged(persistHistory: true);
-
-      // 更新通知状态
       if (_activeTasks.isEmpty) {
-        await NotificationManager.cancelDownloadNotification();
+        unawaited(NotificationManager.cancelDownloadNotification());
       } else {
-        await NotificationManager.showDownloadProgressNotification();
+        unawaited(NotificationManager.showDownloadProgressNotification());
       }
-
       return false;
     } finally {
+      task.cancelToken = null;
+      _cancelledTaskIds.remove(taskId);
       _reservedFilePaths.remove(filePath);
+    }
+  }
+
+  static Future<void> _runHttpDownload(
+      DownloadTask task, Map<String, String> headers) async {
+    while (true) {
+      await _waitForResume(task);
+      final partial = File(task.partialFilePath!);
+      if (task.totalBytes > 0 &&
+          await partial.exists() &&
+          await partial.length() == task.totalBytes) {
+        task.receivedBytes = task.totalBytes;
+        task.progress = 1;
+        return;
+      }
+      await _waitForResume(task);
+      final token = CancelToken();
+      task.cancelToken = token;
+      try {
+        await _downloadHttpAttempt(task, headers, token);
+        task.cancelToken = null;
+        if (task.pauseRequested) {
+          await _waitForResume(task);
+          continue;
+        }
+        return;
+      } catch (_) {
+        task.cancelToken = null;
+        if (!task.pauseRequested) rethrow;
+        await _waitForResume(task);
+      }
+    }
+  }
+
+  static Future<void> _downloadHttpAttempt(
+      DownloadTask task, Map<String, String> headers, CancelToken token) async {
+    final partialFile = File(task.partialFilePath!);
+    final offset = await partialFile.exists() ? await partialFile.length() : 0;
+    final response = await _dio.get<ResponseBody>(
+      task.url,
+      cancelToken: token,
+      options: Options(
+        responseType: ResponseType.stream,
+        headers: {
+          ...headers,
+          if (offset > 0) 'Range': 'bytes=$offset-',
+        },
+      ),
+    );
+
+    var writeOffset = offset;
+    final status = response.statusCode ?? 0;
+    if (offset > 0 && status == 200) {
+      writeOffset = 0;
+      task
+        ..receivedBytes = 0
+        ..progress = 0;
+    } else if (status == 206) {
+      final range = response.headers.value('content-range');
+      final match = range == null
+          ? null
+          : RegExp(r'bytes (\d+)-\d+/', caseSensitive: false).firstMatch(range);
+      if (match == null || int.parse(match.group(1)!) != offset) {
+        throw const FormatException('Invalid partial download response');
+      }
+    } else if (status != 200) {
+      throw HttpException('Unexpected download status: $status');
+    }
+
+    final contentLength =
+        int.tryParse(response.headers.value(Headers.contentLengthHeader) ?? '');
+    final range = response.headers.value('content-range');
+    final rangeMatch = range == null
+        ? null
+        : RegExp(r'bytes \d+-\d+/(\d+)', caseSensitive: false)
+            .firstMatch(range);
+    final int? totalFromRange =
+        rangeMatch == null ? null : int.tryParse(rangeMatch.group(1)!);
+    task.totalBytes = totalFromRange ??
+        (contentLength == null ? 0 : writeOffset + contentLength);
+    task.receivedBytes = writeOffset;
+
+    final output = await partialFile.open(
+        mode: writeOffset > 0 ? FileMode.append : FileMode.write);
+    try {
+      await for (final chunk in response.data!.stream) {
+        await output.writeFrom(chunk);
+        task.receivedBytes += chunk.length;
+        if (task.totalBytes > 0) {
+          task.progress = task.receivedBytes / task.totalBytes;
+        }
+        _notifyDownloadProgress(task);
+      }
+    } finally {
+      await output.flush();
+      await output.close();
+    }
+    if (task.totalBytes > 0 && task.receivedBytes != task.totalBytes) {
+      throw const FormatException('Incomplete download response');
+    }
+  }
+
+  static void _notifyDownloadProgress(DownloadTask task) {
+    final now = DateTime.now();
+    final lastUi = task.lastUiProgressUpdate;
+    if (lastUi == null || now.difference(lastUi) >= _uiProgressInterval) {
+      task.lastUiProgressUpdate = now;
+      _notifyChanged();
+    }
+    final lastSystem = task.lastSystemProgressUpdate;
+    if (lastSystem == null ||
+        now.difference(lastSystem) >= _systemProgressInterval) {
+      task.lastSystemProgressUpdate = now;
+      unawaited(NotificationManager.showDownloadProgressNotification());
+    }
+  }
+
+  static Future<void> _waitForResume(DownloadTask task) async {
+    if (task.pauseRequested) {
+      final signal = task.resumeSignal;
+      if (signal == null) return;
+      if (!signal.isCompleted) {
+        task.status = DownloadStatus.paused;
+        _notifyChanged();
+        await signal.future;
+      }
+      if (_cancelledTaskIds.contains(task.id)) {
+        throw const FileSystemException('Download cancelled');
+      }
+      task
+        ..pauseRequested = false
+        ..resumeSignal = null
+        ..status = DownloadStatus.downloading;
+      _notifyChanged();
+    }
+    if (_cancelledTaskIds.contains(task.id)) {
+      throw const FileSystemException('Download cancelled');
+    }
+  }
+
+  static Future<void> _deletePartialFile(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } catch (error) {
+      log('Failed to remove partial download: $error');
     }
   }
 
@@ -387,17 +585,9 @@ class DownloadManager {
       }
     }
 
-    await NotificationManager.initialize();
-
     final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
-    final downloadDir = await _getOpenListDownloadDirectory();
-    if (downloadDir == null) {
-      getx.Get.showSnackbar(getx.GetSnackBar(
-        message: S.current.cannotGetDownloadDirectory,
-        duration: const Duration(seconds: 3),
-      ));
-      return false;
-    }
+    final downloadDir = await _getDownloadDirectoryForTask();
+    if (downloadDir == null) return false;
 
     var finalFilename = filename ?? _getFilenameFromUrl(source);
     var filePath = _getUniqueFilePath('${downloadDir.path}/$finalFilename');
@@ -409,6 +599,7 @@ class DownloadManager {
       url: source,
       filename: finalFilename,
       filePath: filePath,
+      partialFilePath: temporaryFile.path,
       totalBytes: totalBytes,
     );
     _activeTasks[taskId] = task;
@@ -424,18 +615,14 @@ class DownloadManager {
     try {
       task.status = DownloadStatus.downloading;
       _notifyChanged();
-      await NotificationManager.showDownloadProgressNotification();
+      unawaited(NotificationManager.showDownloadProgressNotification());
 
       output = await temporaryFile.open(mode: FileMode.write);
       while (task.receivedBytes < totalBytes) {
-        if (_cancelledTaskIds.contains(taskId)) {
-          throw const FileSystemException('Download cancelled');
-        }
-
+        await _waitForResume(task);
         final chunk = await readChunk(task.receivedBytes);
-        if (_cancelledTaskIds.contains(taskId)) {
-          throw const FileSystemException('Download cancelled');
-        }
+        await _waitForResume(task);
+        if (task.status == DownloadStatus.paused) continue;
         if (chunk.isEmpty || task.receivedBytes + chunk.length > totalBytes) {
           throw const FormatException('Invalid Blob download data');
         }
@@ -443,13 +630,7 @@ class DownloadManager {
         await output.writeFrom(chunk);
         task.receivedBytes += chunk.length;
         task.progress = totalBytes == 0 ? 1 : task.receivedBytes / totalBytes;
-        final now = DateTime.now();
-        if (now.difference(_lastProgressNotification) >=
-            const Duration(milliseconds: 250)) {
-          _lastProgressNotification = now;
-          _notifyChanged();
-        }
-        await NotificationManager.showDownloadProgressNotification();
+        _notifyDownloadProgress(task);
       }
 
       if (_cancelledTaskIds.contains(taskId)) {
@@ -486,12 +667,14 @@ class DownloadManager {
       log('文件下载完成: $filePath');
       return true;
     } catch (error) {
-      task.status = _cancelledTaskIds.contains(taskId)
-          ? DownloadStatus.cancelled
-          : DownloadStatus.failed;
-      task.errorMessage = error is DioException
-          ? 'Download failed (${error.type.name})'
-          : 'Download failed (${error.runtimeType})';
+      final cancelled = _cancelledTaskIds.contains(taskId);
+      task.status =
+          cancelled ? DownloadStatus.cancelled : DownloadStatus.failed;
+      if (!cancelled) {
+        task.errorMessage = error is DioException
+            ? 'Download failed (${error.type.name})'
+            : 'Download failed (${error.runtimeType})';
+      }
       task.endTime = DateTime.now();
       _activeTasks.remove(taskId);
       _completedTasks.insert(0, task);
@@ -531,17 +714,35 @@ class DownloadManager {
     }
   }
 
-  /// 取消下载任务
+  static void pauseDownload(String taskId) {
+    final task = _activeTasks[taskId];
+    if (task == null || task.status != DownloadStatus.downloading) return;
+    task
+      ..pauseRequested = true
+      ..resumeSignal = Completer<void>()
+      ..status = DownloadStatus.paused;
+    task.cancelToken?.cancel(S.current.userCancelledDownloadError);
+    _notifyChanged();
+  }
+
+  static void resumeDownload(String taskId) {
+    final task = _activeTasks[taskId];
+    if (task == null || task.status != DownloadStatus.paused) return;
+    task.status = DownloadStatus.downloading;
+    final signal = task.resumeSignal;
+    if (signal != null && !signal.isCompleted) signal.complete();
+    _notifyChanged();
+  }
+
   static void cancelDownload(String taskId) {
-    DownloadTask? task = _activeTasks[taskId];
-    if (task != null) {
-      if (task.cancelToken != null) {
-        task.cancelToken!.cancel(S.current.userCancelledDownloadError);
-      } else {
-        _cancelledTaskIds.add(taskId);
-      }
-      _notifyChanged();
-    }
+    final task = _activeTasks[taskId];
+    if (task == null || task.status == DownloadStatus.cancelling) return;
+    _cancelledTaskIds.add(taskId);
+    task.status = DownloadStatus.cancelling;
+    task.cancelToken?.cancel(S.current.userCancelledDownloadError);
+    final signal = task.resumeSignal;
+    if (signal != null && !signal.isCompleted) signal.complete();
+    _notifyChanged();
   }
 
   /// 清除已完成的下载记录
@@ -563,6 +764,12 @@ class DownloadManager {
   /// 获取OpenList专用下载目录
   static Future<Directory?> _getOpenListDownloadDirectory() async {
     try {
+      final configured = await getConfiguredDownloadDirectory();
+      if (configured != null && configured.isNotEmpty) {
+        final dir = Directory(configured);
+        await dir.create(recursive: true);
+        return dir;
+      }
       Directory? baseDir;
 
       if (Platform.isAndroid) {
@@ -844,18 +1051,18 @@ class DownloadManager {
     );
   }
 
-  /// 获取OpenList下载目录路径（公共方法）
   static Future<String?> getDownloadDirectoryPath() async {
-    Directory? dir = await _getOpenListDownloadDirectory();
-    return dir?.path;
+    final configured = await getConfiguredDownloadDirectory();
+    if (configured != null && configured.isNotEmpty) return configured;
+    return (await _getOpenListDownloadDirectory())?.path;
   }
 
   /// 列出已下载的文件
   static Future<List<FileSystemEntity>> getDownloadedFiles() async {
     try {
-      Directory? downloadDir = await _getOpenListDownloadDirectory();
+      final downloadDir = await _getOpenListDownloadDirectory();
       if (downloadDir != null && await downloadDir.exists()) {
-        return downloadDir.listSync();
+        return await downloadDir.list(followLinks: false).toList();
       }
     } catch (e) {
       log('获取下载文件列表失败: $e');
@@ -863,13 +1070,11 @@ class DownloadManager {
     return [];
   }
 
-  /// 清理下载目录
   static Future<bool> clearDownloadDirectory() async {
     try {
-      Directory? downloadDir = await _getOpenListDownloadDirectory();
+      final downloadDir = await _getOpenListDownloadDirectory();
       if (downloadDir != null && await downloadDir.exists()) {
         await downloadDir.delete(recursive: true);
-        log('已清理下载目录');
         return true;
       }
     } catch (e) {
@@ -878,17 +1083,20 @@ class DownloadManager {
     return false;
   }
 
-  /// 删除指定文件
   static Future<bool> deleteFile(String filename) async {
+    final configured = await getConfiguredDownloadDirectory();
+    final directory =
+        configured ?? (await _getOpenListDownloadDirectory())?.path;
+    if (directory == null) return false;
+    return deleteFileAtPath('${directory}${Platform.pathSeparator}$filename');
+  }
+
+  static Future<bool> deleteFileAtPath(String path) async {
     try {
-      Directory? downloadDir = await _getOpenListDownloadDirectory();
-      if (downloadDir != null) {
-        File file = File('${downloadDir.path}/$filename');
-        if (await file.exists()) {
-          await file.delete();
-          log('已删除文件: $filename');
-          return true;
-        }
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+        return true;
       }
     } catch (e) {
       log('删除文件失败: $e');

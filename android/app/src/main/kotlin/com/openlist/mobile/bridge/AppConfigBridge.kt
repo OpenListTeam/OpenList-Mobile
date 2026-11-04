@@ -16,7 +16,26 @@ object AppConfigBridge : GeneratedApi.AppConfig {
     override fun getDataDir() = AppConfig.dataDir
 
     override fun setDataDir(dir: String) {
-        AppConfig.dataDir = dir
+        val selected = dir.trim()
+        val rawPath = if (selected.startsWith("file://")) {
+            android.net.Uri.parse(selected).path ?: selected
+        } else {
+            selected
+        }
+        if (rawPath.isNotEmpty()) {
+            val directory = java.io.File(rawPath)
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw IllegalArgumentException("Cannot create data directory")
+            }
+            if (!directory.isDirectory || !directory.canWrite()) {
+                throw IllegalArgumentException("Data directory is not writable")
+            }
+            val probe = java.io.File.createTempFile(".openlist-data-", ".tmp", directory)
+            if (!probe.delete()) {
+                throw IllegalArgumentException("Cannot verify data directory access")
+            }
+        }
+        AppConfig.dataDir = rawPath
     }
 
     override fun isSilentJumpAppEnabled(): Boolean = AppConfig.isSilentJumpAppEnabled

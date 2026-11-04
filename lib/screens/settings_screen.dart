@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/session.dart';
+import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/users_page.dart';
@@ -12,7 +14,9 @@ import 'package:openlist_mobile/screens/storages_screen.dart';
 import 'package:openlist_mobile/screens/server_detail_screen.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:openlist_mobile/utils/language_manager.dart';
+import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:openlist_mobile/utils/theme_controller.dart';
+import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -52,7 +56,9 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  session.user?.isAdmin ?? false ? S.current.administrator : S.current.user,
+                  session.user?.isAdmin ?? false
+                      ? S.current.administrator
+                      : S.current.user,
                   style: AppDesign.body2.copyWith(
                     color: isDark ? Colors.white70 : Colors.black54,
                   ),
@@ -99,6 +105,7 @@ class SettingsScreen extends StatelessWidget {
 
           // Storage section
           _SectionHeader(title: S.current.storage),
+          _PlatformStorageSettings(),
           _SettingsTile(
             icon: Icons.storage,
             title: S.current.manageStorages,
@@ -234,7 +241,8 @@ class SettingsScreen extends StatelessWidget {
   String _getLanguageName() {
     final controller = Get.find<LanguageController>();
     if (controller.locale == null) return S.current.systemDefault;
-    if (controller.locale?.languageCode == 'zh') return S.current.simplifiedChinese;
+    if (controller.locale?.languageCode == 'zh')
+      return S.current.simplifiedChinese;
     return S.current.english;
   }
 
@@ -311,7 +319,8 @@ class SettingsScreen extends StatelessWidget {
               title: Text(S.current.english),
               onTap: () async {
                 await controller.changeLanguage(
-                  LanguageOption(name: 'english', code: 'en', locale: const Locale('en')),
+                  LanguageOption(
+                      name: 'english', code: 'en', locale: const Locale('en')),
                 );
                 Navigator.pop(context);
               },
@@ -320,7 +329,10 @@ class SettingsScreen extends StatelessWidget {
               title: Text(S.current.simplifiedChinese),
               onTap: () async {
                 await controller.changeLanguage(
-                  LanguageOption(name: 'simplifiedChinese', code: 'zh', locale: const Locale('zh')),
+                  LanguageOption(
+                      name: 'simplifiedChinese',
+                      code: 'zh',
+                      locale: const Locale('zh')),
                 );
                 Navigator.pop(context);
               },
@@ -398,6 +410,149 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
     return result ?? false;
+  }
+}
+
+class _PlatformStorageSettings extends StatefulWidget {
+  const _PlatformStorageSettings();
+
+  @override
+  State<_PlatformStorageSettings> createState() =>
+      _PlatformStorageSettingsState();
+}
+
+class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
+  String _downloadDirectory = '';
+  String _dataDirectory = '';
+  bool _askForDirectory = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final values = await Future.wait([
+      DownloadManager.getConfiguredDownloadDirectory(),
+      DownloadManager.getAskForDownloadDirectory(),
+      if (Platform.isAndroid) NativeBridge.appConfig.getDataDir(),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _downloadDirectory = values[0] as String? ?? '';
+      _askForDirectory = values[1] as bool;
+      if (Platform.isAndroid) _dataDirectory = values[2] as String;
+    });
+  }
+
+  Future<void> _pickDownloadDirectory() async {
+    final path = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: S.current.downloadDirectory,
+    );
+    if (path == null) return;
+    if (await DownloadManager.setDownloadDirectory(path)) {
+      final configured = await DownloadManager.getConfiguredDownloadDirectory();
+      if (mounted) setState(() => _downloadDirectory = configured ?? path);
+    } else {
+      Get.snackbar(S.current.error, S.current.downloadDirectoryNotWritable);
+    }
+  }
+
+  Future<bool> _confirmRestart() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(S.current.confirm),
+        content: Text(S.current.configSavedRestartRequired),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(S.current.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(S.current.confirm),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  Future<void> _pickDataDirectory() async {
+    final path = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: S.current.dataDirectory,
+    );
+    if (path == null) return;
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(S.current.dataDirectory),
+            content: Text(S.current.dataDirectoryChangeWarning),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(S.current.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(S.current.confirm),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed || !mounted) return;
+    try {
+      await NativeBridge.appConfig.setDataDir(path);
+    } catch (error) {
+      if (mounted) {
+        Get.snackbar(S.current.error, S.current.downloadDirectoryNotWritable);
+      }
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _dataDirectory = path);
+    if (await ServiceManager.instance.checkServiceStatus() && mounted) {
+      final restart = await _confirmRestart();
+      if (restart) await ServiceManager.instance.restartService();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (Platform.isAndroid) ...[
+          _SettingsTile(
+            icon: Icons.download,
+            title: S.current.downloadDirectory,
+            subtitle: _downloadDirectory.isEmpty
+                ? S.current.defaultDirectory
+                : _downloadDirectory,
+            onTap: _pickDownloadDirectory,
+          ),
+        ],
+        SwitchListTile(
+          secondary: const Icon(Icons.folder_copy_outlined),
+          title: Text(S.current.askForDownloadDirectory),
+          subtitle: Text(S.current.askForDownloadDirectoryDesc),
+          value: _askForDirectory,
+          onChanged: (value) async {
+            await DownloadManager.setAskForDownloadDirectory(value);
+            if (mounted) setState(() => _askForDirectory = value);
+          },
+        ),
+        if (Platform.isAndroid)
+          _SettingsTile(
+            icon: Icons.folder,
+            title: S.current.dataDirectory,
+            subtitle: _dataDirectory,
+            onTap: _pickDataDirectory,
+          ),
+      ],
+    );
   }
 }
 

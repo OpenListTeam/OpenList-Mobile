@@ -173,6 +173,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "archiveExtractionUnavailable": MessageLookupByLibrary.simpleMessage(
       "无法获取压缩包文件地址",
     ),
+    "askForDownloadDirectory": MessageLookupByLibrary.simpleMessage(
+      "每次下载选择保存位置",
+    ),
+    "askForDownloadDirectoryDesc": MessageLookupByLibrary.simpleMessage(
+      "每次下载前询问文件保存位置",
+    ),
     "autoCheckForUpdates": MessageLookupByLibrary.simpleMessage("自动检查更新"),
     "autoCheckForUpdatesDesc": MessageLookupByLibrary.simpleMessage(
       "启动时自动检查更新",
@@ -221,6 +227,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "cancelDownloadNotificationFailed": m2,
     "canceled": MessageLookupByLibrary.simpleMessage("已取消"),
     "cancelled": MessageLookupByLibrary.simpleMessage("已取消"),
+    "cancelling": MessageLookupByLibrary.simpleMessage("正在取消"),
     "cannotGetBaseDownloadDirectory": MessageLookupByLibrary.simpleMessage(
       "无法获取基础下载目录",
     ),
@@ -271,7 +278,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "clearSucceeded": MessageLookupByLibrary.simpleMessage("清除已成功"),
     "cleared": MessageLookupByLibrary.simpleMessage("已清空下载目录"),
     "clickToJumpToDownloadManager": MessageLookupByLibrary.simpleMessage(
-      "点击跳转到下载管理",
+      "点击查看下载",
     ),
     "completed": MessageLookupByLibrary.simpleMessage("已完成"),
     "completedTime": MessageLookupByLibrary.simpleMessage("完成时间"),
@@ -322,10 +329,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "currentIsLatestVersion": MessageLookupByLibrary.simpleMessage("已经是最新版本"),
     "currentlyDownloading": MessageLookupByLibrary.simpleMessage("正在下载"),
     "dataDirectory": MessageLookupByLibrary.simpleMessage("data 文件夹路径"),
+    "dataDirectoryChangeWarning": MessageLookupByLibrary.simpleMessage(
+      "服务将直接使用所选目录，不会迁移现有数据。请只选择应用可访问的本地目录。",
+    ),
     "databaseNotSavedIssue": MessageLookupByLibrary.simpleMessage("数据库未保存问题"),
     "databaseNotSavedIssueDesc": MessageLookupByLibrary.simpleMessage(
       "如不手动关闭OpenList，则数据库可能不会被保存到对应的db文件中，如遇到此问题，请手动关闭以解决此问题。（开关位于主程序菜单OpenList界面，以及通知栏的通知上）",
     ),
+    "defaultDirectory": MessageLookupByLibrary.simpleMessage("默认目录"),
     "delete": MessageLookupByLibrary.simpleMessage("删除"),
     "deleteFailed": MessageLookupByLibrary.simpleMessage("删除失败"),
     "deleteFile": MessageLookupByLibrary.simpleMessage("删除文件"),
@@ -363,6 +374,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "downloadCompleteTitle": MessageLookupByLibrary.simpleMessage("下载完成"),
     "downloadDirectory": MessageLookupByLibrary.simpleMessage("下载目录"),
     "downloadDirectoryCleared": MessageLookupByLibrary.simpleMessage("已清理下载目录"),
+    "downloadDirectoryNotWritable": MessageLookupByLibrary.simpleMessage(
+      "OpenList 无法写入所选目录",
+    ),
     "downloadDirectoryOpened": MessageLookupByLibrary.simpleMessage("已打开下载目录"),
     "downloadDirectoryPathUnknown": MessageLookupByLibrary.simpleMessage(
       "下载目录路径未知",
@@ -614,7 +628,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "open": MessageLookupByLibrary.simpleMessage("打开"),
     "openDirectory": MessageLookupByLibrary.simpleMessage("打开目录"),
     "openDownloadDirectoryFailed": m44,
-    "openDownloadManager": MessageLookupByLibrary.simpleMessage("打开下载管理"),
+    "openDownloadManager": MessageLookupByLibrary.simpleMessage("打开下载"),
     "openDownloadTestPage": MessageLookupByLibrary.simpleMessage(
       "是否要打开下载测试页面？",
     ),
@@ -637,6 +651,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "passwordKeepHint": MessageLookupByLibrary.simpleMessage("留空则保持当前密码"),
     "pause": MessageLookupByLibrary.simpleMessage("暂停"),
     "pauseIndividualTransfers": MessageLookupByLibrary.simpleMessage("暂停单个传输"),
+    "paused": MessageLookupByLibrary.simpleMessage("已暂停"),
     "pending": MessageLookupByLibrary.simpleMessage("等待中"),
     "permAccessWithoutPassword": MessageLookupByLibrary.simpleMessage("无需密码访问"),
     "permCopy": MessageLookupByLibrary.simpleMessage("复制"),
@@ -704,6 +719,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "restoreBackup": MessageLookupByLibrary.simpleMessage("恢复备份"),
     "restoreBackupFailed": m51,
+    "resume": MessageLookupByLibrary.simpleMessage("继续"),
     "retry": MessageLookupByLibrary.simpleMessage("重试"),
     "retryFailed": MessageLookupByLibrary.simpleMessage("重试失败"),
     "role": MessageLookupByLibrary.simpleMessage("角色"),

@@ -11,6 +11,8 @@ class UploadsPage extends StatelessWidget {
   static String stateText(UploadState s) => switch (s) {
         UploadState.queued => S.current.uploadQueued,
         UploadState.running => S.current.uploadRunning,
+        UploadState.paused => S.current.paused,
+        UploadState.cancelling => S.current.cancelling,
         UploadState.succeeded => S.current.uploadSucceeded,
         UploadState.failed => S.current.uploadFailedState,
         UploadState.canceled => S.current.uploadCanceled,
@@ -33,7 +35,8 @@ class UploadsPage extends StatelessWidget {
           final jobs = queue.jobs;
           if (jobs.isEmpty) {
             return StateMessage(
-                icon: Icons.cloud_upload_outlined, text: S.of(context).noUploads);
+                icon: Icons.cloud_upload_outlined,
+                text: S.of(context).noUploads);
           }
           return ListView(children: [
             ListTile(
@@ -55,19 +58,28 @@ class UploadsPage extends StatelessWidget {
     return ListTile(
       title: Text(j.name, overflow: TextOverflow.ellipsis),
       subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('${j.dir} · $status', maxLines: 2, overflow: TextOverflow.ellipsis),
+        Text('${j.dir} · $status',
+            maxLines: 2, overflow: TextOverflow.ellipsis),
         if (j.state == UploadState.running)
           LinearProgressIndicator(value: j.progress),
       ]),
       trailing: switch (j.state) {
-        UploadState.queued || UploadState.running => IconButton(
-            tooltip: S.of(context).cancel,
-            icon: const Icon(Icons.close),
-            onPressed: () => queue.cancel(j)),
+        UploadState.queued ||
+        UploadState.running ||
+        UploadState.paused =>
+          IconButton(
+              tooltip: S.of(context).cancel,
+              icon: const Icon(Icons.close),
+              onPressed: () => queue.cancel(j)),
         UploadState.failed || UploadState.canceled => IconButton(
             tooltip: S.of(context).retry,
             icon: const Icon(Icons.refresh),
             onPressed: () => queue.retry(j)),
+        UploadState.cancelling => const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
         UploadState.succeeded => const Icon(Icons.check),
       },
     );

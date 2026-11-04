@@ -71,6 +71,21 @@ void main() {
     expect(a.attempts, 2);
   });
 
+  test('running cancellation is visible immediately and starts the next job',
+      () async {
+    final q = UploadQueue(concurrency: 1);
+    final a = _Job('a'), b = _Job('b');
+    q.addAll([a.job, b.job]);
+    await Future<void>.delayed(Duration.zero);
+
+    q.cancel(a.job);
+    expect(a.job.state, UploadState.cancelling);
+
+    await Future<void>.delayed(Duration.zero);
+    expect(a.job.state, UploadState.canceled);
+    expect(b.job.state, UploadState.running);
+  });
+
   test('restores terminal history without running it and removes it cleanly',
       () async {
     final q = UploadQueue();

@@ -190,6 +190,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "archiveExtractionUnavailable": MessageLookupByLibrary.simpleMessage(
       "Archive extraction URL unavailable",
     ),
+    "askForDownloadDirectory": MessageLookupByLibrary.simpleMessage(
+      "Choose save location for every download",
+    ),
+    "askForDownloadDirectoryDesc": MessageLookupByLibrary.simpleMessage(
+      "Ask where to save each downloaded file",
+    ),
     "autoCheckForUpdates": MessageLookupByLibrary.simpleMessage(
       "Auto check for updates",
     ),
@@ -264,6 +270,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "cancelDownloadNotificationFailed": m2,
     "canceled": MessageLookupByLibrary.simpleMessage("Canceled"),
     "cancelled": MessageLookupByLibrary.simpleMessage("Cancelled"),
+    "cancelling": MessageLookupByLibrary.simpleMessage("Cancelling"),
     "cannotGetBaseDownloadDirectory": MessageLookupByLibrary.simpleMessage(
       "Cannot get base download directory",
     ),
@@ -330,7 +337,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Download directory cleared",
     ),
     "clickToJumpToDownloadManager": MessageLookupByLibrary.simpleMessage(
-      "Click to jump to download manager",
+      "Tap to view downloads",
     ),
     "completed": MessageLookupByLibrary.simpleMessage("Completed"),
     "completedTime": MessageLookupByLibrary.simpleMessage("Completed time"),
@@ -394,12 +401,18 @@ class MessageLookup extends MessageLookupByLibrary {
       "Current is latest version",
     ),
     "currentlyDownloading": MessageLookupByLibrary.simpleMessage("Downloading"),
-    "dataDirectory": MessageLookupByLibrary.simpleMessage("data Directory"),
+    "dataDirectory": MessageLookupByLibrary.simpleMessage("Data directory"),
+    "dataDirectoryChangeWarning": MessageLookupByLibrary.simpleMessage(
+      "The server will use the selected directory without moving existing data. Select only an accessible local folder.",
+    ),
     "databaseNotSavedIssue": MessageLookupByLibrary.simpleMessage(
       "Database Not Saved Issue",
     ),
     "databaseNotSavedIssueDesc": MessageLookupByLibrary.simpleMessage(
       "If you don\'t manually close OpenList, the database may not be saved to the corresponding db file. If you encounter this issue, please manually close the app to resolve it. (The switch is located in the main program menu on the OpenList interface, as well as in the notification bar)",
+    ),
+    "defaultDirectory": MessageLookupByLibrary.simpleMessage(
+      "Default directory",
     ),
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
     "deleteFailed": MessageLookupByLibrary.simpleMessage("Delete failed"),
@@ -455,6 +468,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "downloadDirectoryCleared": MessageLookupByLibrary.simpleMessage(
       "Download directory cleared",
+    ),
+    "downloadDirectoryNotWritable": MessageLookupByLibrary.simpleMessage(
+      "The selected directory is not writable by OpenList",
     ),
     "downloadDirectoryOpened": MessageLookupByLibrary.simpleMessage(
       "Download directory opened",
@@ -790,7 +806,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "openDirectory": MessageLookupByLibrary.simpleMessage("Open Directory"),
     "openDownloadDirectoryFailed": m44,
     "openDownloadManager": MessageLookupByLibrary.simpleMessage(
-      "Open Download Manager",
+      "Open Downloads",
     ),
     "openDownloadTestPage": MessageLookupByLibrary.simpleMessage(
       "Do you want to open download test page?",
@@ -824,6 +840,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "pauseIndividualTransfers": MessageLookupByLibrary.simpleMessage(
       "Pause individual transfers",
     ),
+    "paused": MessageLookupByLibrary.simpleMessage("Paused"),
     "pending": MessageLookupByLibrary.simpleMessage("Pending"),
     "permAccessWithoutPassword": MessageLookupByLibrary.simpleMessage(
       "Access without password",
@@ -915,6 +932,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "restoreBackup": MessageLookupByLibrary.simpleMessage("Restore Backup"),
     "restoreBackupFailed": m51,
+    "resume": MessageLookupByLibrary.simpleMessage("Resume"),
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "retryFailed": MessageLookupByLibrary.simpleMessage("Retry Failed"),
     "role": MessageLookupByLibrary.simpleMessage("Role"),
