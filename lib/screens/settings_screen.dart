@@ -8,6 +8,7 @@ import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/users_page.dart';
+import 'package:openlist_mobile/pages/native/settings_admin_page.dart';
 import 'package:openlist_mobile/pages/native/tls_page.dart';
 import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
 import 'package:openlist_mobile/screens/storages_screen.dart';
@@ -148,6 +149,19 @@ class SettingsScreen extends StatelessWidget {
           // Admin section (only if admin)
           if (session.user?.isAdmin ?? false) ...[
             _SectionHeader(title: S.current.administration),
+            _SettingsTile(
+              icon: Icons.tune,
+              title: S.current.coreSettings,
+              subtitle: S.current.coreSettingsDesc,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsAdminPage(),
+                  ),
+                );
+              },
+            ),
             _SettingsTile(
               icon: Icons.people,
               title: S.current.userManagement,

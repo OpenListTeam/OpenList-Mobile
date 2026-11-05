@@ -1057,5 +1057,13 @@
   "paused": "已暂停",
   "cancelling": "正在取消",
   "fullscreen": "全屏",
-  "archiveExtractionUnavailable": "无法获取压缩包文件地址"
+  "archiveExtractionUnavailable": "无法获取压缩包文件地址",
+  "noRecentFiles": "暂无最近文件",
+  "mediaLibraryUnavailable": "媒体库未启用",
+  "noMediaItems": "暂无媒体内容",
+  "mediaFavoriteAdded": "已添加到收藏",
+  "addMediaFavorite": "添加到收藏",
+  "removeMediaFavorite": "取消收藏",
+  "coreSettings": "核心设置",
+  "coreSettingsDesc": "无需网页界面即可配置 OpenList Core"
 }

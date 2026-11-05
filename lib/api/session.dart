@@ -8,6 +8,7 @@ import 'admin_api.dart';
 import 'archive_api.dart';
 import 'auth_api.dart';
 import 'fs_api.dart';
+import 'media_api.dart';
 import 'models.dart';
 import 'openlist_client.dart';
 import 'task_api.dart';
@@ -48,6 +49,7 @@ class OpenListSession extends ChangeNotifier {
   AdminApi get admin => AdminApi(_require());
   ArchiveApi get archive => ArchiveApi(_require());
   AuthApi get auth => AuthApi(_require());
+  MediaApi get media => MediaApi(_require());
 
   OpenListClient _require() {
     final c = _client;

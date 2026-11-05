@@ -7,7 +7,8 @@ import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/generated_api.dart';
-import 'package:openlist_mobile/main.dart';
+import 'package:openlist_mobile/pages/native/media_library_page.dart';
+import 'package:openlist_mobile/pages/native/recent_files_page.dart';
 import 'package:openlist_mobile/screens/storages_screen.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:openlist_mobile/widgets/server_status_card.dart';
@@ -202,46 +203,47 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             SizedBox(
-              height: 120,
+              height: 148,
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: AppDesign.space16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppDesign.space16),
                 scrollDirection: Axis.horizontal,
                 children: [
                   QuickAccessItem(
                     icon: Icons.access_time,
                     label: S.current.recentFiles,
                     subtitle: '',
-                    onTap: () {
-                      // Navigate to files tab
-                      Get.find<MainNavigationController>().setPageIndex(1);
-                    },
+                    onTap: () => Get.to(() => const RecentFilesPage()),
                   ),
                   QuickAccessItem(
                     icon: Icons.star,
                     label: S.current.favorites,
                     subtitle: '',
-                    onTap: () {
-                      // Navigate to files tab
-                      Get.find<MainNavigationController>().setPageIndex(1);
-                    },
+                    onTap: () => Get.to(
+                      () => const MediaLibraryPage(favorites: true),
+                    ),
                   ),
                   QuickAccessItem(
                     icon: Icons.image,
                     label: S.current.photos,
                     subtitle: '',
-                    onTap: () {
-                      // Navigate to files tab
-                      Get.find<MainNavigationController>().setPageIndex(1);
-                    },
+                    onTap: () => Get.to(
+                      () => const MediaLibraryPage(
+                        favorites: false,
+                        mediaType: 'image',
+                      ),
+                    ),
                   ),
                   QuickAccessItem(
                     icon: Icons.videocam,
                     label: S.current.videos,
                     subtitle: '',
-                    onTap: () {
-                      // Navigate to files tab
-                      Get.find<MainNavigationController>().setPageIndex(1);
-                    },
+                    onTap: () => Get.to(
+                      () => const MediaLibraryPage(
+                        favorites: false,
+                        mediaType: 'video',
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -289,7 +291,8 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             else if (_storages.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppDesign.space16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppDesign.space16),
                 child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(AppDesign.space32),
@@ -298,7 +301,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           Icons.storage,
                           size: 48,
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.5),
                         ),
                         const SizedBox(height: AppDesign.space16),
                         Text(
@@ -332,23 +338,23 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             else
               ..._storages.take(3).map((storage) => Padding(
-                padding: const EdgeInsets.only(bottom: AppDesign.space12),
-                child: StorageCard(
-                  name: storage.mountPath,
-                  type: storage.driver,
-                  status: storage.status,
-                  usedBytes: 0,
-                  totalBytes: 0,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const StoragesScreen(),
-                      ),
-                    );
-                  },
-                ),
-              )),
+                    padding: const EdgeInsets.only(bottom: AppDesign.space12),
+                    child: StorageCard(
+                      name: storage.mountPath,
+                      type: storage.driver,
+                      status: storage.status,
+                      usedBytes: 0,
+                      totalBytes: 0,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const StoragesScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  )),
 
             const SizedBox(height: AppDesign.space16),
           ],
@@ -434,7 +440,9 @@ class _ModeOption extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: selected ? colorScheme.primary : (isDark ? Colors.white70 : Colors.black54),
+        color: selected
+            ? colorScheme.primary
+            : (isDark ? Colors.white70 : Colors.black54),
       ),
       title: Text(
         title,
@@ -456,4 +464,3 @@ class _ModeOption extends StatelessWidget {
     );
   }
 }
-

@@ -1057,5 +1057,13 @@
   "paused": "Paused",
   "cancelling": "Cancelling",
   "fullscreen": "Fullscreen",
-  "archiveExtractionUnavailable": "Archive extraction URL unavailable"
+  "archiveExtractionUnavailable": "Archive extraction URL unavailable",
+  "noRecentFiles": "No recent files",
+  "mediaLibraryUnavailable": "Media library is not enabled",
+  "noMediaItems": "No media items",
+  "mediaFavoriteAdded": "Added to favorites",
+  "addMediaFavorite": "Add to favorites",
+  "removeMediaFavorite": "Remove from favorites",
+  "coreSettings": "Core settings",
+  "coreSettingsDesc": "Configure OpenList Core without the web interface"
 }

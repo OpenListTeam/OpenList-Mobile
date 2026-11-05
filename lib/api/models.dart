@@ -1,5 +1,7 @@
 // Data models mirroring the OpenList HTTP API responses.
 
+import 'dart:convert';
+
 int _int(dynamic v) => v is num ? v.toInt() : int.tryParse('$v') ?? 0;
 
 double _double(dynamic v) => v is num ? v.toDouble() : 0;
@@ -216,8 +218,11 @@ class DriverItem {
   final bool required;
   final String help;
 
-  List<String> get optionList =>
-      options.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  List<String> get optionList => options
+      .split(',')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
 
   factory DriverItem.fromJson(Map<String, dynamic> j) => DriverItem(
         name: _str(j['name']),
@@ -243,9 +248,8 @@ class DriverInfo {
   factory DriverInfo.fromJson(Map<String, dynamic> j) => DriverInfo(
         common: _items(j['common']),
         additional: _items(j['additional']),
-        config: j['config'] is Map
-            ? Map<String, dynamic>.from(j['config'])
-            : null,
+        config:
+            j['config'] is Map ? Map<String, dynamic>.from(j['config']) : null,
       );
 
   /// Driver notice from `config.alert` (`info|warning|danger|success|text`).
@@ -298,6 +302,92 @@ class UserInfo {
         permission: _int(j['permission']),
         otp: j['otp'] == true,
       );
+}
+
+class MediaStatus {
+  const MediaStatus({
+    required this.enabled,
+    required this.types,
+    required this.proxyCover,
+  });
+
+  final bool enabled;
+  final List<String> types;
+  final bool proxyCover;
+
+  factory MediaStatus.fromJson(Map<String, dynamic> json) => MediaStatus(
+        enabled: json['enabled'] == true,
+        types: ((json['types'] as List?) ?? const []).map(_str).toList(),
+        proxyCover: json['proxy_cover'] == true,
+      );
+}
+
+class MediaEpisode {
+  const MediaEpisode({required this.fileName, required this.title});
+
+  final String fileName;
+  final String title;
+
+  factory MediaEpisode.fromJson(Map<String, dynamic> json) => MediaEpisode(
+        fileName: _str(json['file_name']),
+        title: _str(json['title']).isEmpty
+            ? _str(json['file_name'])
+            : _str(json['title']),
+      );
+}
+
+class MediaItem {
+  MediaItem(Map<String, dynamic> raw) : raw = Map<String, dynamic>.from(raw);
+
+  final Map<String, dynamic> raw;
+
+  int get id => _int(raw['id']);
+  String get mediaType => _str(raw['media_type']);
+  String get fileName => _str(raw['file_name']);
+  String get folderPath => _str(raw['folder_path']);
+  String get cover => _str(raw['cover']);
+  String get scrapedName => _str(raw['scraped_name']);
+  int get fileSize => _int(raw['file_size']);
+  int get duration => _int(raw['duration']);
+  bool get isFolder => raw['is_folder'] == true;
+  String get displayName => scrapedName.isEmpty ? fileName : scrapedName;
+
+  List<MediaEpisode> get episodes {
+    final value = raw['episodes'];
+    dynamic decoded = value;
+    if (value is String && value.isNotEmpty) {
+      try {
+        decoded = jsonDecode(value);
+      } on FormatException {
+        return const [];
+      }
+    }
+    if (decoded is! List) return const [];
+    return decoded
+        .whereType<Map>()
+        .map((e) => MediaEpisode.fromJson(Map<String, dynamic>.from(e)))
+        .where((e) => e.fileName.isNotEmpty)
+        .toList();
+  }
+
+  String get path {
+    final folder = folderPath.endsWith('/')
+        ? folderPath.substring(0, folderPath.length - 1)
+        : folderPath;
+    return folder.isEmpty ? '/$fileName' : '$folder/$fileName';
+  }
+
+  String episodePath(MediaEpisode episode) {
+    final folder = folderPath.endsWith('/')
+        ? folderPath.substring(0, folderPath.length - 1)
+        : folderPath;
+    final directory = isFolder ? '$folder/$fileName' : folder;
+    return directory.isEmpty
+        ? '/${episode.fileName}'
+        : '$directory/${episode.fileName}';
+  }
+
+  factory MediaItem.fromJson(Map<String, dynamic> json) => MediaItem(json);
 }
 
 /// One hit from `/api/fs/search`.
@@ -362,7 +452,8 @@ class AdminUser {
 
   int get id => _int(raw['id']);
   String get username => _str(raw['username']);
-  String get basePath => _str(raw['base_path']).isEmpty ? '/' : _str(raw['base_path']);
+  String get basePath =>
+      _str(raw['base_path']).isEmpty ? '/' : _str(raw['base_path']);
   int get role => _int(raw['role']);
   bool get disabled => raw['disabled'] == true;
   int get permission => _int(raw['permission']);

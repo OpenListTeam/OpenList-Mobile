@@ -5,6 +5,7 @@ import 'package:flutter_smooth_markdown/flutter_smooth_markdown.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
+import 'package:openlist_mobile/utils/recent_files.dart';
 
 import '../../generated/l10n.dart';
 import 'archive_preview_view.dart';
@@ -62,6 +63,11 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
       final session = OpenListSession.instance;
       final obj = await session.fs.get(widget.path, password: widget.password);
       _obj = obj;
+      if (widget.password.isEmpty) {
+        try {
+          await RecentFiles.record(widget.path, _name, obj.size, obj.type);
+        } catch (_) {}
+      }
       _previewHeaders = session.archive.headersFor(_url);
       if (obj.type == ObjType.text && obj.size <= _maxTextBytes) {
         final headers = _previewHeaders;

@@ -47,7 +47,8 @@ class StorageCard extends StatelessWidget {
                       color: isConnected
                           ? AppDesign.primaryBlue.withOpacity(0.1)
                           : Colors.grey.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppDesign.radiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppDesign.radiusSmall),
                     ),
                     child: Icon(
                       _getTypeIcon(),
@@ -196,7 +197,7 @@ class QuickAccessItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppDesign.radiusCard),
         child: Container(
-          width: 140,
+          width: 164,
           padding: const EdgeInsets.all(AppDesign.space16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

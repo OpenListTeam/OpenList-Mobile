@@ -4263,6 +4263,66 @@ class S {
       args: [],
     );
   }
+
+  /// `暂无最近文件`
+  String get noRecentFiles {
+    return Intl.message('暂无最近文件', name: 'noRecentFiles', desc: '', args: []);
+  }
+
+  /// `媒体库未启用`
+  String get mediaLibraryUnavailable {
+    return Intl.message(
+      '媒体库未启用',
+      name: 'mediaLibraryUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `暂无媒体内容`
+  String get noMediaItems {
+    return Intl.message('暂无媒体内容', name: 'noMediaItems', desc: '', args: []);
+  }
+
+  /// `已添加到收藏`
+  String get mediaFavoriteAdded {
+    return Intl.message(
+      '已添加到收藏',
+      name: 'mediaFavoriteAdded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `添加到收藏`
+  String get addMediaFavorite {
+    return Intl.message('添加到收藏', name: 'addMediaFavorite', desc: '', args: []);
+  }
+
+  /// `取消收藏`
+  String get removeMediaFavorite {
+    return Intl.message(
+      '取消收藏',
+      name: 'removeMediaFavorite',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `核心设置`
+  String get coreSettings {
+    return Intl.message('核心设置', name: 'coreSettings', desc: '', args: []);
+  }
+
+  /// `无需网页界面即可配置 OpenList Core`
+  String get coreSettingsDesc {
+    return Intl.message(
+      '无需网页界面即可配置 OpenList Core',
+      name: 'coreSettingsDesc',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

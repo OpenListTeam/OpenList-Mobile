@@ -159,6 +159,154 @@ void main() {
     });
   }
 
+  test('publishes initial states and isolates concurrent progress updates',
+      () async {
+    final firstResponse = Completer<ResponseBody>();
+    final secondResponse = Completer<ResponseBody>();
+    final firstStarted = Completer<void>();
+    final secondStarted = Completer<void>();
+    final adapter = _Adapter((options, _) {
+      if (options.uri.path.endsWith('first.bin')) {
+        if (!firstStarted.isCompleted) firstStarted.complete();
+        return firstResponse.future;
+      }
+      if (!secondStarted.isCompleted) secondStarted.complete();
+      return secondResponse.future;
+    });
+    final states = <String, List<DownloadStatus>>{};
+    final progressUpdates = <String>{};
+    void listener() {
+      for (final task in DownloadManager.activeTasks) {
+        states.putIfAbsent(task.filename, () => []).add(task.status);
+        if (task.receivedBytes > 0) progressUpdates.add(task.filename);
+      }
+    }
+
+    DownloadManager.addListener(listener);
+    final firstDone = DownloadManager.downloadFileWithProgress(
+      url: 'https://files.example.test/first.bin',
+      filename: 'first.bin',
+      client: Dio()..httpClientAdapter = adapter,
+    );
+    late final Future<bool> secondDone;
+    try {
+      await firstStarted.future.timeout(const Duration(seconds: 5));
+      secondDone = DownloadManager.downloadFileWithProgress(
+        url: 'https://files.example.test/second.bin',
+        filename: 'second.bin',
+        client: Dio()..httpClientAdapter = adapter,
+      );
+      await secondStarted.future.timeout(const Duration(seconds: 5));
+      for (final name in ['first.bin', 'second.bin']) {
+        expect(states[name], contains(DownloadStatus.pending));
+        expect(states[name], contains(DownloadStatus.downloading));
+      }
+      firstResponse.complete(ResponseBody.fromBytes([1, 2, 3, 4], 200,
+          headers: {
+            Headers.contentLengthHeader: ['4']
+          }));
+      secondResponse.complete(ResponseBody.fromBytes([5, 6, 7, 8], 200,
+          headers: {
+            Headers.contentLengthHeader: ['4']
+          }));
+      expect(await Future.wait([firstDone, secondDone]), [true, true]);
+      expect(progressUpdates, containsAll(['first.bin', 'second.bin']));
+    } finally {
+      DownloadManager.removeListener(listener);
+      for (final task in DownloadManager.activeTasks) {
+        DownloadManager.cancelDownload(task.id);
+      }
+      if (!firstResponse.isCompleted) {
+        firstResponse.complete(ResponseBody.fromBytes([], 200));
+      }
+      if (!secondResponse.isCompleted) {
+        secondResponse.complete(ResponseBody.fromBytes([], 200));
+      }
+      await firstDone;
+      if (secondStarted.isCompleted) await secondDone;
+    }
+  });
+
+  test('pausing and resuming a Blob download continues at its saved offset',
+      () async {
+    final paused = Completer<DownloadTask>();
+    final offsets = <int>[];
+    var requestedPause = false;
+    void listener() {
+      for (final task in DownloadManager.activeTasks) {
+        if (task.status == DownloadStatus.downloading &&
+            task.receivedBytes > 0 &&
+            !requestedPause) {
+          requestedPause = true;
+          DownloadManager.pauseDownload(task.id);
+        }
+        if (task.status == DownloadStatus.paused && !paused.isCompleted) {
+          paused.complete(task);
+        }
+      }
+    }
+
+    DownloadManager.addListener(listener);
+    final done = DownloadManager.saveFileInBackground(
+      source: 'blob:preview',
+      totalBytes: 8,
+      filename: 'blob.bin',
+      readChunk: (offset) async {
+        offsets.add(offset);
+        return offset == 0 ? [1, 2, 3, 4] : [5, 6, 7, 8];
+      },
+    );
+    try {
+      final task = await paused.future.timeout(const Duration(seconds: 5));
+      expect(task.receivedBytes, 4);
+      expect(await File(task.partialFilePath!).exists(), isTrue);
+      DownloadManager.resumeDownload(task.id);
+      expect(await done.timeout(const Duration(seconds: 5)), isTrue);
+      expect(offsets, [0, 4]);
+      expect(await File(task.filePath).readAsBytes(), [1, 2, 3, 4, 5, 6, 7, 8]);
+      expect(await File(task.partialFilePath!).exists(), isFalse);
+      expect(task.status, DownloadStatus.completed);
+    } finally {
+      DownloadManager.removeListener(listener);
+    }
+  });
+
+  test('canceling a paused Blob download removes its partial file', () async {
+    final paused = Completer<DownloadTask>();
+    var requestedPause = false;
+    void listener() {
+      for (final task in DownloadManager.activeTasks) {
+        if (task.status == DownloadStatus.downloading &&
+            task.receivedBytes > 0 &&
+            !requestedPause) {
+          requestedPause = true;
+          DownloadManager.pauseDownload(task.id);
+        }
+        if (task.status == DownloadStatus.paused && !paused.isCompleted) {
+          paused.complete(task);
+        }
+      }
+    }
+
+    DownloadManager.addListener(listener);
+    final done = DownloadManager.saveFileInBackground(
+      source: 'blob:preview',
+      totalBytes: 8,
+      filename: 'blob-cancel.bin',
+      readChunk: (offset) async => [1, 2, 3, 4],
+    );
+    try {
+      final task = await paused.future.timeout(const Duration(seconds: 5));
+      DownloadManager.cancelDownload(task.id);
+      expect(task.status, DownloadStatus.cancelling);
+      expect(await done.timeout(const Duration(seconds: 5)), isFalse);
+      expect(task.status, DownloadStatus.cancelled);
+      expect(await File(task.partialFilePath!).exists(), isFalse);
+    } finally {
+      DownloadManager.removeListener(listener);
+    }
+  });
+
   test('canceling a paused download removes its partial file promptly',
       () async {
     final adapter = _Adapter((_, attempt) async {

@@ -160,6 +160,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("About"),
     "aboutOpenList": MessageLookupByLibrary.simpleMessage("About OpenList"),
     "account": MessageLookupByLibrary.simpleMessage("Account"),
+    "addMediaFavorite": MessageLookupByLibrary.simpleMessage(
+      "Add to favorites",
+    ),
     "addStorage": MessageLookupByLibrary.simpleMessage("Add storage"),
     "addUser": MessageLookupByLibrary.simpleMessage("Add user"),
     "addresses": MessageLookupByLibrary.simpleMessage("Addresses"),
@@ -389,6 +392,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "copyLink": MessageLookupByLibrary.simpleMessage("Copy link"),
     "copyTo": MessageLookupByLibrary.simpleMessage("Copy to"),
     "copying": MessageLookupByLibrary.simpleMessage("Copying files..."),
+    "coreSettings": MessageLookupByLibrary.simpleMessage("Core settings"),
+    "coreSettingsDesc": MessageLookupByLibrary.simpleMessage(
+      "Configure OpenList Core without the web interface",
+    ),
     "couldNotOpenUrl": MessageLookupByLibrary.simpleMessage(
       "Could not open URL",
     ),
@@ -691,6 +698,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "manageStoragesDesc": MessageLookupByLibrary.simpleMessage(
       "Add, edit, or remove storage locations",
     ),
+    "mediaFavoriteAdded": MessageLookupByLibrary.simpleMessage(
+      "Added to favorites",
+    ),
+    "mediaLibraryUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Media library is not enabled",
+    ),
     "mediaPlaybackInterrupted": MessageLookupByLibrary.simpleMessage(
       "Playback stopped. Check the file format or connection.",
     ),
@@ -763,6 +776,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "noDownloads": MessageLookupByLibrary.simpleMessage("No downloads"),
     "noFilesHere": MessageLookupByLibrary.simpleMessage("No files here"),
+    "noMediaItems": MessageLookupByLibrary.simpleMessage("No media items"),
     "noOfflineTools": MessageLookupByLibrary.simpleMessage(
       "No offline download tool is configured on the server",
     ),
@@ -775,6 +789,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "noPermissionToOpenFile": MessageLookupByLibrary.simpleMessage(
       "No permission to open this file",
     ),
+    "noRecentFiles": MessageLookupByLibrary.simpleMessage("No recent files"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("No results"),
     "noStorages": MessageLookupByLibrary.simpleMessage("No storages"),
     "noStoragesConfigured": MessageLookupByLibrary.simpleMessage(
@@ -910,6 +925,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "remark": MessageLookupByLibrary.simpleMessage("Remark"),
     "remoteServer": MessageLookupByLibrary.simpleMessage("Remote server"),
     "remove": MessageLookupByLibrary.simpleMessage("Remove"),
+    "removeMediaFavorite": MessageLookupByLibrary.simpleMessage(
+      "Remove from favorites",
+    ),
     "rename": MessageLookupByLibrary.simpleMessage("Rename"),
     "renameNoMatch": MessageLookupByLibrary.simpleMessage(
       "No items match the pattern",
