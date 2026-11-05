@@ -4,4 +4,5 @@ class NativeBridge {
   static NativeCommon common = NativeCommon();
   static Android android = Android();
   static AppConfig appConfig = AppConfig();
+  static DownloadStorage downloadStorage = DownloadStorage();
 }

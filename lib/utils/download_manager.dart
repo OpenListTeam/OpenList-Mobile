@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'notification_manager.dart';
+import 'download_destination.dart';
+import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 
 /// 下载任务状态
@@ -27,10 +29,12 @@ enum DownloadStatus {
 class DownloadTask {
   final String id;
   final String url;
-  final String filename;
+  String filename;
   String filePath;
   final String? partialFilePath;
   final String? directoryReference;
+  String? fileReference;
+  DownloadDestination? destination;
   DownloadStatus status;
   double progress;
   int receivedBytes;
@@ -53,6 +57,8 @@ class DownloadTask {
     required this.filePath,
     this.partialFilePath,
     this.directoryReference,
+    this.fileReference,
+    this.destination,
     this.status = DownloadStatus.pending,
     this.progress = 0.0,
     this.receivedBytes = 0,
@@ -75,6 +81,7 @@ class DownloadTask {
         'errorMessage': errorMessage == null ? null : 'Download failed',
         if (directoryReference != null)
           'directoryReference': directoryReference,
+        if (fileReference != null) 'fileReference': fileReference,
       };
 
   static DownloadTask? fromHistory(Map<String, dynamic> data) {
@@ -99,6 +106,7 @@ class DownloadTask {
         filename: filename,
         filePath: '',
         directoryReference: data['directoryReference'] as String?,
+        fileReference: data['fileReference'] as String?,
         status: status,
         progress: (data['progress'] as num?)?.toDouble() ?? 0,
         receivedBytes: data['receivedBytes'] as int? ?? 0,
@@ -164,6 +172,10 @@ class DownloadManager {
   static final _DownloadChangeNotifier _changes = _DownloadChangeNotifier();
   static const String _historyKey = 'download_task_history.v1';
   static const String _downloadDirectoryKey = 'download_directory.v1';
+  static const String _downloadDirectoryNameKey =
+      'download_directory_name.v1';
+  static const String _downloadDirectoryReferenceKey =
+      'download_directory_reference.v1';
   static const String _askForDownloadDirectoryKey =
       'ask_for_download_directory.v1';
   static const String _directoryReferencesKey =
@@ -219,7 +231,7 @@ class DownloadManager {
     }();
   }
 
-  static Future<String?> _registerDirectoryReference(
+  static Future<String> _registerDirectoryReference(
       Directory directory) async {
     await _loadDirectoryReferences();
     final path = directory.absolute.path;
@@ -243,12 +255,29 @@ class DownloadManager {
 
   static void _resolveHistoricalFilePaths() {
     for (final task in _completedTasks) {
-      final directory = task.directoryReference == null
+      final directoryReference = task.directoryReference;
+      final fileReference = task.fileReference;
+      if (directoryReference != null && fileReference != null) {
+        task.destination = NativeDownloadDestination(
+          directoryReference: directoryReference,
+          filename: task.filename,
+          fileReference: fileReference,
+        );
+        continue;
+      }
+      final directory = directoryReference == null
           ? null
-          : _directoryReferences[task.directoryReference!];
-      if (directory == null || task.filePath.isNotEmpty) continue;
+          : _directoryReferences[directoryReference];
+      if (directory == null || directoryReference == null) continue;
       task.filePath =
           File('$directory${Platform.pathSeparator}${task.filename}').path;
+      task.destination = PathDownloadDestination(
+        directoryReference: directoryReference,
+        filename: task.filename,
+        filePath: task.filePath,
+        partialFilePath: '${task.filePath}.history.part',
+        finalized: true,
+      );
     }
   }
 
@@ -318,6 +347,88 @@ class DownloadManager {
     return prefs.getString(_downloadDirectoryKey);
   }
 
+  static bool get _usesNativeDownloadStorage =>
+      Platform.isAndroid || Platform.isIOS;
+
+  static Future<DownloadDirectoryTarget?> getDownloadDirectoryTarget() async {
+    try {
+      if (_usesNativeDownloadStorage) {
+        final directory =
+            await NativeBridge.downloadStorage.getDefaultDirectory();
+        return DownloadDirectoryTarget.native(directory);
+      }
+      final configured = await getConfiguredDownloadDirectory();
+      final directory = configured == null || configured.isEmpty
+          ? await _getOpenListDownloadDirectory()
+          : await _prepareDownloadDirectory(configured);
+      return directory == null ? null : DownloadDirectoryTarget.path(
+          reference: await _registerDirectoryReference(directory),
+          directory: directory,
+        );
+    } catch (error) {
+      log('Failed to get download directory: $error');
+      return null;
+    }
+  }
+
+  static Future<DownloadDirectoryTarget?> chooseDownloadDirectory() async {
+    try {
+      if (_usesNativeDownloadStorage) {
+        final directory = await NativeBridge.downloadStorage.chooseDirectory();
+        if (directory == null) return null;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_downloadDirectoryReferenceKey, directory.reference);
+        await prefs.setString(_downloadDirectoryNameKey, directory.name);
+        await prefs.remove(_downloadDirectoryKey);
+        _notifyChanged(filesChanged: true);
+        return DownloadDirectoryTarget.native(directory);
+      }
+      final path = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: S.current.downloadDirectory,
+      );
+      if (path == null || path.trim().isEmpty) return null;
+      final directory = await _prepareDownloadDirectory(path);
+      if (directory == null) {
+        _showSnackbar(getx.GetSnackBar(
+          message: S.current.downloadDirectoryNotWritable,
+          duration: const Duration(seconds: 4),
+        ));
+        return null;
+      }
+      return DownloadDirectoryTarget.path(
+        reference: await _registerDirectoryReference(directory),
+        directory: directory,
+      );
+    } catch (error) {
+      log('Failed to choose download directory: $error');
+      return null;
+    }
+  }
+
+  static Future<DownloadDirectoryTarget?> _getDownloadTargetForTask() async {
+    if (await getAskForDownloadDirectory()) {
+      return chooseDownloadDirectory();
+    }
+    return getDownloadDirectoryTarget();
+  }
+
+  static Future<DownloadDestination> _reserveDestination(
+      DownloadDirectoryTarget target, String filename, String taskId) async {
+    if (target.isNative) {
+      return NativeDownloadDestination.reserve(target.reference, filename);
+    }
+    final directory = target.directory!;
+    final filePath = _getUniqueFilePath(
+        '${directory.path}${Platform.pathSeparator}$filename');
+    _reservedFilePaths.add(filePath);
+    return PathDownloadDestination(
+      directoryReference: target.reference,
+      filename: _basename(filePath),
+      filePath: filePath,
+      partialFilePath: '$filePath.$taskId.part',
+    );
+  }
+
   static Future<Directory?> _prepareDownloadDirectory(String path) async {
     try {
       var directoryPath = path.trim();
@@ -376,28 +487,9 @@ class DownloadManager {
   static Future<void> resetDownloadDirectory() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_downloadDirectoryKey);
+    await prefs.remove(_downloadDirectoryReferenceKey);
+    await prefs.remove(_downloadDirectoryNameKey);
     _notifyChanged(filesChanged: true);
-  }
-
-  static Future<Directory?> _getDownloadDirectoryForTask() async {
-    if (!await getAskForDownloadDirectory()) {
-      final configured = await getConfiguredDownloadDirectory();
-      return configured == null || configured.isEmpty
-          ? _getOpenListDownloadDirectory()
-          : _prepareDownloadDirectory(configured);
-    }
-    final path = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: S.current.downloadDirectory,
-    );
-    if (path == null || path.trim().isEmpty) return null;
-    final directory = await _prepareDownloadDirectory(path);
-    if (directory == null) {
-      _showSnackbar(getx.GetSnackBar(
-        message: S.current.downloadDirectoryNotWritable,
-        duration: const Duration(seconds: 4),
-      ));
-    }
-    return directory;
   }
 
   /// Downloads a file into the selected download directory.
@@ -410,28 +502,35 @@ class DownloadManager {
     await initialize();
 
     final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
-    final downloadDir = await _getDownloadDirectoryForTask();
-    if (downloadDir == null) return false;
-    final directoryReference = await _registerDirectoryReference(downloadDir);
-    var finalFilename = _safeFilename(filename ?? _getFilenameFromUrl(url));
-    final filePath = _getUniqueFilePath(
-        '${downloadDir.path}${Platform.pathSeparator}$finalFilename');
-    final partialFilePath = '$filePath.$taskId.part';
-    _reservedFilePaths.add(filePath);
-    finalFilename = _basename(filePath);
+    final target = await _getDownloadTargetForTask();
+    if (target == null) return false;
+    final requestedFilename = _safeFilename(filename ?? _getFilenameFromUrl(url));
+    late final DownloadDestination destination;
+    try {
+      destination = await _reserveDestination(target, requestedFilename, taskId);
+    } catch (error) {
+      log('Failed to reserve download file: $error');
+      _showSnackbar(getx.GetSnackBar(
+        message: S.current.downloadDirectoryNotWritable,
+        duration: const Duration(seconds: 4),
+      ));
+      return false;
+    }
     final task = DownloadTask(
       id: taskId,
       url: url,
-      filename: finalFilename,
-      filePath: filePath,
-      partialFilePath: partialFilePath,
-      directoryReference: directoryReference,
+      filename: destination.filename,
+      filePath: destination.filePath ?? '',
+      partialFilePath: destination.partialFilePath,
+      directoryReference: destination.directoryReference,
+      fileReference: destination.fileReference,
+      destination: destination,
     );
     _activeTasks[taskId] = task;
     _notifyChanged();
 
     _showSnackbar(getx.GetSnackBar(
-      message: S.current.startDownloadFile(finalFilename),
+      message: S.current.startDownloadFile(task.filename),
       duration: const Duration(seconds: 2),
       backgroundColor: Colors.green,
     ));
@@ -445,8 +544,15 @@ class DownloadManager {
         throw const FileSystemException('Download cancelled');
       }
 
-      await File(partialFilePath).rename(filePath);
+      await destination.finalize();
+      if (_cancelledTaskIds.contains(taskId)) {
+        await _discardDestination(destination);
+        throw const FileSystemException('Download cancelled');
+      }
       task
+        ..filename = destination.filename
+        ..filePath = destination.filePath ?? ''
+        ..fileReference = destination.fileReference
         ..status = DownloadStatus.completed
         ..endTime = DateTime.now()
         ..progress = 1.0;
@@ -458,11 +564,11 @@ class DownloadManager {
       _notifyChanged(persistHistory: true, filesChanged: true);
       unawaited(NotificationManager.showSingleFileCompleteNotification(task));
       _showSnackbar(getx.GetSnackBar(
-        message: S.current.downloadCompleteFile(finalFilename),
+        message: S.current.downloadCompleteFile(task.filename),
         duration: const Duration(seconds: 3),
         backgroundColor: Colors.blue,
         mainButton: TextButton(
-          onPressed: () => _openFile(filePath),
+          onPressed: () => unawaited(_openTaskFile(task)),
           child: Text(S.current.open),
         ),
       ));
@@ -478,12 +584,12 @@ class DownloadManager {
             ? 'Download failed (${error.type.name})'
             : 'Download failed (${error.runtimeType})';
         _showSnackbar(getx.GetSnackBar(
-          message: S.current.downloadFailedFile(finalFilename),
+          message: S.current.downloadFailedFile(task.filename),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.red,
         ));
       }
-      await _deletePartialFile(partialFilePath);
+      await _discardDestination(destination);
       _activeTasks.remove(taskId);
       if (!_removeWhenFinished.remove(taskId)) {
         _completedTasks.insert(0, task);
@@ -499,7 +605,9 @@ class DownloadManager {
       task.cancelToken = null;
       _cancelledTaskIds.remove(taskId);
       _removeWhenFinished.remove(taskId);
-      _reservedFilePaths.remove(filePath);
+      if (destination.filePath != null) {
+        _reservedFilePaths.remove(destination.filePath);
+      }
     }
   }
 
@@ -527,11 +635,11 @@ class DownloadManager {
 
   static Future<void> _downloadHttpAttempt(DownloadTask task,
       Map<String, String> headers, CancelToken token, Dio client) async {
+    final destination = task.destination!;
     var restarted = false;
     while (true) {
-      final partialFile = File(task.partialFilePath!);
-      final length =
-          await partialFile.exists() ? await partialFile.length() : 0;
+      await _waitForResume(task);
+      final length = await destination.length();
       final strongEtag =
           task.etag != null && !task.etag!.startsWith('W/') ? task.etag : null;
       final validator = strongEtag ?? task.lastModified;
@@ -578,7 +686,7 @@ class DownloadManager {
           if (restarted) {
             throw const FormatException('Invalid partial download response');
           }
-          await partialFile.writeAsBytes(const []);
+          await destination.truncate();
           task
             ..receivedBytes = 0
             ..totalBytes = 0
@@ -613,28 +721,25 @@ class DownloadManager {
           total ??= int.tryParse(
               response.headers.value(Headers.contentLengthHeader) ?? '');
         }
+        if (writeOffset == 0) await destination.truncate();
         task
           ..etag = encoded ? null : responseEtag
           ..lastModified = encoded ? null : responseLastModified
           ..totalBytes = total ?? 0
           ..receivedBytes = writeOffset
           ..progress = total == null || total == 0 ? 0 : writeOffset / total;
-        final output = await partialFile.open(
-            mode: writeOffset > 0 ? FileMode.append : FileMode.write);
-        try {
-          while (await input.moveNext()) {
-            await output.writeFrom(input.current);
-            task.receivedBytes += input.current.length;
-            if (task.totalBytes > 0) {
-              task.progress =
-                  (task.receivedBytes / task.totalBytes).clamp(0.0, 1.0);
-            }
-            _notifyDownloadProgress(task);
+        while (await input.moveNext()) {
+          final chunk = input.current;
+          await destination.write(writeOffset, chunk);
+          writeOffset += chunk.length;
+          task.receivedBytes = writeOffset;
+          if (task.totalBytes > 0) {
+            task.progress =
+                (task.receivedBytes / task.totalBytes).clamp(0.0, 1.0);
           }
-          await output.flush();
-        } finally {
-          await output.close();
+          _notifyDownloadProgress(task);
         }
+        await destination.flush();
         if (total != null && task.receivedBytes != total) {
           throw const FormatException('Incomplete download response');
         }
@@ -684,16 +789,14 @@ class DownloadManager {
     }
   }
 
-  static Future<void> _deletePartialFile(String path) async {
+  static Future<void> _discardDestination(DownloadDestination destination) async {
     try {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
+      await destination.discard();
     } catch (error) {
-      log('Failed to remove partial download: $error');
+      log('Failed to discard download target: $error');
     }
   }
 
-  /// 简单的后台下载（推荐使用）
   static Future<bool> downloadFileInBackground({
     required String url,
     String? filename,
@@ -711,60 +814,48 @@ class DownloadManager {
     String? filename,
   }) async {
     await initialize();
-    if (Platform.isAndroid) {
-      var storageStatus = await Permission.storage.status;
-      var manageStorageStatus = await Permission.manageExternalStorage.status;
-      if (!storageStatus.isGranted) {
-        storageStatus = await Permission.storage.request();
-      }
-      if (!manageStorageStatus.isGranted) {
-        manageStorageStatus = await Permission.manageExternalStorage.request();
-      }
-      if (!storageStatus.isGranted && !manageStorageStatus.isGranted) {
-        _showSnackbar(getx.GetSnackBar(
-          message: S.current.grantStoragePermissionDesc,
-          duration: const Duration(seconds: 5),
-        ));
-        return false;
-      }
-    }
 
     final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
-    final downloadDir = await _getDownloadDirectoryForTask();
-    if (downloadDir == null) return false;
-
-    final directoryReference = await _registerDirectoryReference(downloadDir);
-    var finalFilename = _safeFilename(filename ?? _getFilenameFromUrl(source));
-    final filePath = _getUniqueFilePath(
-        '${downloadDir.path}${Platform.pathSeparator}$finalFilename');
-    _reservedFilePaths.add(filePath);
-    finalFilename = _basename(filePath);
-    final temporaryFile = File('$filePath.$taskId.part');
+    final target = await _getDownloadTargetForTask();
+    if (target == null) return false;
+    final requestedFilename = _safeFilename(filename ?? _getFilenameFromUrl(source));
+    late final DownloadDestination destination;
+    try {
+      destination = await _reserveDestination(target, requestedFilename, taskId);
+    } catch (error) {
+      log('Failed to reserve Blob download file: $error');
+      _showSnackbar(getx.GetSnackBar(
+        message: S.current.downloadDirectoryNotWritable,
+        duration: const Duration(seconds: 4),
+      ));
+      return false;
+    }
     final task = DownloadTask(
       id: taskId,
       url: source,
-      filename: finalFilename,
-      filePath: filePath,
-      partialFilePath: temporaryFile.path,
-      directoryReference: directoryReference,
+      filename: destination.filename,
+      filePath: destination.filePath ?? '',
+      partialFilePath: destination.partialFilePath,
+      directoryReference: destination.directoryReference,
+      fileReference: destination.fileReference,
+      destination: destination,
       totalBytes: totalBytes,
     );
     _activeTasks[taskId] = task;
     _notifyChanged();
 
     _showSnackbar(getx.GetSnackBar(
-      message: S.current.startDownloadFile(finalFilename),
+      message: S.current.startDownloadFile(task.filename),
       duration: const Duration(seconds: 2),
       backgroundColor: Colors.green,
     ));
 
-    RandomAccessFile? output;
     try {
       task.status = DownloadStatus.downloading;
       _notifyChanged();
       unawaited(NotificationManager.showDownloadProgressNotification());
 
-      output = await temporaryFile.open(mode: FileMode.write);
+      await destination.truncate();
       while (task.receivedBytes < totalBytes) {
         await _waitForResume(task);
         final chunk = await readChunk(task.receivedBytes);
@@ -774,7 +865,7 @@ class DownloadManager {
           throw const FormatException('Invalid Blob download data');
         }
 
-        await output.writeFrom(chunk);
+        await destination.write(task.receivedBytes, chunk);
         task.receivedBytes += chunk.length;
         task.progress = totalBytes == 0 ? 1 : task.receivedBytes / totalBytes;
         _notifyDownloadProgress(task);
@@ -783,20 +874,23 @@ class DownloadManager {
       if (_cancelledTaskIds.contains(taskId)) {
         throw const FileSystemException('Download cancelled');
       }
-      await output.close();
-      output = null;
+      await destination.flush();
       if (_cancelledTaskIds.contains(taskId)) {
         throw const FileSystemException('Download cancelled');
       }
-      await temporaryFile.rename(filePath);
+      await destination.finalize();
       if (_cancelledTaskIds.contains(taskId)) {
-        await File(filePath).delete();
+        await _discardDestination(destination);
         throw const FileSystemException('Download cancelled');
       }
 
-      task.status = DownloadStatus.completed;
-      task.endTime = DateTime.now();
-      task.progress = 1.0;
+      task
+        ..filename = destination.filename
+        ..filePath = destination.filePath ?? ''
+        ..fileReference = destination.fileReference
+        ..status = DownloadStatus.completed
+        ..endTime = DateTime.now()
+        ..progress = 1.0;
       _activeTasks.remove(taskId);
       if (!_removeWhenFinished.remove(taskId)) {
         _completedTasks.insert(0, task);
@@ -805,49 +899,36 @@ class DownloadManager {
 
       await NotificationManager.showSingleFileCompleteNotification(task);
       _showSnackbar(getx.GetSnackBar(
-        message: S.current.downloadCompleteFile(finalFilename),
+        message: S.current.downloadCompleteFile(task.filename),
         duration: const Duration(seconds: 3),
         backgroundColor: Colors.blue,
         mainButton: TextButton(
-          onPressed: () => _openFile(filePath),
+          onPressed: () => unawaited(_openTaskFile(task)),
           child: Text(S.current.open),
         ),
       ));
-      log('文件下载完成: $filePath');
+      log('文件下载完成: ${task.filename}');
       return true;
     } catch (error) {
       final cancelled = _cancelledTaskIds.contains(taskId);
-      task.status =
-          cancelled ? DownloadStatus.cancelled : DownloadStatus.failed;
+      task.status = cancelled ? DownloadStatus.cancelled : DownloadStatus.failed;
       if (!cancelled) {
         task.errorMessage = error is DioException
             ? 'Download failed (${error.type.name})'
             : 'Download failed (${error.runtimeType})';
       }
       task.endTime = DateTime.now();
+      await _discardDestination(destination);
       _activeTasks.remove(taskId);
       if (!_removeWhenFinished.remove(taskId)) {
         _completedTasks.insert(0, task);
       }
       _notifyChanged(persistHistory: true, filesChanged: true);
 
-      try {
-        await output?.close();
-      } catch (closeError) {
-        log('关闭临时下载文件失败: $closeError');
-      }
-      try {
-        if (await temporaryFile.exists()) {
-          await temporaryFile.delete();
-        }
-      } catch (deleteError) {
-        log('删除临时下载文件失败: $deleteError');
-      }
-
       if (task.status == DownloadStatus.failed) {
         log('下载失败: $error');
         _showSnackbar(getx.GetSnackBar(
-          message: S.current.downloadFailedFile(finalFilename),
+          message: S.current.downloadFailedFile(task.filename),
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.red,
         ));
@@ -862,7 +943,9 @@ class DownloadManager {
     } finally {
       _cancelledTaskIds.remove(taskId);
       _removeWhenFinished.remove(taskId);
-      _reservedFilePaths.remove(filePath);
+      if (destination.filePath != null) {
+        _reservedFilePaths.remove(destination.filePath);
+      }
     }
   }
 
@@ -1084,6 +1167,16 @@ class DownloadManager {
       log('检查安装权限失败: $e');
       return true; // 如果检查失败，继续尝试打开
     }
+  }
+
+  static Future<bool> _openTaskFile(DownloadTask task) async {
+    final destination = task.destination;
+    if (destination != null && destination.fileReference != null) {
+      return destination.open();
+    }
+    if (task.filePath.isEmpty) return false;
+    await _openFile(task.filePath);
+    return true;
   }
 
   /// 尝试打开文件

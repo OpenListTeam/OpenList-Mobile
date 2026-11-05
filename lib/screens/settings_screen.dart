@@ -18,6 +18,7 @@ import 'package:openlist_mobile/utils/language_manager.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:openlist_mobile/utils/theme_controller.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
+import 'package:openlist_mobile/utils/download_destination.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -448,29 +449,31 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
 
   Future<void> _load() async {
     final values = await Future.wait([
-      DownloadManager.getConfiguredDownloadDirectory(),
+      DownloadManager.getDownloadDirectoryTarget(),
       DownloadManager.getAskForDownloadDirectory(),
       if (Platform.isAndroid) NativeBridge.appConfig.getDataDir(),
     ]);
     if (!mounted) return;
+    final target = values[0] as DownloadDirectoryTarget?;
     setState(() {
-      _downloadDirectory = values[0] as String? ?? '';
+      _downloadDirectory = target?.name ?? '';
       _askForDirectory = values[1] as bool;
       if (Platform.isAndroid) _dataDirectory = values[2] as String;
     });
   }
 
   Future<void> _pickDownloadDirectory() async {
-    final path = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: S.current.downloadDirectory,
-    );
-    if (path == null) return;
-    if (await DownloadManager.setDownloadDirectory(path)) {
-      final configured = await DownloadManager.getConfiguredDownloadDirectory();
-      if (mounted) setState(() => _downloadDirectory = configured ?? path);
-    } else {
-      Get.snackbar(S.current.error, S.current.downloadDirectoryNotWritable);
+    final target = await DownloadManager.chooseDownloadDirectory();
+    if (target == null || !mounted) return;
+    if (!target.isNative && target.directory != null) {
+      if (!await DownloadManager.setDownloadDirectory(target.directory!.path)) {
+        if (mounted) {
+          Get.snackbar(S.current.error, S.current.downloadDirectoryNotWritable);
+        }
+        return;
+      }
     }
+    if (mounted) setState(() => _downloadDirectory = target.name);
   }
 
   Future<bool> _confirmRestart() async {
