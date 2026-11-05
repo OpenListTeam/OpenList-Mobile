@@ -170,6 +170,83 @@ abstract class BackgroundApi {
   bool openAppDetailsSettings();
 }
 
+@HostApi()
+abstract class DownloadStorage {
+  /// Returns the app's default download directory without exposing its path.
+  @async
+  DownloadDirectory getDefaultDirectory();
+
+  /// Presents the platform directory picker and persists its permission.
+  @async
+  DownloadDirectory? chooseDirectory();
+
+  /// Creates a temporary file reservation and returns its opaque reference.
+  @async
+  DownloadFile reserveFile(String directoryReference, String filename);
+
+  @async
+  int getFileLength(String fileReference);
+
+  @async
+  void truncateFile(String fileReference);
+
+  @async
+  void writeFile(String fileReference, int offset, Uint8List data);
+
+  @async
+  void flushFile(String fileReference);
+
+  /// Renames the reserved temporary file to its final name.
+  @async
+  DownloadFile finalizeFile(String fileReference);
+
+  @async
+  void discardFile(String fileReference);
+
+  @async
+  DownloadFile? getFile(String fileReference);
+
+  @async
+  List<DownloadFile> listFiles(String directoryReference);
+
+  @async
+  void deleteFile(String fileReference);
+
+  @async
+  void clearDirectory(String directoryReference);
+
+  @async
+  bool openFile(String fileReference);
+
+  @async
+  bool openDirectory(String directoryReference);
+}
+
+class DownloadDirectory {
+  DownloadDirectory({required this.reference, required this.name});
+
+  String reference;
+  String name;
+}
+
+class DownloadFile {
+  DownloadFile({
+    required this.reference,
+    required this.directoryReference,
+    required this.name,
+    required this.size,
+    required this.modifiedAt,
+    required this.mimeType,
+  });
+
+  String reference;
+  String directoryReference;
+  String name;
+  int size;
+  int modifiedAt;
+  String? mimeType;
+}
+
 /// One file upload handed to the platform's background transfer service.
 class UploadRequest {
   UploadRequest({

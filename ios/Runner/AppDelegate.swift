@@ -8,6 +8,7 @@ import UIKit
   private var appStoreUpdateBridge: AppStoreUpdateBridge?
   // Created eagerly so a background-session relaunch can reattach to it.
   private let uploadBridge = UploadBridge()
+  private let downloadStorageBridge = DownloadStorageBridge()
 
   override func application(
     _ application: UIApplication,
@@ -31,6 +32,7 @@ import UIKit
     NativeCommonSetup.setUp(binaryMessenger: messenger, api: CommonBridge(viewController: controller))
     uploadBridge.eventAPI = UploadEventApi(binaryMessenger: messenger)
     UploadApiSetup.setUp(binaryMessenger: messenger, api: uploadBridge)
+    DownloadStorageSetup.setUp(binaryMessenger: messenger, api: downloadStorageBridge)
 
     let appStoreChannel = FlutterMethodChannel(
       name: "openlist/app_store_update",

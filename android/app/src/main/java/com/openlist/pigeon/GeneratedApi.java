@@ -679,6 +679,279 @@ public class GeneratedApi {
     }
   }
 
+  /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class DownloadDirectory {
+    private @NonNull String reference;
+
+    public @NonNull String getReference() {
+      return reference;
+    }
+
+    public void setReference(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"reference\" is null.");
+      }
+      this.reference = setterArg;
+    }
+
+    private @NonNull String name;
+
+    public @NonNull String getName() {
+      return name;
+    }
+
+    public void setName(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"name\" is null.");
+      }
+      this.name = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    DownloadDirectory() {}
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+      DownloadDirectory that = (DownloadDirectory) o;
+      return reference.equals(that.reference) && name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(reference, name);
+    }
+
+    public static final class Builder {
+
+      private @Nullable String reference;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setReference(@NonNull String setterArg) {
+        this.reference = setterArg;
+        return this;
+      }
+
+      private @Nullable String name;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setName(@NonNull String setterArg) {
+        this.name = setterArg;
+        return this;
+      }
+
+      public @NonNull DownloadDirectory build() {
+        DownloadDirectory pigeonReturn = new DownloadDirectory();
+        pigeonReturn.setReference(reference);
+        pigeonReturn.setName(name);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<>(2);
+      toListResult.add(reference);
+      toListResult.add(name);
+      return toListResult;
+    }
+
+    static @NonNull DownloadDirectory fromList(@NonNull ArrayList<Object> pigeonVar_list) {
+      DownloadDirectory pigeonResult = new DownloadDirectory();
+      Object reference = pigeonVar_list.get(0);
+      pigeonResult.setReference((String) reference);
+      Object name = pigeonVar_list.get(1);
+      pigeonResult.setName((String) name);
+      return pigeonResult;
+    }
+  }
+
+  /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class DownloadFile {
+    private @NonNull String reference;
+
+    public @NonNull String getReference() {
+      return reference;
+    }
+
+    public void setReference(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"reference\" is null.");
+      }
+      this.reference = setterArg;
+    }
+
+    private @NonNull String directoryReference;
+
+    public @NonNull String getDirectoryReference() {
+      return directoryReference;
+    }
+
+    public void setDirectoryReference(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"directoryReference\" is null.");
+      }
+      this.directoryReference = setterArg;
+    }
+
+    private @NonNull String name;
+
+    public @NonNull String getName() {
+      return name;
+    }
+
+    public void setName(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"name\" is null.");
+      }
+      this.name = setterArg;
+    }
+
+    private @NonNull Long size;
+
+    public @NonNull Long getSize() {
+      return size;
+    }
+
+    public void setSize(@NonNull Long setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"size\" is null.");
+      }
+      this.size = setterArg;
+    }
+
+    private @NonNull Long modifiedAt;
+
+    public @NonNull Long getModifiedAt() {
+      return modifiedAt;
+    }
+
+    public void setModifiedAt(@NonNull Long setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"modifiedAt\" is null.");
+      }
+      this.modifiedAt = setterArg;
+    }
+
+    private @Nullable String mimeType;
+
+    public @Nullable String getMimeType() {
+      return mimeType;
+    }
+
+    public void setMimeType(@Nullable String setterArg) {
+      this.mimeType = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    DownloadFile() {}
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+      DownloadFile that = (DownloadFile) o;
+      return reference.equals(that.reference) && directoryReference.equals(that.directoryReference) && name.equals(that.name) && size.equals(that.size) && modifiedAt.equals(that.modifiedAt) && Objects.equals(mimeType, that.mimeType);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(reference, directoryReference, name, size, modifiedAt, mimeType);
+    }
+
+    public static final class Builder {
+
+      private @Nullable String reference;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setReference(@NonNull String setterArg) {
+        this.reference = setterArg;
+        return this;
+      }
+
+      private @Nullable String directoryReference;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setDirectoryReference(@NonNull String setterArg) {
+        this.directoryReference = setterArg;
+        return this;
+      }
+
+      private @Nullable String name;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setName(@NonNull String setterArg) {
+        this.name = setterArg;
+        return this;
+      }
+
+      private @Nullable Long size;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setSize(@NonNull Long setterArg) {
+        this.size = setterArg;
+        return this;
+      }
+
+      private @Nullable Long modifiedAt;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setModifiedAt(@NonNull Long setterArg) {
+        this.modifiedAt = setterArg;
+        return this;
+      }
+
+      private @Nullable String mimeType;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setMimeType(@Nullable String setterArg) {
+        this.mimeType = setterArg;
+        return this;
+      }
+
+      public @NonNull DownloadFile build() {
+        DownloadFile pigeonReturn = new DownloadFile();
+        pigeonReturn.setReference(reference);
+        pigeonReturn.setDirectoryReference(directoryReference);
+        pigeonReturn.setName(name);
+        pigeonReturn.setSize(size);
+        pigeonReturn.setModifiedAt(modifiedAt);
+        pigeonReturn.setMimeType(mimeType);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<>(6);
+      toListResult.add(reference);
+      toListResult.add(directoryReference);
+      toListResult.add(name);
+      toListResult.add(size);
+      toListResult.add(modifiedAt);
+      toListResult.add(mimeType);
+      return toListResult;
+    }
+
+    static @NonNull DownloadFile fromList(@NonNull ArrayList<Object> pigeonVar_list) {
+      DownloadFile pigeonResult = new DownloadFile();
+      Object reference = pigeonVar_list.get(0);
+      pigeonResult.setReference((String) reference);
+      Object directoryReference = pigeonVar_list.get(1);
+      pigeonResult.setDirectoryReference((String) directoryReference);
+      Object name = pigeonVar_list.get(2);
+      pigeonResult.setName((String) name);
+      Object size = pigeonVar_list.get(3);
+      pigeonResult.setSize((Long) size);
+      Object modifiedAt = pigeonVar_list.get(4);
+      pigeonResult.setModifiedAt((Long) modifiedAt);
+      Object mimeType = pigeonVar_list.get(5);
+      pigeonResult.setMimeType((String) mimeType);
+      return pigeonResult;
+    }
+  }
+
   /**
    * One file upload handed to the platform's background transfer service.
    *
@@ -1080,8 +1353,12 @@ public class GeneratedApi {
         case (byte) 132:
           return BackgroundDiagnostics.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 133:
-          return UploadRequest.fromList((ArrayList<Object>) readValue(buffer));
+          return DownloadDirectory.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 134:
+          return DownloadFile.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 135:
+          return UploadRequest.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 136:
           return UploadEvent.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
@@ -1102,11 +1379,17 @@ public class GeneratedApi {
       } else if (value instanceof BackgroundDiagnostics) {
         stream.write(132);
         writeValue(stream, ((BackgroundDiagnostics) value).toList());
-      } else if (value instanceof UploadRequest) {
+      } else if (value instanceof DownloadDirectory) {
         stream.write(133);
+        writeValue(stream, ((DownloadDirectory) value).toList());
+      } else if (value instanceof DownloadFile) {
+        stream.write(134);
+        writeValue(stream, ((DownloadFile) value).toList());
+      } else if (value instanceof UploadRequest) {
+        stream.write(135);
         writeValue(stream, ((UploadRequest) value).toList());
       } else if (value instanceof UploadEvent) {
-        stream.write(134);
+        stream.write(136);
         writeValue(stream, ((UploadEvent) value).toList());
       } else {
         super.writeValue(stream, value);
@@ -2225,6 +2508,485 @@ public class GeneratedApi {
                   wrapped = wrapError(exception);
                 }
                 reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+    }
+  }
+  /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
+  public interface DownloadStorage {
+    /** Returns the app's default download directory without exposing its path. */
+    void getDefaultDirectory(@NonNull Result<DownloadDirectory> result);
+    /** Presents the platform directory picker and persists its permission. */
+    void chooseDirectory(@NonNull NullableResult<DownloadDirectory> result);
+    /** Creates a temporary file reservation and returns its opaque reference. */
+    void reserveFile(@NonNull String directoryReference, @NonNull String filename, @NonNull Result<DownloadFile> result);
+
+    void getFileLength(@NonNull String fileReference, @NonNull Result<Long> result);
+
+    void truncateFile(@NonNull String fileReference, @NonNull VoidResult result);
+
+    void writeFile(@NonNull String fileReference, @NonNull Long offset, @NonNull byte[] data, @NonNull VoidResult result);
+
+    void flushFile(@NonNull String fileReference, @NonNull VoidResult result);
+    /** Renames the reserved temporary file to its final name. */
+    void finalizeFile(@NonNull String fileReference, @NonNull Result<DownloadFile> result);
+
+    void discardFile(@NonNull String fileReference, @NonNull VoidResult result);
+
+    void getFile(@NonNull String fileReference, @NonNull NullableResult<DownloadFile> result);
+
+    void listFiles(@NonNull String directoryReference, @NonNull Result<List<DownloadFile>> result);
+
+    void deleteFile(@NonNull String fileReference, @NonNull VoidResult result);
+
+    void clearDirectory(@NonNull String directoryReference, @NonNull VoidResult result);
+
+    void openFile(@NonNull String fileReference, @NonNull Result<Boolean> result);
+
+    void openDirectory(@NonNull String directoryReference, @NonNull Result<Boolean> result);
+
+    /** The codec used by DownloadStorage. */
+    static @NonNull MessageCodec<Object> getCodec() {
+      return PigeonCodec.INSTANCE;
+    }
+    /**Sets up an instance of `DownloadStorage` to handle messages through the `binaryMessenger`. */
+    static void setUp(@NonNull BinaryMessenger binaryMessenger, @Nullable DownloadStorage api) {
+      setUp(binaryMessenger, "", api);
+    }
+    static void setUp(@NonNull BinaryMessenger binaryMessenger, @NonNull String messageChannelSuffix, @Nullable DownloadStorage api) {
+      messageChannelSuffix = messageChannelSuffix.isEmpty() ? "" : "." + messageChannelSuffix;
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.getDefaultDirectory" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                Result<DownloadDirectory> resultCallback =
+                    new Result<DownloadDirectory>() {
+                      public void success(DownloadDirectory result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.getDefaultDirectory(resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.chooseDirectory" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                NullableResult<DownloadDirectory> resultCallback =
+                    new NullableResult<DownloadDirectory>() {
+                      public void success(DownloadDirectory result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.chooseDirectory(resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.reserveFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String directoryReferenceArg = (String) args.get(0);
+                String filenameArg = (String) args.get(1);
+                Result<DownloadFile> resultCallback =
+                    new Result<DownloadFile>() {
+                      public void success(DownloadFile result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.reserveFile(directoryReferenceArg, filenameArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.getFileLength" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                Result<Long> resultCallback =
+                    new Result<Long>() {
+                      public void success(Long result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.getFileLength(fileReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.truncateFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                VoidResult resultCallback =
+                    new VoidResult() {
+                      public void success() {
+                        wrapped.add(0, null);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.truncateFile(fileReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.writeFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                Long offsetArg = (Long) args.get(1);
+                byte[] dataArg = (byte[]) args.get(2);
+                VoidResult resultCallback =
+                    new VoidResult() {
+                      public void success() {
+                        wrapped.add(0, null);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.writeFile(fileReferenceArg, offsetArg, dataArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.flushFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                VoidResult resultCallback =
+                    new VoidResult() {
+                      public void success() {
+                        wrapped.add(0, null);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.flushFile(fileReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.finalizeFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                Result<DownloadFile> resultCallback =
+                    new Result<DownloadFile>() {
+                      public void success(DownloadFile result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.finalizeFile(fileReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.discardFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                VoidResult resultCallback =
+                    new VoidResult() {
+                      public void success() {
+                        wrapped.add(0, null);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.discardFile(fileReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.getFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                NullableResult<DownloadFile> resultCallback =
+                    new NullableResult<DownloadFile>() {
+                      public void success(DownloadFile result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.getFile(fileReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.listFiles" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String directoryReferenceArg = (String) args.get(0);
+                Result<List<DownloadFile>> resultCallback =
+                    new Result<List<DownloadFile>>() {
+                      public void success(List<DownloadFile> result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.listFiles(directoryReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.deleteFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                VoidResult resultCallback =
+                    new VoidResult() {
+                      public void success() {
+                        wrapped.add(0, null);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.deleteFile(fileReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.clearDirectory" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String directoryReferenceArg = (String) args.get(0);
+                VoidResult resultCallback =
+                    new VoidResult() {
+                      public void success() {
+                        wrapped.add(0, null);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.clearDirectory(directoryReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.openFile" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String fileReferenceArg = (String) args.get(0);
+                Result<Boolean> resultCallback =
+                    new Result<Boolean>() {
+                      public void success(Boolean result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.openFile(fileReferenceArg, resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.openDirectory" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                ArrayList<Object> args = (ArrayList<Object>) message;
+                String directoryReferenceArg = (String) args.get(0);
+                Result<Boolean> resultCallback =
+                    new Result<Boolean>() {
+                      public void success(Boolean result) {
+                        wrapped.add(0, result);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.openDirectory(directoryReferenceArg, resultCallback);
               });
         } else {
           channel.setMessageHandler(null);

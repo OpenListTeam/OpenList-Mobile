@@ -284,6 +284,80 @@ struct BackgroundDiagnostics: Hashable {
   }
 }
 
+/// Generated class from Pigeon that represents data sent in messages.
+struct DownloadDirectory: Hashable {
+  var reference: String
+  var name: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> DownloadDirectory? {
+    let reference = pigeonVar_list[0] as! String
+    let name = pigeonVar_list[1] as! String
+
+    return DownloadDirectory(
+      reference: reference,
+      name: name
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      reference,
+      name,
+    ]
+  }
+  static func == (lhs: DownloadDirectory, rhs: DownloadDirectory) -> Bool {
+    return deepEqualsPigeonApi(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashPigeonApi(value: toList(), hasher: &hasher)
+  }
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct DownloadFile: Hashable {
+  var reference: String
+  var directoryReference: String
+  var name: String
+  var size: Int64
+  var modifiedAt: Int64
+  var mimeType: String? = nil
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> DownloadFile? {
+    let reference = pigeonVar_list[0] as! String
+    let directoryReference = pigeonVar_list[1] as! String
+    let name = pigeonVar_list[2] as! String
+    let size = pigeonVar_list[3] as! Int64
+    let modifiedAt = pigeonVar_list[4] as! Int64
+    let mimeType: String? = nilOrValue(pigeonVar_list[5])
+
+    return DownloadFile(
+      reference: reference,
+      directoryReference: directoryReference,
+      name: name,
+      size: size,
+      modifiedAt: modifiedAt,
+      mimeType: mimeType
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      reference,
+      directoryReference,
+      name,
+      size,
+      modifiedAt,
+      mimeType,
+    ]
+  }
+  static func == (lhs: DownloadFile, rhs: DownloadFile) -> Bool {
+    return deepEqualsPigeonApi(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashPigeonApi(value: toList(), hasher: &hasher)
+  }
+}
+
 /// One file upload handed to the platform's background transfer service.
 ///
 /// Generated class from Pigeon that represents data sent in messages.
@@ -398,8 +472,12 @@ private class PigeonApiPigeonCodecReader: FlutterStandardReader {
     case 132:
       return BackgroundDiagnostics.fromList(self.readValue() as! [Any?])
     case 133:
-      return UploadRequest.fromList(self.readValue() as! [Any?])
+      return DownloadDirectory.fromList(self.readValue() as! [Any?])
     case 134:
+      return DownloadFile.fromList(self.readValue() as! [Any?])
+    case 135:
+      return UploadRequest.fromList(self.readValue() as! [Any?])
+    case 136:
       return UploadEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -421,11 +499,17 @@ private class PigeonApiPigeonCodecWriter: FlutterStandardWriter {
     } else if let value = value as? BackgroundDiagnostics {
       super.writeByte(132)
       super.writeValue(value.toList())
-    } else if let value = value as? UploadRequest {
+    } else if let value = value as? DownloadDirectory {
       super.writeByte(133)
       super.writeValue(value.toList())
-    } else if let value = value as? UploadEvent {
+    } else if let value = value as? DownloadFile {
       super.writeByte(134)
+      super.writeValue(value.toList())
+    } else if let value = value as? UploadRequest {
+      super.writeByte(135)
+      super.writeValue(value.toList())
+    } else if let value = value as? UploadEvent {
+      super.writeByte(136)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -1113,6 +1197,295 @@ class BackgroundApiSetup {
       }
     } else {
       openAppDetailsSettingsChannel.setMessageHandler(nil)
+    }
+  }
+}
+/// Generated protocol from Pigeon that represents a handler of messages from Flutter.
+protocol DownloadStorage {
+  /// Returns the app's default download directory without exposing its path.
+  func getDefaultDirectory(completion: @escaping (Result<DownloadDirectory, Error>) -> Void)
+  /// Presents the platform directory picker and persists its permission.
+  func chooseDirectory(completion: @escaping (Result<DownloadDirectory?, Error>) -> Void)
+  /// Creates a temporary file reservation and returns its opaque reference.
+  func reserveFile(directoryReference: String, filename: String, completion: @escaping (Result<DownloadFile, Error>) -> Void)
+  func getFileLength(fileReference: String, completion: @escaping (Result<Int64, Error>) -> Void)
+  func truncateFile(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func writeFile(fileReference: String, offset: Int64, data: FlutterStandardTypedData, completion: @escaping (Result<Void, Error>) -> Void)
+  func flushFile(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void)
+  /// Renames the reserved temporary file to its final name.
+  func finalizeFile(fileReference: String, completion: @escaping (Result<DownloadFile, Error>) -> Void)
+  func discardFile(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func getFile(fileReference: String, completion: @escaping (Result<DownloadFile?, Error>) -> Void)
+  func listFiles(directoryReference: String, completion: @escaping (Result<[DownloadFile], Error>) -> Void)
+  func deleteFile(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func clearDirectory(directoryReference: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func openFile(fileReference: String, completion: @escaping (Result<Bool, Error>) -> Void)
+  func openDirectory(directoryReference: String, completion: @escaping (Result<Bool, Error>) -> Void)
+}
+
+/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
+class DownloadStorageSetup {
+  static var codec: FlutterStandardMessageCodec { PigeonApiPigeonCodec.shared }
+  /// Sets up an instance of `DownloadStorage` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: DownloadStorage?, messageChannelSuffix: String = "") {
+    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    /// Returns the app's default download directory without exposing its path.
+    let getDefaultDirectoryChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.getDefaultDirectory\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getDefaultDirectoryChannel.setMessageHandler { _, reply in
+        api.getDefaultDirectory { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getDefaultDirectoryChannel.setMessageHandler(nil)
+    }
+    /// Presents the platform directory picker and persists its permission.
+    let chooseDirectoryChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.chooseDirectory\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      chooseDirectoryChannel.setMessageHandler { _, reply in
+        api.chooseDirectory { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      chooseDirectoryChannel.setMessageHandler(nil)
+    }
+    /// Creates a temporary file reservation and returns its opaque reference.
+    let reserveFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.reserveFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      reserveFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let directoryReferenceArg = args[0] as! String
+        let filenameArg = args[1] as! String
+        api.reserveFile(directoryReference: directoryReferenceArg, filename: filenameArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      reserveFileChannel.setMessageHandler(nil)
+    }
+    let getFileLengthChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.getFileLength\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getFileLengthChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        api.getFileLength(fileReference: fileReferenceArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getFileLengthChannel.setMessageHandler(nil)
+    }
+    let truncateFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.truncateFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      truncateFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        api.truncateFile(fileReference: fileReferenceArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      truncateFileChannel.setMessageHandler(nil)
+    }
+    let writeFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.writeFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      writeFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        let offsetArg = args[1] as! Int64
+        let dataArg = args[2] as! FlutterStandardTypedData
+        api.writeFile(fileReference: fileReferenceArg, offset: offsetArg, data: dataArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      writeFileChannel.setMessageHandler(nil)
+    }
+    let flushFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.flushFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      flushFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        api.flushFile(fileReference: fileReferenceArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      flushFileChannel.setMessageHandler(nil)
+    }
+    /// Renames the reserved temporary file to its final name.
+    let finalizeFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.finalizeFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      finalizeFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        api.finalizeFile(fileReference: fileReferenceArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      finalizeFileChannel.setMessageHandler(nil)
+    }
+    let discardFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.discardFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      discardFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        api.discardFile(fileReference: fileReferenceArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      discardFileChannel.setMessageHandler(nil)
+    }
+    let getFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.getFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        api.getFile(fileReference: fileReferenceArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getFileChannel.setMessageHandler(nil)
+    }
+    let listFilesChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.listFiles\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      listFilesChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let directoryReferenceArg = args[0] as! String
+        api.listFiles(directoryReference: directoryReferenceArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      listFilesChannel.setMessageHandler(nil)
+    }
+    let deleteFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.deleteFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      deleteFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        api.deleteFile(fileReference: fileReferenceArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      deleteFileChannel.setMessageHandler(nil)
+    }
+    let clearDirectoryChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.clearDirectory\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      clearDirectoryChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let directoryReferenceArg = args[0] as! String
+        api.clearDirectory(directoryReference: directoryReferenceArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      clearDirectoryChannel.setMessageHandler(nil)
+    }
+    let openFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.openFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      openFileChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fileReferenceArg = args[0] as! String
+        api.openFile(fileReference: fileReferenceArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      openFileChannel.setMessageHandler(nil)
+    }
+    let openDirectoryChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.openDirectory\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      openDirectoryChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let directoryReferenceArg = args[0] as! String
+        api.openDirectory(directoryReference: directoryReferenceArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      openDirectoryChannel.setMessageHandler(nil)
     }
   }
 }

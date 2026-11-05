@@ -6,6 +6,7 @@ import com.openlist.mobile.bridge.AndroidBridge
 import com.openlist.mobile.bridge.AppConfigBridge
 import com.openlist.mobile.bridge.BackgroundBridge
 import com.openlist.mobile.bridge.CommonBridge
+import com.openlist.mobile.bridge.DownloadStorageBridge
 import com.openlist.mobile.bridge.ServerBridge
 import com.openlist.mobile.bridge.UploadBridge
 import com.openlist.mobile.model.ShortCuts
@@ -23,6 +24,7 @@ class MainActivity : FlutterActivity() {
 
     private var mEvent: GeneratedApi.Event? = null
     private var uploadBridge: UploadBridge? = null
+    private var downloadStorageBridge: DownloadStorageBridge? = null
 
     private val ignoreResult = object : VoidResult {
         override fun success() {}
@@ -57,10 +59,18 @@ class MainActivity : FlutterActivity() {
         uploadBridge = UploadBridge(applicationContext, GeneratedApi.UploadEventApi(binaryMessage)).also {
             GeneratedApi.UploadApi.setUp(binaryMessage, it)
         }
+        downloadStorageBridge = DownloadStorageBridge(this).also {
+            GeneratedApi.DownloadStorage.setUp(binaryMessage, it)
+        }
         mEvent = GeneratedApi.Event(binaryMessage)
 
         ServerClient.addListener(serverListener)
         ServerClient.bind(this)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        if (downloadStorageBridge?.handleActivityResult(requestCode, resultCode, data) == true) return
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onStop() {
@@ -76,6 +86,8 @@ class MainActivity : FlutterActivity() {
         // Upload work keeps running; only this engine's observers are dropped.
         uploadBridge?.dispose()
         uploadBridge = null
+        downloadStorageBridge?.dispose()
+        downloadStorageBridge = null
         // Unbinding does not stop a started server; it only drops the UI link.
         if (isFinishing) ServerClient.unbind()
         super.onDestroy()
