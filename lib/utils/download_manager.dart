@@ -9,10 +9,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart' as getx;
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:open_file_manager/open_file_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'notification_manager.dart';
 import 'download_destination.dart';
 import 'package:openlist_mobile/contant/native_bridge.dart';
+import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 
 /// 下载任务状态
@@ -1001,6 +1003,21 @@ class DownloadManager {
     _notifyChanged(persistHistory: true);
   }
 
+  static Future<void> retryDownload(String taskId) async {
+    await initialize();
+    final index = _completedTasks.indexWhere((task) => task.id == taskId);
+    if (index < 0) return;
+    final task = _completedTasks[index];
+    if (task.status != DownloadStatus.failed &&
+        task.status != DownloadStatus.cancelled) {
+      return;
+    }
+    if (task.url.isEmpty) return;
+    _completedTasks.removeAt(index);
+    _notifyChanged(persistHistory: true);
+    await downloadFileWithProgress(url: task.url, filename: task.filename);
+  }
+
   /// 获取OpenList专用下载目录
   static Future<Directory?> _getOpenListDownloadDirectory() async {
     try {
@@ -1318,6 +1335,142 @@ class DownloadManager {
     return (await _getOpenListDownloadDirectory())?.path;
   }
 
+  static Future<DownloadFile?> getDownloadFileForTask(
+      DownloadTask task) async {
+    final destination = task.destination;
+    if (destination != null) return destination.stat();
+    if (task.filePath.isEmpty) return null;
+    return _statPathFile(
+      task.filePath,
+      task.directoryReference ?? '',
+      task.filename,
+    );
+  }
+
+  static Future<DownloadFile?> _statPathFile(
+      String path, String directoryReference, String filename) async {
+    final file = File(path);
+    if (!await file.exists()) return null;
+    final stat = await file.stat();
+    if (stat.type != FileSystemEntityType.file) return null;
+    return DownloadFile(
+      reference: file.path,
+      directoryReference: directoryReference,
+      name: filename,
+      size: stat.size,
+      modifiedAt: stat.modified.millisecondsSinceEpoch,
+      mimeType: null,
+    );
+  }
+
+  static Future<List<DownloadFile>> getDownloadedFileMetadata() async {
+    await initialize();
+    final files = <DownloadFile>[];
+    final seen = <String>{};
+    final directoryReferences = <String>{
+      for (final task in _completedTasks)
+        if (task.directoryReference != null) task.directoryReference!,
+    };
+    final currentTarget = await getDownloadDirectoryTarget();
+    if (currentTarget != null) directoryReferences.add(currentTarget.reference);
+
+    if (_usesNativeDownloadStorage) {
+      for (final reference in directoryReferences) {
+        try {
+          for (final file in
+              await NativeBridge.downloadStorage.listFiles(reference)) {
+            if (seen.add(file.reference)) files.add(file);
+          }
+        } catch (error) {
+          log('Failed to list native download files: $error');
+        }
+      }
+      return files;
+    }
+
+    final directories = <String, String>{
+      for (final entry in _directoryReferences.entries) entry.value: entry.key,
+    };
+    if (currentTarget?.directory != null) {
+      directories[currentTarget!.directory!.path] = currentTarget.reference;
+    }
+    for (final entry in directories.entries) {
+      final directory = Directory(entry.key);
+      if (!await directory.exists()) continue;
+      try {
+        await for (final entity in directory.list(followLinks: false)) {
+          if (entity is! File ||
+              entity.path.split(Platform.pathSeparator).last.startsWith('.') ||
+              entity.path.endsWith('.part')) {
+            continue;
+          }
+          final name = _basename(entity.path);
+          final file = await _statPathFile(entity.path, entry.value, name);
+          if (file != null && seen.add(file.reference)) files.add(file);
+        }
+      } catch (error) {
+        log('Failed to list download files: $error');
+      }
+    }
+    return files;
+  }
+
+  static Future<bool> openDownloadedFile(DownloadFile file) async {
+    if (_usesNativeDownloadStorage) {
+      return NativeBridge.downloadStorage.openFile(file.reference);
+    }
+    await _openFile(file.reference);
+    return true;
+  }
+
+  static Future<bool> openDownloadedFileLocation(DownloadFile file) async {
+    if (_usesNativeDownloadStorage) {
+      return NativeBridge.downloadStorage.openDirectory(file.directoryReference);
+    }
+    final directory = File(file.reference).parent.path;
+    await openFileManager(
+      androidConfig: AndroidConfig(
+        folderType: AndroidFolderType.other,
+        folderPath: directory,
+      ),
+      iosConfig: IosConfig(folderPath: directory),
+    );
+    return true;
+  }
+
+  static Future<bool> openDownloadDirectory() async {
+    final target = await getDownloadDirectoryTarget();
+    if (target == null) return false;
+    if (target.isNative) {
+      return NativeBridge.downloadStorage.openDirectory(target.reference);
+    }
+    final directory = target.directory!;
+    await openFileManager(
+      androidConfig: AndroidConfig(
+        folderType: AndroidFolderType.other,
+        folderPath: directory.path,
+      ),
+      iosConfig: IosConfig(folderPath: directory.path),
+    );
+    return true;
+  }
+
+  static Future<bool> deleteDownloadedFile(DownloadFile file) async {
+    try {
+      if (_usesNativeDownloadStorage) {
+        await NativeBridge.downloadStorage.deleteFile(file.reference);
+      } else {
+        final localFile = File(file.reference);
+        if (await localFile.exists()) await localFile.delete();
+      }
+      _notifyChanged(filesChanged: true);
+      return true;
+    } catch (error) {
+      log('Failed to delete download file: $error');
+      return false;
+    }
+  }
+
   /// 列出已下载的文件
   static Future<List<FileSystemEntity>> getDownloadedFiles() async {
     final files = <FileSystemEntity>[];
@@ -1346,35 +1499,27 @@ class DownloadManager {
   static Future<bool> clearDownloadDirectory() async {
     if (_activeTasks.isNotEmpty) return false;
     await initialize();
-    final directoryPath = await getDownloadDirectoryPath();
-    if (directoryPath == null || _activeTasks.isNotEmpty) return false;
-    final directory = Directory(directoryPath).absolute.uri.normalizePath();
-    final managed = _completedTasks
-        .where((task) =>
-            task.status == DownloadStatus.completed &&
-            task.filePath.isNotEmpty &&
-            File(task.filePath).absolute.parent.uri.normalizePath() ==
-                directory)
-        .toList();
-    final removed = <String>{};
-    var succeeded = true;
-    for (final task in managed) {
-      if (_activeTasks.isNotEmpty) {
-        succeeded = false;
-        break;
+    final target = await getDownloadDirectoryTarget();
+    if (target == null || _activeTasks.isNotEmpty) return false;
+    try {
+      if (target.isNative) {
+        await NativeBridge.downloadStorage.clearDirectory(target.reference);
+      } else {
+        final directory = target.directory!;
+        if (await directory.exists()) {
+          await for (final entity in directory.list(followLinks: false)) {
+            if (entity is File) await entity.delete();
+          }
+        }
       }
-      try {
-        final file = File(task.filePath);
-        if (await file.exists()) await file.delete();
-        removed.add(task.id);
-      } on FileSystemException catch (error) {
-        log('Failed to clear download file: $error');
-        succeeded = false;
-      }
+      _completedTasks.removeWhere(
+          (task) => task.directoryReference == target.reference);
+      _notifyChanged(persistHistory: true, filesChanged: true);
+      return true;
+    } catch (error) {
+      log('Failed to clear download directory: $error');
+      return false;
     }
-    _completedTasks.removeWhere((task) => removed.contains(task.id));
-    _notifyChanged(persistHistory: true, filesChanged: true);
-    return succeeded;
   }
 
   static Future<bool> deleteFile(String filename) async {

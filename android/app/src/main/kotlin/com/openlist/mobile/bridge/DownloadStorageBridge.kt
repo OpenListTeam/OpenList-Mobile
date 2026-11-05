@@ -255,12 +255,16 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
         execute(result) {
             val directory = resolveDirectory(directoryReference)
             val files = if (directory.path != null) {
-                directory.path.listFiles()?.filter { it.isFile }?.map { file ->
+                directory.path.listFiles()?.filter {
+                    it.isFile && !it.name.startsWith(".openlist-")
+                }?.map { file ->
                     val reference = findOrRegisterFile(directory, file.name, fileUri(file))
                     downloadFile(reference, directory.reference, file.name, file, null)
                 } ?: emptyList()
             } else {
-                directory.tree!!.listFiles().filter { it.isFile }.map { document ->
+                directory.tree!!.listFiles().filter {
+                    it.isFile && !it.name.orEmpty().startsWith(".openlist-")
+                }.map { document ->
                     val name = document.name ?: return@map null
                     val reference = findOrRegisterFile(directory, name, document.uri.toString())
                     downloadFile(reference, directory.reference, name, null, document)

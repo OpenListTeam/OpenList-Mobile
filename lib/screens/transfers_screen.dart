@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:open_file_manager/open_file_manager.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
+import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
 
 /// Transfers screen showing uploads and downloads
@@ -217,8 +215,8 @@ class _DownloadsTab extends StatefulWidget {
 }
 
 class _DownloadsTabState extends State<_DownloadsTab> {
-  List<FileSystemEntity> _files = [];
-  Map<String, FileStat?> _fileStats = {};
+  List<DownloadFile> _files = [];
+  Map<String, DownloadFile> _taskFiles = {};
   bool _loadingFiles = true;
   bool _refreshingFiles = false;
   bool _refreshPending = false;
@@ -259,14 +257,15 @@ class _DownloadsTabState extends State<_DownloadsTab> {
       _refreshPending = false;
       final version = DownloadManager.filesVersion;
       if (mounted) setState(() => _loadingFiles = true);
-      final files = await DownloadManager.getDownloadedFiles();
-      final stats = <String, FileStat?>{};
-      for (final file in files) {
-        try {
-          stats[file.path] = await file.stat();
-        } on FileSystemException {
-          stats[file.path] = null;
-        }
+      final files = await DownloadManager.getDownloadedFileMetadata();
+      final byReference = {
+        for (final file in files) file.reference: file,
+      };
+      final taskFiles = <String, DownloadFile>{};
+      for (final task in DownloadManager.completedTasks) {
+        final reference = task.fileReference ?? task.filePath;
+        final file = byReference[reference];
+        if (file != null) taskFiles[task.id] = file;
       }
       if (!mounted) break;
       if (version != DownloadManager.filesVersion) {
@@ -275,7 +274,7 @@ class _DownloadsTabState extends State<_DownloadsTab> {
       }
       setState(() {
         _files = files;
-        _fileStats = stats;
+        _taskFiles = taskFiles;
         _filesVersion = version;
         _loadingFiles = false;
       });
@@ -295,17 +294,15 @@ class _DownloadsTabState extends State<_DownloadsTab> {
             task.status == DownloadStatus.cancelling)
         .toList();
     final completed = tasks.where((task) => !active.contains(task)).toList();
-    final trackedPaths = tasks
-        .map((task) => task.filePath)
-        .where((path) => path.isNotEmpty)
-        .toSet();
-    final activePartialPaths =
-        active.map((task) => task.partialFilePath).toSet();
+    final trackedReferences = <String>{
+      for (final task in tasks)
+        if (task.fileReference != null)
+          task.fileReference!
+        else if (task.filePath.isNotEmpty)
+          task.filePath,
+    };
     final untrackedFiles = _files
-        .where((file) =>
-            file is File &&
-            !activePartialPaths.contains(file.path) &&
-            !trackedPaths.contains(file.path))
+        .where((file) => !trackedReferences.contains(file.reference))
         .toList();
 
     if (tasks.isEmpty && untrackedFiles.isEmpty && !_loadingFiles) {
@@ -338,7 +335,6 @@ class _DownloadsTabState extends State<_DownloadsTab> {
             for (final file in untrackedFiles)
               _DownloadedFileTile(
                 file: file,
-                stat: _fileStats[file.path],
                 onChanged: _refreshFiles,
               ),
           ],
@@ -350,10 +346,7 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   }
 
   Widget _downloadTaskCard(DownloadTask task) {
-    final filePath = task.filePath.isNotEmpty &&
-            _fileStats[task.filePath]?.type == FileSystemEntityType.file
-        ? task.filePath
-        : null;
+    final file = _taskFiles[task.id];
     final state = switch (task.status) {
       DownloadStatus.pending => UploadState.queued,
       DownloadStatus.downloading => UploadState.running,
@@ -367,19 +360,23 @@ class _DownloadsTabState extends State<_DownloadsTab> {
         task.status == DownloadStatus.downloading ||
         task.status == DownloadStatus.paused ||
         task.status == DownloadStatus.cancelling;
+    final canRetry = !activeTask &&
+        (task.status == DownloadStatus.failed ||
+            task.status == DownloadStatus.cancelled) &&
+        task.url.isNotEmpty;
     Widget? trailing;
     if (!activeTask) {
       trailing = PopupMenuButton<String>(
-        onSelected: (value) => _handleTaskAction(task, filePath, value),
+        onSelected: (value) => _handleTaskAction(task, file, value),
         itemBuilder: (context) => [
-          if (filePath != null && task.status == DownloadStatus.completed)
+          if (file != null && task.status == DownloadStatus.completed)
             PopupMenuItem(value: 'open', child: Text(S.current.openFile)),
-          if (filePath != null && task.status == DownloadStatus.completed)
+          if (file != null && task.status == DownloadStatus.completed)
             PopupMenuItem(
                 value: 'location', child: Text(S.current.showInFileManager)),
-          if (filePath != null && task.status == DownloadStatus.completed)
+          if (file != null && task.status == DownloadStatus.completed)
             PopupMenuItem(value: 'info', child: Text(S.current.fileInfo)),
-          if (filePath != null && task.status == DownloadStatus.completed)
+          if (file != null && task.status == DownloadStatus.completed)
             PopupMenuItem(
                 value: 'delete_file', child: Text(S.current.deleteFile)),
           PopupMenuItem(
@@ -401,7 +398,7 @@ class _DownloadsTabState extends State<_DownloadsTab> {
       status: task.statusText,
       type: _TransferType.download,
       state: state,
-      canRetry: false,
+      canRetry: canRetry,
       onPause: () {
         switch (task.status) {
           case DownloadStatus.pending:
@@ -416,7 +413,9 @@ class _DownloadsTabState extends State<_DownloadsTab> {
             break;
         }
       },
-      onResume: () => DownloadManager.resumeDownload(task.id),
+      onResume: canRetry
+          ? () => unawaited(DownloadManager.retryDownload(task.id))
+          : () => DownloadManager.resumeDownload(task.id),
       onCancel: activeTask && task.status != DownloadStatus.cancelling
           ? () => DownloadManager.cancelDownload(task.id)
           : () => DownloadManager.removeTask(task.id),
@@ -425,20 +424,19 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   }
 
   Future<void> _handleTaskAction(
-      DownloadTask task, String? filePath, String action) async {
+      DownloadTask task, DownloadFile? file, String action) async {
+    if (file == null && action != 'delete_record') return;
     switch (action) {
       case 'open':
-        if (filePath != null) await OpenFilex.open(filePath);
+        await DownloadManager.openDownloadedFile(file!);
       case 'location':
-        if (filePath != null) await _openFileManager(filePath);
+        await DownloadManager.openDownloadedFileLocation(file!);
       case 'info':
-        if (filePath != null) await _showFileInfo(filePath);
+        await _showFileInfo(file!);
       case 'delete_file':
-        if (filePath != null &&
-            await _confirm(S.current.confirmDelete,
-                S.current.confirmDeleteFile(task.filename))) {
-          final deleted = await DownloadManager.deleteFileAtPath(filePath);
-          if (deleted) DownloadManager.removeTask(task.id);
+        if (await _confirm(S.current.confirmDelete,
+            S.current.confirmDeleteFile(task.filename))) {
+          await DownloadManager.deleteDownloadedFile(file!);
           await _refreshFiles();
         }
       case 'delete_record':
@@ -468,15 +466,7 @@ class _DownloadsTabState extends State<_DownloadsTab> {
         false;
   }
 
-  Future<void> _showFileInfo(String path) async {
-    late final FileStat stat;
-    try {
-      stat = await File(path).stat();
-    } on FileSystemException {
-      await _refreshFiles();
-      return;
-    }
-    if (!mounted) return;
+  Future<void> _showFileInfo(DownloadFile file) async {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -485,12 +475,11 @@ class _DownloadsTabState extends State<_DownloadsTab> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text('${S.current.fileName}: ${file.name}'),
+            Text('${S.current.size}: ${_formatFileSize(file.size)}'),
             Text(
-                '${S.current.fileName}: ${path.split(Platform.pathSeparator).last}'),
-            Text('${S.current.size}: ${_formatFileSize(stat.size)}'),
-            Text(
-                '${S.current.modifiedTime}: ${_formatDateTime(stat.modified)}'),
-            SelectableText('${S.current.filePath}: $path'),
+              '${S.current.modifiedTime}: ${_formatDateTime(DateTime.fromMillisecondsSinceEpoch(file.modifiedAt))}',
+            ),
           ],
         ),
         actions: [
@@ -503,23 +492,19 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   }
 
   Future<void> _openDownloadDirectory() async {
-    final path = await DownloadManager.getDownloadDirectoryPath();
-    if (path == null || !mounted) return;
-    await openFileManager(
-      androidConfig: AndroidConfig(
-        folderType: AndroidFolderType.other,
-        folderPath: path,
-      ),
-      iosConfig: IosConfig(folderPath: path),
-    );
+    final opened = await DownloadManager.openDownloadDirectory();
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(S.current.openFileFailed(''))));
+    }
   }
 
   Future<void> _clearDownloadFiles() async {
     if (DownloadManager.activeTasks.isNotEmpty) return;
-    final path = await DownloadManager.getDownloadDirectoryPath();
-    if (path == null || !mounted) return;
+    final target = await DownloadManager.getDownloadDirectoryTarget();
+    if (target == null || !mounted) return;
     if (!await _confirm(
-        S.current.confirmClear, '${S.current.confirmClearAllFiles}\n\n$path')) {
+        S.current.confirmClear, '${S.current.confirmClearAllFiles}\n\n${target.name}')) {
       return;
     }
     final cleared = await DownloadManager.clearDownloadDirectory();
@@ -529,17 +514,6 @@ class _DownloadsTabState extends State<_DownloadsTab> {
           .showSnackBar(SnackBar(content: Text(S.current.clearFailed)));
     }
     await _refreshFiles();
-  }
-
-  Future<void> _openFileManager(String path) async {
-    final directory = File(path).parent.path;
-    await openFileManager(
-      androidConfig: AndroidConfig(
-        folderType: AndroidFolderType.other,
-        folderPath: directory,
-      ),
-      iosConfig: IosConfig(folderPath: directory),
-    );
   }
 }
 
@@ -574,70 +548,40 @@ class _DownloadSectionHeader extends StatelessWidget {
 class _DownloadedFileTile extends StatelessWidget {
   const _DownloadedFileTile({
     required this.file,
-    required this.stat,
     required this.onChanged,
   });
 
-  final FileSystemEntity file;
-  final FileStat? stat;
+  final DownloadFile file;
   final Future<void> Function() onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final filename = file.path.split(Platform.pathSeparator).last;
-    final extension =
-        filename.contains('.') ? filename.split('.').last.toLowerCase() : '';
-    final icon = switch (extension) {
-      'pdf' => Icons.picture_as_pdf,
-      'jpg' || 'jpeg' || 'png' || 'gif' => Icons.image,
-      'mp4' || 'avi' || 'mkv' => Icons.video_file,
-      'mp3' || 'wav' => Icons.audio_file,
-      'zip' || 'rar' || '7z' => Icons.archive,
-      'apk' => Icons.android,
-      _ => Icons.insert_drive_file,
-    };
+    final filename = file.name;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
-        leading: Icon(icon),
+        leading: Icon(_downloadFileIcon(filename)),
         title: Text(filename, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: stat == null
-            ? null
-            : Text(
-                '${_formatFileSize(stat!.size)} · ${_formatDateTime(stat!.modified)}'),
-        onTap: () => OpenFilex.open(file.path),
+        subtitle: Text(
+            '${_formatFileSize(file.size)} · ${_formatDateTime(DateTime.fromMillisecondsSinceEpoch(file.modifiedAt))}'),
+        onTap: () => DownloadManager.openDownloadedFile(file),
         trailing: PopupMenuButton<String>(
           onSelected: (action) async {
             switch (action) {
               case 'open':
-                await OpenFilex.open(file.path);
+                await DownloadManager.openDownloadedFile(file);
               case 'location':
-                final directory = file.parent.path;
-                await openFileManager(
-                  androidConfig: AndroidConfig(
-                    folderType: AndroidFolderType.other,
-                    folderPath: directory,
-                  ),
-                  iosConfig: IosConfig(folderPath: directory),
-                );
+                await DownloadManager.openDownloadedFileLocation(file);
               case 'info':
-                late final FileStat refreshedStat;
-                try {
-                  refreshedStat = await file.stat();
-                } on FileSystemException {
-                  await onChanged();
-                  return;
-                }
                 if (!context.mounted) return;
                 await showDialog<void>(
                   context: context,
                   builder: (context) => AlertDialog(
                     title: Text(S.current.fileInfo),
                     content: Text(
-                      '${S.current.fileName}: $filename\n'
-                      '${S.current.size}: ${_formatFileSize(refreshedStat.size)}\n'
-                      '${S.current.modifiedTime}: ${_formatDateTime(refreshedStat.modified)}\n'
-                      '${S.current.filePath}: ${file.path}',
+                      '${S.current.fileName}: ${file.name}\n'
+                      '${S.current.size}: ${_formatFileSize(file.size)}\n'
+                      '${S.current.modifiedTime}: ${_formatDateTime(DateTime.fromMillisecondsSinceEpoch(file.modifiedAt))}',
                     ),
                     actions: [
                       TextButton(
@@ -664,7 +608,7 @@ class _DownloadedFileTile extends StatelessWidget {
                     ) ??
                     false;
                 if (confirmed) {
-                  await DownloadManager.deleteFileAtPath(file.path);
+                  await DownloadManager.deleteDownloadedFile(file);
                   await onChanged();
                 }
             }
