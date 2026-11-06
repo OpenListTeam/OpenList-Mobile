@@ -4,7 +4,6 @@ import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/settings/preference_widgets.dart';
 import 'package:openlist_mobile/pages/settings/troubleshooting_page.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
-import 'package:openlist_mobile/utils/web_browser_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -51,41 +50,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // SizedBox(height: MediaQuery.of(context).padding.top),
           // Android-specific permission requests
           if (Platform.isAndroid) ...[
-          Visibility(
-            visible: !controller._managerStorageGranted.value ||
-                !controller._notificationGranted.value ||
-                !controller._storageGranted.value,
-            child: DividerPreference(title: S.of(context).importantSettings),
-          ),
-          Visibility(
-            visible: !controller._managerStorageGranted.value,
-            child: BasicPreference(
-              title: S.of(context).grantManagerStoragePermission,
-              subtitle: S.of(context).grantStoragePermissionDesc,
-              onTap: () {
-                Permission.manageExternalStorage.request();
-              },
+            Visibility(
+              visible: !controller._managerStorageGranted.value ||
+                  !controller._notificationGranted.value ||
+                  !controller._storageGranted.value,
+              child: DividerPreference(title: S.of(context).importantSettings),
             ),
-          ),
-          Visibility(
-              visible: !controller._storageGranted.value,
+            Visibility(
+              visible: !controller._managerStorageGranted.value,
               child: BasicPreference(
-                title: S.of(context).grantStoragePermission,
+                title: S.of(context).grantManagerStoragePermission,
                 subtitle: S.of(context).grantStoragePermissionDesc,
                 onTap: () {
-                  Permission.storage.request();
+                  Permission.manageExternalStorage.request();
                 },
-              )),
-
-          Visibility(
-              visible: !controller._notificationGranted.value,
-              child: BasicPreference(
-                title: S.of(context).grantNotificationPermission,
-                subtitle: S.of(context).grantNotificationPermissionDesc,
-                onTap: () {
-                  Permission.notification.request();
-                },
-              )),
+              ),
+            ),
+            Visibility(
+                visible: !controller._storageGranted.value,
+                child: BasicPreference(
+                  title: S.of(context).grantStoragePermission,
+                  subtitle: S.of(context).grantStoragePermissionDesc,
+                  onTap: () {
+                    Permission.storage.request();
+                  },
+                )),
+            Visibility(
+                visible: !controller._notificationGranted.value,
+                child: BasicPreference(
+                  title: S.of(context).grantNotificationPermission,
+                  subtitle: S.of(context).grantNotificationPermissionDesc,
+                  onTap: () {
+                    Permission.notification.request();
+                  },
+                )),
           ], // End of Android-specific permissions
 
           DividerPreference(title: S.of(context).general),
@@ -109,55 +107,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               controller.autoUpdate = value;
             },
           ),
-          SwitchPreference(
-            title: S.of(context).wakeLock,
-            subtitle: S.of(context).wakeLockDesc,
-            icon: const Icon(Icons.screen_lock_portrait),
-            value: controller.wakeLock,
-            onChanged: (value) {
-              controller.wakeLock = value;
-            },
-          ),
-          SwitchPreference(
-            title: S.of(context).bootAutoStartService,
-            subtitle: S.of(context).bootAutoStartServiceDesc,
-            icon: const Icon(Icons.power_settings_new),
-            value: controller.startAtBoot,
-            onChanged: (value) {
-              controller.startAtBoot = value;
-            },
-          ),
-          // AutoStartWebPage
-          SwitchPreference(
-            title: S.of(context).autoStartWebPage,
-            subtitle: S.of(context).autoStartWebPageDesc,
-            icon: const Icon(Icons.open_in_browser),
-            value: controller._autoStartWebPage.value,
-            onChanged: (value) {
-              controller.autoStartWebPage = value;
-            },
-          ),
-          BasicPreference(
-            title: S.of(context).webBrowserStatus,
-            subtitle: WebBrowserManager.instance.running.value
-                ? S.of(context).running
-                : S.of(context).stopped,
-            leading: const Icon(Icons.web),
-            trailing: WebBrowserManager.instance.running.value
-                ? TextButton(
-                    onPressed: WebBrowserManager.instance.stop,
-                    child: Text(S.of(context).stopWebBrowser),
-                  )
-                : null,
-          ),
-          SwitchPreference(
-            title: S.of(context).enableWebBrowser,
-            subtitle: S.of(context).enableWebBrowserDesc,
-            icon: const Icon(Icons.web_asset),
-            value: WebBrowserManager.instance.enabled.value,
-            onChanged: WebBrowserManager.instance.setEnabled,
-          ),
-
+          if (Platform.isAndroid) ...[
+            SwitchPreference(
+              title: S.of(context).wakeLock,
+              subtitle: S.of(context).wakeLockDesc,
+              icon: const Icon(Icons.screen_lock_portrait),
+              value: controller.wakeLock,
+              onChanged: (value) {
+                controller.wakeLock = value;
+              },
+            ),
+            SwitchPreference(
+              title: S.of(context).bootAutoStartService,
+              subtitle: S.of(context).bootAutoStartServiceDesc,
+              icon: const Icon(Icons.power_settings_new),
+              value: controller.startAtBoot,
+              onChanged: (value) {
+                controller.startAtBoot = value;
+              },
+            ),
+          ],
           // Data directory setting - only for Android
           if (Platform.isAndroid)
             BasicPreference(
@@ -192,7 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: (value) {
                 controller.silentJumpApp = value;
               }),
-          
+
           BasicPreference(
             title: S.of(context).troubleshooting,
             subtitle: S.of(context).troubleshootingDesc,
@@ -214,7 +183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _getLanguageDisplayName() {
     final languageController = Get.find<LanguageController>();
     final currentOption = languageController.currentLanguageOption;
-    
+
     switch (currentOption.name) {
       case 'followSystem':
         return S.of(context).followSystem;
@@ -294,15 +263,6 @@ class _SettingsController extends GetxController {
 
   get startAtBoot => _autoStart.value;
 
-  final _autoStartWebPage = false.obs;
-
-  set autoStartWebPage(value) => {
-        _autoStartWebPage.value = value,
-        NativeBridge.appConfig.setAutoOpenWebPageEnabled(value)
-      };
-
-  get autoStartWebPage => _autoStartWebPage.value;
-
   final _silentJumpApp = false.obs;
 
   get silentJumpApp => _silentJumpApp.value;
@@ -324,7 +284,6 @@ class _SettingsController extends GetxController {
     cfg.isAutoCheckUpdateEnabled().then((value) => autoUpdate = value);
     cfg.isWakeLockEnabled().then((value) => wakeLock = value);
     cfg.isStartAtBootEnabled().then((value) => startAtBoot = value);
-    cfg.isAutoOpenWebPageEnabled().then((value) => autoStartWebPage = value);
     cfg.isSilentJumpAppEnabled().then((value) => silentJumpApp = value);
 
     _dataDir.value = await cfg.getDataDir();

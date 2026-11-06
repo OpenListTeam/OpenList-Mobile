@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:openlist_mobile/api/session.dart';
+import 'package:openlist_mobile/utils/service_manager.dart';
 
 import '../../generated/l10n.dart';
 import 'common.dart';
@@ -54,21 +55,34 @@ class _ConnectPageState extends State<ConnectPage> {
             child: ListTile(
               leading: const Icon(Icons.phone_android),
               title: Text(S.of(context).localServer),
-              subtitle: session.kind == ConnectionKind.local && session.isConnected
-                  ? Text(session.client!.baseUrl)
-                  : null,
+              subtitle:
+                  session.kind == ConnectionKind.local && session.isConnected
+                      ? Text(session.client!.baseUrl)
+                      : null,
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => _run(session.connectLocal),
+              onTap: () => _run(() async {
+                await ServiceManager.instance.ensureServiceRunning();
+                await session.connectLocal();
+              }),
             ),
           ),
+          if (session.isConnected && session.kind == ConnectionKind.remote) ...[
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: () => _run(session.logout),
+              child: Text(S.of(context).logout),
+            ),
+          ],
           const SizedBox(height: 16),
-          Text(S.of(context).remoteServer, style: Theme.of(context).textTheme.titleMedium),
+          Text(S.of(context).remoteServer,
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           TextField(
             controller: _url,
             keyboardType: TextInputType.url,
             decoration: InputDecoration(
-                labelText: S.of(context).serverUrl, hintText: 'https://example.com'),
+                labelText: S.of(context).serverUrl,
+                hintText: 'https://example.com'),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -91,28 +105,17 @@ class _ConnectPageState extends State<ConnectPage> {
           FilledButton(
             onPressed: () {
               final url = _url.text.trim();
-              if (Uri.tryParse(url)?.hasScheme != true || _user.text.trim().isEmpty) {
+              if (Uri.tryParse(url)?.hasScheme != true ||
+                  _user.text.trim().isEmpty) {
                 showMessage(S.current.requiredField);
                 return;
               }
-              _run(() => session.connectRemote(url, _user.text.trim(), _pwd.text,
+              _run(() => session.connectRemote(
+                  url, _user.text.trim(), _pwd.text,
                   otpCode: _otp.text.trim()));
             },
             child: Text(S.of(context).login),
           ),
-          if (session.isConnected && session.kind == ConnectionKind.remote) ...[
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: () => _run(() async {
-                await session.logout();
-                // Fall back to the embedded core when it is available.
-                try {
-                  await session.connectLocal();
-                } catch (_) {}
-              }),
-              child: Text(S.of(context).logout),
-            ),
-          ],
         ]),
       ),
     );

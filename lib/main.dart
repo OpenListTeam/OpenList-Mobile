@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/loopback_http.dart';
 import 'package:openlist_mobile/contant/native_bridge.dart';
@@ -21,7 +21,6 @@ import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:openlist_mobile/utils/notification_manager.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:openlist_mobile/utils/theme_controller.dart';
-import 'package:openlist_mobile/utils/web_browser_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +29,6 @@ void main() async {
   // Initialize controllers
   Get.put(LanguageController());
   Get.put(ThemeController());
-
-  await WebBrowserManager.instance.initialize();
 
   // Initialize notification manager
   await NotificationManager.initialize();
@@ -49,13 +46,6 @@ void main() async {
     } catch (e) {
       debugPrint('Failed to start iOS service on launch: $e');
     }
-  }
-
-  // Android WebView debugging
-  if (!kIsWeb &&
-      kDebugMode &&
-      defaultTargetPlatform == TargetPlatform.android) {
-    await InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
   }
 
   runApp(const MyApp());

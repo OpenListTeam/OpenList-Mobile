@@ -20,16 +20,16 @@ class AppConfigBridge: NSObject, AppConfig {
     func isWakeLockEnabled() throws -> Bool {
         return defaults.bool(forKey: Keys.wakeLock)
     }
-    
+
     func setWakeLockEnabled(enabled: Bool) throws {
         defaults.set(enabled, forKey: Keys.wakeLock)
         print("[AppConfigBridge] Wake lock enabled: \(enabled)")
     }
-    
+
     func isStartAtBootEnabled() throws -> Bool {
         return defaults.bool(forKey: Keys.startAtBoot)
     }
-    
+
     func setStartAtBootEnabled(enabled: Bool) throws {
         defaults.set(enabled, forKey: Keys.startAtBoot)
         print("[AppConfigBridge] Start at boot enabled: \(enabled)")

@@ -4363,6 +4363,951 @@ class S {
       args: [],
     );
   }
+
+  /// `加载默认设置`
+  String get loadDefaultSettings {
+    return Intl.message(
+      '加载默认设置',
+      name: 'loadDefaultSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确定放弃未保存的修改吗？`
+  String get discardUnsavedSettings {
+    return Intl.message(
+      '确定放弃未保存的修改吗？',
+      name: 'discardUnsavedSettings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `删除设置项`
+  String get deleteSetting {
+    return Intl.message('删除设置项', name: 'deleteSetting', desc: '', args: []);
+  }
+
+  /// `确定删除设置项“{key}”吗？`
+  String deleteSettingConfirm(Object key) {
+    return Intl.message(
+      '确定删除设置项“$key”吗？',
+      name: 'deleteSettingConfirm',
+      desc: '',
+      args: [key],
+    );
+  }
+
+  /// `设置项已删除`
+  String get settingDeleted {
+    return Intl.message('设置项已删除', name: 'settingDeleted', desc: '', args: []);
+  }
+
+  /// `生成访问密钥`
+  String get s3GenerateKeys {
+    return Intl.message('生成访问密钥', name: 's3GenerateKeys', desc: '', args: []);
+  }
+
+  /// `重启服务以应用 S3 配置`
+  String get s3RestartToApply {
+    return Intl.message(
+      '重启服务以应用 S3 配置',
+      name: 's3RestartToApply',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `访问密钥 ID`
+  String get s3AccessKeyId {
+    return Intl.message('访问密钥 ID', name: 's3AccessKeyId', desc: '', args: []);
+  }
+
+  /// `访问密钥 Secret`
+  String get s3SecretAccessKey {
+    return Intl.message(
+      '访问密钥 Secret',
+      name: 's3SecretAccessKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `S3 存储桶`
+  String get s3Buckets {
+    return Intl.message('S3 存储桶', name: 's3Buckets', desc: '', args: []);
+  }
+
+  /// `添加存储桶`
+  String get s3AddBucket {
+    return Intl.message('添加存储桶', name: 's3AddBucket', desc: '', args: []);
+  }
+
+  /// `存储桶名称`
+  String get s3BucketName {
+    return Intl.message('存储桶名称', name: 's3BucketName', desc: '', args: []);
+  }
+
+  /// `OpenList 路径`
+  String get s3BucketPath {
+    return Intl.message(
+      'OpenList 路径',
+      name: 's3BucketPath',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `存储桶名称和 OpenList 路径不能为空`
+  String get s3BucketFieldsRequired {
+    return Intl.message(
+      '存储桶名称和 OpenList 路径不能为空',
+      name: 's3BucketFieldsRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `存储桶名称不能重复`
+  String get s3BucketNamesMustBeUnique {
+    return Intl.message(
+      '存储桶名称不能重复',
+      name: 's3BucketNamesMustBeUnique',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已保存的存储桶配置格式无效，请修正后再保存 S3 设置。`
+  String get s3InvalidBucketConfig {
+    return Intl.message(
+      '已保存的存储桶配置格式无效，请修正后再保存 S3 设置。',
+      name: 's3InvalidBucketConfig',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `将无效配置替换为空存储桶列表`
+  String get s3ResetBuckets {
+    return Intl.message(
+      '将无效配置替换为空存储桶列表',
+      name: 's3ResetBuckets',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `传输种子设置`
+  String get seedSettings {
+    return Intl.message('传输种子设置', name: 'seedSettings', desc: '', args: []);
+  }
+
+  /// `公开站点 URL`
+  String get seedSiteUrl {
+    return Intl.message('公开站点 URL', name: 'seedSiteUrl', desc: '', args: []);
+  }
+
+  /// `默认 BitTorrent Tracker 列表`
+  String get seedDefaultTrackers {
+    return Intl.message(
+      '默认 BitTorrent Tracker 列表',
+      name: 'seedDefaultTrackers',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `默认哈希矩阵`
+  String get seedDefaultMatrix {
+    return Intl.message(
+      '默认哈希矩阵',
+      name: 'seedDefaultMatrix',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `选择生成传输种子时默认包含的哈希值。`
+  String get seedDefaultMatrixHelp {
+    return Intl.message(
+      '选择生成传输种子时默认包含的哈希值。',
+      name: 'seedDefaultMatrixHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `格式策略`
+  String get seedFormatPolicies {
+    return Intl.message('格式策略', name: 'seedFormatPolicies', desc: '', args: []);
+  }
+
+  /// `启用或禁用各类传输种子的生成。`
+  String get seedFormatPoliciesHelp {
+    return Intl.message(
+      '启用或禁用各类传输种子的生成。',
+      name: 'seedFormatPoliciesHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `默认格式`
+  String get seedDefaultFormat {
+    return Intl.message('默认格式', name: 'seedDefaultFormat', desc: '', args: []);
+  }
+
+  /// `上传时自动生成种子`
+  String get seedAutoGenerate {
+    return Intl.message(
+      '上传时自动生成种子',
+      name: 'seedAutoGenerate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `直接预览单文件种子`
+  String get seedSingleDirectPreview {
+    return Intl.message(
+      '直接预览单文件种子',
+      name: 'seedSingleDirectPreview',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `恢复并预览单文件 CAS 种子`
+  String get seedCasDirectAccess {
+    return Intl.message(
+      '恢复并预览单文件 CAS 种子',
+      name: 'seedCasDirectAccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `整个文件`
+  String get seedWholeHash {
+    return Intl.message('整个文件', name: 'seedWholeHash', desc: '', args: []);
+  }
+
+  /// `分片`
+  String get seedPiecesHash {
+    return Intl.message('分片', name: 'seedPiecesHash', desc: '', args: []);
+  }
+
+  /// `OpenList 种子`
+  String get seedFormatOss {
+    return Intl.message(
+      'OpenList 种子',
+      name: 'seedFormatOss',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Torrent`
+  String get seedFormatTorrent {
+    return Intl.message(
+      'Torrent',
+      name: 'seedFormatTorrent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `CAS`
+  String get seedFormatCas {
+    return Intl.message('CAS', name: 'seedFormatCas', desc: '', args: []);
+  }
+
+  /// `Meta 管理`
+  String get metaManagement {
+    return Intl.message('Meta 管理', name: 'metaManagement', desc: '', args: []);
+  }
+
+  /// `请输入路径及以逗号分隔的正整数用户 ID。`
+  String get adminMetaInvalidInput {
+    return Intl.message(
+      '请输入路径及以逗号分隔的正整数用户 ID。',
+      name: 'adminMetaInvalidInput',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `以逗号分隔用户 ID`
+  String get adminUserIdsCommaSeparated {
+    return Intl.message(
+      '以逗号分隔用户 ID',
+      name: 'adminUserIdsCommaSeparated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `允许写入`
+  String get adminWriteAccess {
+    return Intl.message('允许写入', name: 'adminWriteAccess', desc: '', args: []);
+  }
+
+  /// `暂无项目`
+  String get adminEmpty {
+    return Intl.message('暂无项目', name: 'adminEmpty', desc: '', args: []);
+  }
+
+  /// `确定删除此 Meta 规则吗？`
+  String get adminDeleteMetaConfirm {
+    return Intl.message(
+      '确定删除此 Meta 规则吗？',
+      name: 'adminDeleteMetaConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `搜索索引`
+  String get adminIndexes {
+    return Intl.message('搜索索引', name: 'adminIndexes', desc: '', args: []);
+  }
+
+  /// `手动扫描`
+  String get adminManualScan {
+    return Intl.message('手动扫描', name: 'adminManualScan', desc: '', args: []);
+  }
+
+  /// `已索引对象`
+  String get adminIndexObjects {
+    return Intl.message('已索引对象', name: 'adminIndexObjects', desc: '', args: []);
+  }
+
+  /// `最近完成时间`
+  String get adminLastIndexed {
+    return Intl.message('最近完成时间', name: 'adminLastIndexed', desc: '', args: []);
+  }
+
+  /// `待更新路径（每行一个）`
+  String get adminPathsToUpdate {
+    return Intl.message(
+      '待更新路径（每行一个）',
+      name: 'adminPathsToUpdate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `最大深度`
+  String get adminMaxDepth {
+    return Intl.message('最大深度', name: 'adminMaxDepth', desc: '', args: []);
+  }
+
+  /// `扫描路径`
+  String get adminScanPath {
+    return Intl.message('扫描路径', name: 'adminScanPath', desc: '', args: []);
+  }
+
+  /// `速率限制（每秒项目数；0 表示不限）`
+  String get adminRateLimit {
+    return Intl.message(
+      '速率限制（每秒项目数；0 表示不限）',
+      name: 'adminRateLimit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `运行中`
+  String get adminRunning {
+    return Intl.message('运行中', name: 'adminRunning', desc: '', args: []);
+  }
+
+  /// `空闲`
+  String get adminIdle {
+    return Intl.message('空闲', name: 'adminIdle', desc: '', args: []);
+  }
+
+  /// `进度错误`
+  String get adminProgressError {
+    return Intl.message('进度错误', name: 'adminProgressError', desc: '', args: []);
+  }
+
+  /// `构建/重建`
+  String get adminIndexBuild {
+    return Intl.message('构建/重建', name: 'adminIndexBuild', desc: '', args: []);
+  }
+
+  /// `构建索引会清空并重建现有索引，是否继续？`
+  String get adminBuildIndexConfirm {
+    return Intl.message(
+      '构建索引会清空并重建现有索引，是否继续？',
+      name: 'adminBuildIndexConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `此操作将永久删除搜索索引，是否继续？`
+  String get adminClearIndexConfirm {
+    return Intl.message(
+      '此操作将永久删除搜索索引，是否继续？',
+      name: 'adminClearIndexConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已扫描对象数`
+  String get adminScannedObjects {
+    return Intl.message(
+      '已扫描对象数',
+      name: 'adminScannedObjects',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `更新索引`
+  String get adminIndexUpdate {
+    return Intl.message('更新索引', name: 'adminIndexUpdate', desc: '', args: []);
+  }
+
+  /// `停止索引操作`
+  String get adminIndexStop {
+    return Intl.message('停止索引操作', name: 'adminIndexStop', desc: '', args: []);
+  }
+
+  /// `清空索引`
+  String get adminIndexClear {
+    return Intl.message('清空索引', name: 'adminIndexClear', desc: '', args: []);
+  }
+
+  /// `分享管理`
+  String get adminShareManagement {
+    return Intl.message(
+      '分享管理',
+      name: 'adminShareManagement',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `分享路径（每行一个）`
+  String get adminShareFiles {
+    return Intl.message(
+      '分享路径（每行一个）',
+      name: 'adminShareFiles',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `备注`
+  String get adminShareRemark {
+    return Intl.message('备注', name: 'adminShareRemark', desc: '', args: []);
+  }
+
+  /// `分享密码`
+  String get adminSharePassword {
+    return Intl.message('分享密码', name: 'adminSharePassword', desc: '', args: []);
+  }
+
+  /// `最大访问次数（0 表示不限）`
+  String get adminShareMaxAccess {
+    return Intl.message(
+      '最大访问次数（0 表示不限）',
+      name: 'adminShareMaxAccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `过期时间（ISO-8601；留空表示不限）`
+  String get adminShareExpires {
+    return Intl.message(
+      '过期时间（ISO-8601；留空表示不限）',
+      name: 'adminShareExpires',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `无法保存分享。`
+  String get adminShareCreateFailed {
+    return Intl.message(
+      '无法保存分享。',
+      name: 'adminShareCreateFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已启用`
+  String get adminShareEnabled {
+    return Intl.message('已启用', name: 'adminShareEnabled', desc: '', args: []);
+  }
+
+  /// `路径`
+  String get adminMetaPath {
+    return Intl.message('路径', name: 'adminMetaPath', desc: '', args: []);
+  }
+
+  /// `目录密码`
+  String get adminMetaPassword {
+    return Intl.message('目录密码', name: 'adminMetaPassword', desc: '', args: []);
+  }
+
+  /// `隐藏名称正则表达式`
+  String get adminMetaHide {
+    return Intl.message('隐藏名称正则表达式', name: 'adminMetaHide', desc: '', args: []);
+  }
+
+  /// `Readme 内容`
+  String get adminMetaReadme {
+    return Intl.message(
+      'Readme 内容',
+      name: 'adminMetaReadme',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `页眉内容`
+  String get adminMetaHeader {
+    return Intl.message('页眉内容', name: 'adminMetaHeader', desc: '', args: []);
+  }
+
+  /// `媒体管理`
+  String get adminMediaTitle {
+    return Intl.message('媒体管理', name: 'adminMediaTitle', desc: '', args: []);
+  }
+
+  /// `分享 ID`
+  String get adminShareId {
+    return Intl.message('分享 ID', name: 'adminShareId', desc: '', args: []);
+  }
+
+  /// `新分享 ID`
+  String get adminShareNewId {
+    return Intl.message('新分享 ID', name: 'adminShareNewId', desc: '', args: []);
+  }
+
+  /// `已访问次数`
+  String get adminShareAccessed {
+    return Intl.message(
+      '已访问次数',
+      name: 'adminShareAccessed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Readme 内容`
+  String get adminShareReadme {
+    return Intl.message(
+      'Readme 内容',
+      name: 'adminShareReadme',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `页眉内容`
+  String get adminShareHeader {
+    return Intl.message('页眉内容', name: 'adminShareHeader', desc: '', args: []);
+  }
+
+  /// `已禁用`
+  String get adminShareDisabled {
+    return Intl.message('已禁用', name: 'adminShareDisabled', desc: '', args: []);
+  }
+
+  /// `媒体类型`
+  String get adminMediaConfigs {
+    return Intl.message('媒体类型', name: 'adminMediaConfigs', desc: '', args: []);
+  }
+
+  /// `扫描路径`
+  String get adminMediaScanPaths {
+    return Intl.message(
+      '扫描路径',
+      name: 'adminMediaScanPaths',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `扫描`
+  String get adminMediaScan {
+    return Intl.message('扫描', name: 'adminMediaScan', desc: '', args: []);
+  }
+
+  /// `刮削元数据`
+  String get adminMediaScrape {
+    return Intl.message('刮削元数据', name: 'adminMediaScrape', desc: '', args: []);
+  }
+
+  /// `清空媒体数据`
+  String get adminMediaClear {
+    return Intl.message('清空媒体数据', name: 'adminMediaClear', desc: '', args: []);
+  }
+
+  /// `清空刮削元数据`
+  String get adminMediaClearScrape {
+    return Intl.message(
+      '清空刮削元数据',
+      name: 'adminMediaClearScrape',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `删除失效条目`
+  String get adminMediaDeleteInvalid {
+    return Intl.message(
+      '删除失效条目',
+      name: 'adminMediaDeleteInvalid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `最近扫描`
+  String get adminMediaLastScan {
+    return Intl.message('最近扫描', name: 'adminMediaLastScan', desc: '', args: []);
+  }
+
+  /// `已启用`
+  String get adminMediaEnabled {
+    return Intl.message('已启用', name: 'adminMediaEnabled', desc: '', args: []);
+  }
+
+  /// `隐藏`
+  String get adminMediaHidden {
+    return Intl.message('隐藏', name: 'adminMediaHidden', desc: '', args: []);
+  }
+
+  /// `上一页`
+  String get adminPreviousPage {
+    return Intl.message('上一页', name: 'adminPreviousPage', desc: '', args: []);
+  }
+
+  /// `下一页`
+  String get adminNextPage {
+    return Intl.message('下一页', name: 'adminNextPage', desc: '', args: []);
+  }
+
+  /// `名称`
+  String get adminMediaName {
+    return Intl.message('名称', name: 'adminMediaName', desc: '', args: []);
+  }
+
+  /// `路径`
+  String get adminMediaPath {
+    return Intl.message('路径', name: 'adminMediaPath', desc: '', args: []);
+  }
+
+  /// `合并目录中的文件`
+  String get adminMediaPathMerge {
+    return Intl.message(
+      '合并目录中的文件',
+      name: 'adminMediaPathMerge',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `扫描后刮削元数据`
+  String get adminMediaEnableScrape {
+    return Intl.message(
+      '扫描后刮削元数据',
+      name: 'adminMediaEnableScrape',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `类型标签`
+  String get adminMediaTypeTag {
+    return Intl.message('类型标签', name: 'adminMediaTypeTag', desc: '', args: []);
+  }
+
+  /// `内容标签`
+  String get adminMediaContentTags {
+    return Intl.message(
+      '内容标签',
+      name: 'adminMediaContentTags',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `扫描进度`
+  String get adminMediaProgress {
+    return Intl.message('扫描进度', name: 'adminMediaProgress', desc: '', args: []);
+  }
+
+  /// `扫描中`
+  String get adminMediaRunning {
+    return Intl.message('扫描中', name: 'adminMediaRunning', desc: '', args: []);
+  }
+
+  /// `扫描完成`
+  String get adminMediaDone {
+    return Intl.message('扫描完成', name: 'adminMediaDone', desc: '', args: []);
+  }
+
+  /// `此操作将永久删除所选媒体数据，是否继续？`
+  String get adminMediaConfirmClear {
+    return Intl.message(
+      '此操作将永久删除所选媒体数据，是否继续？',
+      name: 'adminMediaConfirmClear',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `请输入要更新的路径。`
+  String get adminIndexPathRequired {
+    return Intl.message(
+      '请输入要更新的路径。',
+      name: 'adminIndexPathRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `请输入有效数字。`
+  String get adminInvalidNumber {
+    return Intl.message(
+      '请输入有效数字。',
+      name: 'adminInvalidNumber',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `保存扫描路径`
+  String get adminSavePath {
+    return Intl.message('保存扫描路径', name: 'adminSavePath', desc: '', args: []);
+  }
+
+  /// `添加扫描路径`
+  String get adminAddPath {
+    return Intl.message('添加扫描路径', name: 'adminAddPath', desc: '', args: []);
+  }
+
+  /// `视频`
+  String get adminMediaTypeVideo {
+    return Intl.message('视频', name: 'adminMediaTypeVideo', desc: '', args: []);
+  }
+
+  /// `音乐`
+  String get adminMediaTypeMusic {
+    return Intl.message('音乐', name: 'adminMediaTypeMusic', desc: '', args: []);
+  }
+
+  /// `图片`
+  String get adminMediaTypeImage {
+    return Intl.message('图片', name: 'adminMediaTypeImage', desc: '', args: []);
+  }
+
+  /// `书籍`
+  String get adminMediaTypeBook {
+    return Intl.message('书籍', name: 'adminMediaTypeBook', desc: '', args: []);
+  }
+
+  /// `导出媒体数据`
+  String get adminMediaExport {
+    return Intl.message('导出媒体数据', name: 'adminMediaExport', desc: '', args: []);
+  }
+
+  /// `导入媒体数据`
+  String get adminMediaImport {
+    return Intl.message('导入媒体数据', name: 'adminMediaImport', desc: '', args: []);
+  }
+
+  /// `生成 STRM 文件`
+  String get adminMediaGenerateStrm {
+    return Intl.message(
+      '生成 STRM 文件',
+      name: 'adminMediaGenerateStrm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `媒体应用密钥`
+  String get adminMediaAppKeys {
+    return Intl.message(
+      '媒体应用密钥',
+      name: 'adminMediaAppKeys',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `创建应用密钥`
+  String get adminMediaNewAppKey {
+    return Intl.message(
+      '创建应用密钥',
+      name: 'adminMediaNewAppKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `密钥名称`
+  String get adminMediaAppKeyName {
+    return Intl.message(
+      '密钥名称',
+      name: 'adminMediaAppKeyName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `请立即复制此密钥，之后将无法再次查看。`
+  String get adminMediaKeyShownOnce {
+    return Intl.message(
+      '请立即复制此密钥，之后将无法再次查看。',
+      name: 'adminMediaKeyShownOnce',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `媒体数据已导出`
+  String get adminMediaExportSaved {
+    return Intl.message(
+      '媒体数据已导出',
+      name: 'adminMediaExportSaved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `媒体数据已导入`
+  String get adminMediaImportDone {
+    return Intl.message(
+      '媒体数据已导入',
+      name: 'adminMediaImportDone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `已在 {path} 生成 {count} 个 STRM 文件`
+  String adminMediaStrmDone(Object count, Object path) {
+    return Intl.message(
+      '已在 $path 生成 $count 个 STRM 文件',
+      name: 'adminMediaStrmDone',
+      desc: '',
+      args: [count, path],
+    );
+  }
+
+  /// `应用密钥已创建`
+  String get adminMediaKeyCreated {
+    return Intl.message(
+      '应用密钥已创建',
+      name: 'adminMediaKeyCreated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `确定删除此应用密钥吗？`
+  String get adminMediaDeleteKeyConfirm {
+    return Intl.message(
+      '确定删除此应用密钥吗？',
+      name: 'adminMediaDeleteKeyConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `转码管理`
+  String get transcodeManagement {
+    return Intl.message(
+      '转码管理',
+      name: 'transcodeManagement',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `工作节点`
+  String get transcodeWorkers {
+    return Intl.message('工作节点', name: 'transcodeWorkers', desc: '', args: []);
+  }
+
+  /// `任务`
+  String get transcodeJobs {
+    return Intl.message('任务', name: 'transcodeJobs', desc: '', args: []);
+  }
+
+  /// `最大任务数`
+  String get transcodeCapacity {
+    return Intl.message('最大任务数', name: 'transcodeCapacity', desc: '', args: []);
+  }
+
+  /// `空闲槽位`
+  String get transcodeFreeSlots {
+    return Intl.message('空闲槽位', name: 'transcodeFreeSlots', desc: '', args: []);
+  }
+
+  /// `硬件加速`
+  String get transcodeHardwareAcceleration {
+    return Intl.message(
+      '硬件加速',
+      name: 'transcodeHardwareAcceleration',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `最近在线`
+  String get transcodeLastSeen {
+    return Intl.message('最近在线', name: 'transcodeLastSeen', desc: '', args: []);
+  }
+
+  /// `本地工作节点`
+  String get transcodeLocalWorker {
+    return Intl.message(
+      '本地工作节点',
+      name: 'transcodeLocalWorker',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `源文件路径`
+  String get transcodeJobPath {
+    return Intl.message('源文件路径', name: 'transcodeJobPath', desc: '', args: []);
+  }
+
+  /// `状态`
+  String get transcodeJobStatus {
+    return Intl.message('状态', name: 'transcodeJobStatus', desc: '', args: []);
+  }
+
+  /// `工作节点`
+  String get transcodeJobWorker {
+    return Intl.message('工作节点', name: 'transcodeJobWorker', desc: '', args: []);
+  }
+
+  /// `确定取消此转码任务吗？`
+  String get transcodeCancelConfirm {
+    return Intl.message(
+      '确定取消此转码任务吗？',
+      name: 'transcodeCancelConfirm',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

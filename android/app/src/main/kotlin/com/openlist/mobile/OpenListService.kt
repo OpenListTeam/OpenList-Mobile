@@ -143,9 +143,8 @@ class OpenListService : Service(), OpenList.Listener, Logger.Listener {
         OpenList.removeListener(this)
         Logger.removeListener(this)
         // Keep wasRunning so a system kill restores the server on restart.
-        runCatching { core.execute { if (isRunning) doStop() } }
+        runCatching { core.execute { if (isRunning || OpenList.isRunning()) doStop() } }
         core.shutdown()
-        runCatching { core.awaitTermination(8, TimeUnit.SECONDS) }
         main.removeCallbacksAndMessages(null)
         clients.clear()
         super.onDestroy()
@@ -222,27 +221,53 @@ class OpenListService : Service(), OpenList.Listener, Logger.Listener {
         } catch (t: Throwable) {
             Log.e(TAG, "Failed to start core", t)
             lastError = t.message ?: t.toString()
-            if (OpenList.isRunning()) OpenList.shutdown()
-            markStopped()
-            ServerSettings.update { it.copy(wasRunning = false) }
+            OpenList.shutdown()
+            if (OpenList.isRunning()) {
+                isRunning = true
+                runningMode = mode
+                ServerSettings.update { it.copy(wasRunning = true) }
+                applyLocks()
+                scheduleDbSync()
+            } else {
+                markStopped()
+                ServerSettings.update { it.copy(wasRunning = false) }
+            }
             toast(getString(R.string.server_start_failed, lastError))
         }
     }
 
     private fun requestStop(manual: Boolean) {
-        if (manual) ServerSettings.update { it.copy(manuallyStopped = true, wasRunning = false) }
         runOnCore {
-            if (isRunning || OpenList.isRunning()) doStop()
+            val stopped = if (isRunning || OpenList.isRunning()) {
+                doStop()
+            } else {
+                markStopped()
+                ServerSettings.update { it.copy(wasRunning = false) }
+                true
+            }
+            if (manual && stopped) {
+                ServerSettings.update { it.copy(manuallyStopped = true, wasRunning = false) }
+            }
             publishStatus()
         }
     }
 
-    private fun doStop() {
+    private fun doStop(): Boolean {
         dbSyncTask?.cancel(false)
         if (OpenList.isRunning()) OpenList.forceDatabaseSync()
         OpenList.shutdown()
-        if (OpenList.isRunning()) lastError = getString(R.string.shutdown_failed)
+        if (OpenList.isRunning()) {
+            lastError = getString(R.string.shutdown_failed)
+            isRunning = true
+            runningMode = runningMode ?: ServerSettings.get().mode
+            ServerSettings.update { it.copy(wasRunning = true) }
+            applyLocks()
+            scheduleDbSync()
+            return false
+        }
         markStopped()
+        ServerSettings.update { it.copy(wasRunning = false) }
+        return true
     }
 
     private fun requestRestart() {
@@ -251,7 +276,9 @@ class OpenListService : Service(), OpenList.Listener, Logger.Listener {
         publishStatus()
         runOnCore {
             try {
-                if (isRunning || OpenList.isRunning()) doStop()
+                if (isRunning || OpenList.isRunning()) {
+                    if (!doStop()) return@runOnCore
+                }
                 lastError = null
                 doStart()
             } finally {

@@ -47,12 +47,17 @@ class ServiceManager {
     _initialized = true;
     Event.setUp(_ServerEvents(this));
     // Status is pushed by native; polling is only a fallback.
-    _statusCheckTimer =
-        Timer.periodic(const Duration(seconds: 30), (_) => checkServiceStatus());
+    _statusCheckTimer = Timer.periodic(
+        const Duration(seconds: 30), (_) => checkServiceStatus());
     await checkServiceStatus();
   }
 
   Future<bool> startService() => _call('start', _server.start);
+
+  Future<void> ensureServiceRunning() async {
+    await checkServiceStatus();
+    if (_status?.running != true) await startService();
+  }
 
   Future<bool> stopService() async {
     final ok = await _call('stop', _server.stop);
@@ -110,7 +115,9 @@ class ServiceManager {
     if (!s.running) return '';
     final host = s.addresses.isNotEmpty ? s.addresses.first : '127.0.0.1';
     final https = s.httpsPort > 0 && (s.forceHttps || s.httpPort <= 0);
-    return https ? 'https://$host:${s.httpsPort}' : 'http://$host:${s.httpPort}';
+    return https
+        ? 'https://$host:${s.httpsPort}'
+        : 'http://$host:${s.httpPort}';
   }
 
   // ---- Background running (Android only) ----

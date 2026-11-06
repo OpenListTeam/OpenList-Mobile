@@ -102,6 +102,7 @@ object OpenList : Event, LogCallback {
         runCatching {
             Openlistlib.shutdown(5000)
         }.onFailure {
+            Log.e(TAG, "shutdown failed", it)
             context.longToast(R.string.shutdown_failed)
         }
     }

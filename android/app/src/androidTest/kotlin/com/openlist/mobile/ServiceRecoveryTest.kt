@@ -91,6 +91,16 @@ class ServiceRecoveryTest {
         )
     }
 
+    @Suppress("DEPRECATION")
+    @Test
+    fun serverToggleShortcutIsNotExported() {
+        val info = packageManager.getActivityInfo(
+            ComponentName(context, SwitchServerActivity::class.java),
+            0
+        )
+        assertFalse("Server toggle must not accept external launches", info.exported)
+    }
+
     @Test
     fun serviceDeclaresSpecialUseForegroundType() {
         // foregroundServiceType is only reported from Android 14 on; older platforms ignore the
@@ -201,7 +211,7 @@ class ServiceRecoveryTest {
      *
      * Starting a service from the background is normally restricted, but instrumented processes
      * are exempt, so the direct call is expected to succeed. If the system still rejects it, the
-     * exported [SwitchServerActivity] shortcut is the fallback: it runs in `:server` and starts
+     * in-app [SwitchServerActivity] shortcut is the fallback: it runs in `:server` and starts
      * the service from a visible activity. That shortcut toggles, so it must only be used when
      * the service is not running - which is exactly the state in which the direct call throws.
      */

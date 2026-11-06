@@ -56,7 +56,7 @@
         tools:ignore="UnusedAttribute">
         <activity
             android:name=".SwitchServerActivity"
-            android:exported="true"
+            android:exported="false"
             android:process=":server"
             android:launchMode="singleTask"
             android:taskAffinity="openlist.switch"

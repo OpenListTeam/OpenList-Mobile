@@ -35,3 +35,6 @@
 ### Supported Platforms
 - Android
 - iOS (Experimental, still in development)
+
+### Android background behavior
+Background operation is controlled by Android and device-vendor policies; OpenList cannot guarantee that it will remain active indefinitely. Boot recovery is attempted only when enabled in the app, and battery optimization, vendor auto-start controls, or background restrictions may prevent recovery or stop the service. Android does not automatically restart an app after the user force-stops it. On Android 13 and later, notification permission affects how the foreground-service notification is shown and managed. To use the background server, do not force-stop the app and review the device's battery and auto-start settings.

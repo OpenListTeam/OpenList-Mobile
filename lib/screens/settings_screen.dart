@@ -2,17 +2,24 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/users_page.dart';
+import 'package:openlist_mobile/pages/native/server_page.dart';
 import 'package:openlist_mobile/pages/native/settings_admin_page.dart';
+import 'package:openlist_mobile/pages/native/meta_admin_page.dart';
+import 'package:openlist_mobile/pages/native/shares_admin_page.dart';
+import 'package:openlist_mobile/pages/native/index_admin_page.dart';
+import 'package:openlist_mobile/pages/native/media_admin_page.dart';
+import 'package:openlist_mobile/pages/native/transcode_admin_page.dart';
+import 'package:openlist_mobile/pages/native/storages_page.dart';
+import 'package:openlist_mobile/pages/native/tasks_page.dart';
 import 'package:openlist_mobile/pages/native/tls_page.dart';
 import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
-import 'package:openlist_mobile/screens/storages_screen.dart';
 import 'package:openlist_mobile/screens/server_detail_screen.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:openlist_mobile/utils/language_manager.dart';
@@ -109,19 +116,6 @@ class SettingsScreen extends StatelessWidget {
           // Storage section
           _SectionHeader(title: S.current.storage),
           _PlatformStorageSettings(),
-          _SettingsTile(
-            icon: Icons.storage,
-            title: S.current.manageStorages,
-            subtitle: S.current.manageStoragesDesc,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const StoragesScreen(),
-                ),
-              );
-            },
-          ),
           const SizedBox(height: AppDesign.space24),
 
           // Appearance section
@@ -165,6 +159,57 @@ class SettingsScreen extends StatelessWidget {
               },
             ),
             _SettingsTile(
+              icon: Icons.rule_folder_outlined,
+              title: S.current.metaManagement,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MetaAdminPage()),
+                );
+              },
+            ),
+            _SettingsTile(
+              icon: Icons.share,
+              title: S.current.adminShareManagement,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SharesAdminPage()),
+                );
+              },
+            ),
+            _SettingsTile(
+              icon: Icons.manage_search,
+              title: S.current.adminIndexes,
+              subtitle: S.current.adminManualScan,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const IndexAdminPage()),
+                );
+              },
+            ),
+            _SettingsTile(
+              icon: Icons.perm_media_outlined,
+              title: S.current.adminMediaTitle,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MediaAdminPage()),
+                );
+              },
+            ),
+            _SettingsTile(
+              icon: Icons.video_settings_outlined,
+              title: S.current.transcodeManagement,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TranscodeAdminPage()),
+                );
+              },
+            ),
+            _SettingsTile(
               icon: Icons.people,
               title: S.current.userManagement,
               subtitle: S.current.userManagementDesc,
@@ -175,7 +220,39 @@ class SettingsScreen extends StatelessWidget {
                 );
               },
             ),
-            if (Platform.isAndroid) ...[
+            _SettingsTile(
+              icon: Icons.storage,
+              title: S.current.manageStorages,
+              subtitle: S.current.manageStoragesDesc,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StoragesPage()),
+                );
+              },
+            ),
+            _SettingsTile(
+              icon: Icons.task_alt,
+              title: S.current.tasks,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TasksPage()),
+                );
+              },
+            ),
+            if (Platform.isAndroid && session.kind == ConnectionKind.local)
+              _SettingsTile(
+                icon: Icons.dns,
+                title: S.current.serverRuntime,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ServerPage()),
+                  );
+                },
+              ),
+            if (Platform.isAndroid && session.kind == ConnectionKind.local) ...[
               _SettingsTile(
                 icon: Icons.security,
                 title: S.current.tlsCertificates,
@@ -360,8 +437,8 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _clearCache() async {
-    await InAppWebViewController.clearAllCache();
     PaintingBinding.instance.imageCache.clear();
+
     PaintingBinding.instance.imageCache.clearLiveImages();
   }
 

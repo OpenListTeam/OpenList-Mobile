@@ -14,7 +14,6 @@ import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 
 import '../../generated/l10n.dart';
-import '../web/web.dart';
 import 'common.dart';
 import 'connect_page.dart';
 import 'file_preview_page.dart';
@@ -57,7 +56,9 @@ class _FilesPageState extends State<FilesPage> {
     _session.addListener(_onSession);
     // Reconnect to the local core when it comes up after the page opened.
     _statusSub = ServiceManager.instance.serviceStatusStream.listen((running) {
-      if (running && !_session.isConnected && _session.kind == ConnectionKind.local) {
+      if (running &&
+          !_session.isConnected &&
+          _session.kind == ConnectionKind.local) {
         _connect();
       }
     });
@@ -68,9 +69,12 @@ class _FilesPageState extends State<FilesPage> {
   void _onUploadFinished(UploadJob j) {
     if (!mounted) return;
     if (j.state == UploadState.failed) {
-      showError(j.error ?? S.current.uploadFailed, title: '${S.current.uploadFailed}: ${j.name}');
+      showError(j.error ?? S.current.uploadFailed,
+          title: '${S.current.uploadFailed}: ${j.name}');
     }
-    if (j.state != UploadState.succeeded || j.dir != _path || !_session.isConnected) return;
+    if (j.state != UploadState.succeeded ||
+        j.dir != _path ||
+        !_session.isConnected) return;
     // Batch refreshes when many small files finish close together.
     _refreshTimer?.cancel();
     _refreshTimer = Timer(const Duration(milliseconds: 500), () {
@@ -136,7 +140,8 @@ class _FilesPageState extends State<FilesPage> {
       _error = null;
     });
     try {
-      final res = await _session.fs.list(path, password: _passwordFor(path), refresh: refresh);
+      final res = await _session.fs
+          .list(path, password: _passwordFor(path), refresh: refresh);
       if (!mounted || _path != path) return;
       setState(() => _result = res);
     } on ApiException catch (e) {
@@ -201,7 +206,8 @@ class _FilesPageState extends State<FilesPage> {
   }
 
   Future<void> _delete(FsObject o) async {
-    if (!await confirmDialog(context, S.current.confirmDeleteItems(o.name))) return;
+    if (!await confirmDialog(context, S.current.confirmDeleteItems(o.name)))
+      return;
     await _act(() => _session.fs.remove(_path, [o.name]));
   }
 
@@ -292,16 +298,20 @@ class _FilesPageState extends State<FilesPage> {
             );
         return SafeArea(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ListTile(title: Text(o.name, maxLines: 2, overflow: TextOverflow.ellipsis)),
+            ListTile(
+                title:
+                    Text(o.name, maxLines: 2, overflow: TextOverflow.ellipsis)),
             if (!o.isDir) ...[
               item(Icons.download, S.current.download, () => _download(o)),
               item(Icons.link, S.current.copyLink, () => _copyLink(o)),
             ],
             if (canWrite) ...[
-              item(Icons.drive_file_rename_outline, S.current.rename, () => _rename(o)),
+              item(Icons.drive_file_rename_outline, S.current.rename,
+                  () => _rename(o)),
               item(Icons.drive_file_move_outline, S.current.moveTo,
                   () => _transfer(o, copy: false)),
-              item(Icons.copy, S.current.copyTo, () => _transfer(o, copy: true)),
+              item(
+                  Icons.copy, S.current.copyTo, () => _transfer(o, copy: true)),
               item(Icons.delete_outline, S.current.delete, () => _delete(o)),
             ],
           ]),
@@ -328,8 +338,6 @@ class _FilesPageState extends State<FilesPage> {
         Get.to(() => const SettingsAdminPage());
       case 'connection':
         Get.to(() => const ConnectPage());
-      case 'web':
-        Get.to(() => WebScreen(key: webGlobalKey));
     }
   }
 
@@ -392,7 +400,8 @@ class _FilesPageState extends State<FilesPage> {
               overflow: TextOverflow.ellipsis),
           leading: connected && _path != '/'
               ? IconButton(
-                  icon: const Icon(Icons.arrow_upward), onPressed: () => _open(_parent))
+                  icon: const Icon(Icons.arrow_upward),
+                  onPressed: () => _open(_parent))
               : null,
           actions: [
             if (connected)
@@ -416,18 +425,23 @@ class _FilesPageState extends State<FilesPage> {
             PopupMenuButton<String>(
               onSelected: _menu,
               itemBuilder: (_) => [
-                if (connected) PopupMenuItem(value: 'tasks', child: Text(S.current.tasks)),
+                if (connected)
+                  PopupMenuItem(value: 'tasks', child: Text(S.current.tasks)),
                 PopupMenuItem(value: 'uploads', child: Text(S.current.uploads)),
                 if (canWrite && _canOffline)
-                  PopupMenuItem(value: 'offline', child: Text(S.current.offlineDownload)),
+                  PopupMenuItem(
+                      value: 'offline', child: Text(S.current.offlineDownload)),
                 if (connected && (_session.user?.isAdmin ?? false))
-                  PopupMenuItem(value: 'storages', child: Text(S.current.storages)),
+                  PopupMenuItem(
+                      value: 'storages', child: Text(S.current.storages)),
                 if (connected && (_session.user?.isAdmin ?? false))
                   PopupMenuItem(value: 'users', child: Text(S.current.users)),
                 if (connected && (_session.user?.isAdmin ?? false))
-                  PopupMenuItem(value: 'site_settings', child: Text(S.current.siteSettings)),
-                PopupMenuItem(value: 'connection', child: Text(S.current.connection)),
-                PopupMenuItem(value: 'web', child: Text(S.current.openWebInterface)),
+                  PopupMenuItem(
+                      value: 'site_settings',
+                      child: Text(S.current.siteSettings)),
+                PopupMenuItem(
+                    value: 'connection', child: Text(S.current.connection)),
               ],
             ),
           ],
@@ -469,7 +483,9 @@ class _FilesPageState extends State<FilesPage> {
         icon: Icons.cloud_off,
         text: notRunning && _session.kind == ConnectionKind.local
             ? S.of(context).serverNotRunning
-            : (_error == null ? S.of(context).connectFailed : errorText(_error!)),
+            : (_error == null
+                ? S.of(context).connectFailed
+                : errorText(_error!)),
         action: notRunning ? S.of(context).startServer : S.of(context).retry,
         onAction: () async {
           if (notRunning) await ServiceManager.instance.startService();
@@ -479,7 +495,8 @@ class _FilesPageState extends State<FilesPage> {
     }
     final res = _result;
     if (res == null || (_error != null && !_loading)) {
-      if (_error == null) return const Center(child: CircularProgressIndicator());
+      if (_error == null)
+        return const Center(child: CircularProgressIndicator());
       return StateMessage(
           icon: Icons.error_outline,
           text: errorText(_error!),
@@ -515,7 +532,8 @@ class _FilesPageState extends State<FilesPage> {
                     path: _child(o.name), password: _passwordFor(_path))),
             onLongPress: () => _showActions(o),
             trailing: IconButton(
-                icon: const Icon(Icons.more_vert), onPressed: () => _showActions(o)),
+                icon: const Icon(Icons.more_vert),
+                onPressed: () => _showActions(o)),
           );
         },
       ),

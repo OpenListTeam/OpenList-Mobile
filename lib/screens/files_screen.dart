@@ -12,10 +12,15 @@ import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/pages/native/batch_rename_dialog.dart';
+import 'package:openlist_mobile/pages/native/common.dart';
+import 'package:openlist_mobile/pages/native/connect_page.dart';
 import 'package:openlist_mobile/pages/native/file_preview_page.dart';
 import 'package:openlist_mobile/pages/native/folder_picker_page.dart';
+import 'package:openlist_mobile/pages/native/offline_download_dialog.dart';
 import 'package:openlist_mobile/pages/native/search_page.dart';
+import 'package:openlist_mobile/pages/native/tasks_page.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
+import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:openlist_mobile/widgets/file_items.dart';
 
 /// Files browser screen with list/grid view modes
@@ -47,6 +52,18 @@ class _FilesScreenState extends State<FilesScreen> {
         automaticallyImplyLeading: _controller.currentPath.value != '/',
         title: Obx(() => _Breadcrumb(path: _controller.currentPath.value)),
         actions: [
+          IconButton(
+            tooltip: S.current.connection,
+            icon: const Icon(Icons.swap_horiz),
+            onPressed: () async {
+              final changed = await Get.to<bool>(() => const ConnectPage());
+              if (changed == true) {
+                _controller.folderPasswords.clear();
+                _controller.currentPath.value = '/';
+                await _controller.loadFiles();
+              }
+            },
+          ),
           Obx(() => IconButton(
                 icon: Icon(_controller.viewMode.value == _ViewMode.list
                     ? Icons.grid_view
@@ -58,7 +75,12 @@ class _FilesScreenState extends State<FilesScreen> {
             onPressed: () async {
               // Navigate to search and handle result
               final result = await Get.to<String>(
-                () => SearchPage(parent: _controller.currentPath.value),
+                () => SearchPage(
+                  parent: _controller.currentPath.value,
+                  password: _controller.passwordFor(
+                    _controller.currentPath.value,
+                  ),
+                ),
               );
               // If a folder was selected from search, navigate to it
               if (result != null) {
@@ -80,12 +102,19 @@ class _FilesScreenState extends State<FilesScreen> {
                 case 'newfolder':
                   _showCreateFolderDialog();
                   break;
+                case 'offline':
+                  _controller.addOfflineDownload(context);
+                  break;
               }
             },
             itemBuilder: (context) => [
               PopupMenuItem(value: 'sort', child: Text(S.current.sort)),
               PopupMenuItem(value: 'refresh', child: Text(S.current.refresh)),
-              PopupMenuItem(value: 'newfolder', child: Text(S.current.newFolder)),
+              PopupMenuItem(
+                  value: 'newfolder', child: Text(S.current.newFolder)),
+              if (_controller.canOffline)
+                PopupMenuItem(
+                    value: 'offline', child: Text(S.current.offlineDownload)),
             ],
           ),
         ],
@@ -210,7 +239,8 @@ class _FilesScreenState extends State<FilesScreen> {
                   await _controller.loadFiles();
                   Get.snackbar(S.current.success, S.current.operationDone);
                 } catch (e) {
-                  Get.snackbar(S.current.error, 'Failed to create file: ${e.toString()}');
+                  Get.snackbar(S.current.error,
+                      'Failed to create file: ${e.toString()}');
                   debugPrint('Create file failed: $e');
                 }
               }
@@ -388,8 +418,8 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isConnectionError = message.contains('not connected') ||
-                              message.contains('not running') ||
-                              message.contains('Connection refused');
+        message.contains('not running') ||
+        message.contains('Connection refused');
 
     return Center(
       child: Padding(
@@ -404,7 +434,9 @@ class _ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
-              isConnectionError ? S.current.notConnected : S.current.failedToLoadFiles,
+              isConnectionError
+                  ? S.current.notConnected
+                  : S.current.failedToLoadFiles,
               style: AppDesign.headline3,
               textAlign: TextAlign.center,
             ),
@@ -450,7 +482,8 @@ class _EmptyView extends StatelessWidget {
             Icon(
               Icons.folder_open,
               size: 64,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
@@ -589,6 +622,7 @@ class _SortOption extends StatelessWidget {
 }
 
 enum _ViewMode { list, grid }
+
 enum FilePickType { image, video, any }
 
 class _FilesController extends GetxController {
@@ -601,6 +635,44 @@ class _FilesController extends GetxController {
   final error = ''.obs;
   final viewMode = _ViewMode.list.obs;
   final sortBy = 'name'.obs;
+  final folderPasswords = <String, String>{};
+
+  bool get canOffline {
+    final user = _session.user;
+    return user != null &&
+        (user.isAdmin ||
+            (user.permission >> UserPerm.offlineDownload) & 1 == 1);
+  }
+
+  Future<void> addOfflineDownload(BuildContext context) async {
+    final added = await showOfflineDownloadDialog(context, currentPath.value);
+    if (added) Get.to(() => const TasksPage());
+  }
+
+  String passwordFor(String path) {
+    var current = path;
+    while (true) {
+      final password = folderPasswords[current];
+      if (password != null) return password;
+      if (current == '/' || current.isEmpty) return '';
+      final separator = current.lastIndexOf('/');
+      current = separator <= 0 ? '/' : current.substring(0, separator);
+    }
+  }
+
+  Future<bool> _requestFolderPassword(String path) async {
+    final context = Get.context;
+    if (context == null) return false;
+    final password = await promptText(
+      context,
+      title: S.current.folderPassword,
+      label: path,
+      obscure: true,
+    );
+    if (password == null || currentPath.value != path) return false;
+    folderPasswords[path] = password;
+    return true;
+  }
 
   @override
   void onInit() {
@@ -609,30 +681,44 @@ class _FilesController extends GetxController {
   }
 
   Future<void> loadFiles() async {
+    final path = currentPath.value;
     isLoading.value = true;
     error.value = '';
 
     try {
-      // Try to connect if not connected
       if (!_session.isConnected) {
         await _session.connectLocal();
       }
 
-      final result = await _session.fs.list(currentPath.value);
-      files.value = result.content;
-      _sortFiles();
+      var password = passwordFor(path);
+      while (true) {
+        try {
+          final result = await _session.fs.list(path, password: password);
+          if (currentPath.value != path) return;
+          files.value = result.content;
+          _sortFiles();
+          break;
+        } on ApiException catch (e) {
+          if (!e.isPasswordRequired || !await _requestFolderPassword(path)) {
+            rethrow;
+          }
+          password = passwordFor(path);
+        }
+      }
+    } on ApiException catch (e) {
+      if (currentPath.value == path) error.value = e.toString();
+      debugPrint('Failed to load files: $e');
     } catch (e) {
-      error.value = e.toString();
+      if (currentPath.value == path) error.value = e.toString();
       debugPrint('Failed to load files: $e');
     } finally {
-      isLoading.value = false;
+      if (currentPath.value == path) isLoading.value = false;
     }
   }
 
   void toggleViewMode() {
-    viewMode.value = viewMode.value == _ViewMode.list
-        ? _ViewMode.grid
-        : _ViewMode.list;
+    viewMode.value =
+        viewMode.value == _ViewMode.list ? _ViewMode.grid : _ViewMode.list;
   }
 
   void setSortBy(String sort) {
@@ -678,7 +764,10 @@ class _FilesController extends GetxController {
       final filePath = currentPath.value == '/'
           ? '/${file.name}'
           : '${currentPath.value}/${file.name}';
-      Get.to(() => FilePreviewPage(path: filePath));
+      Get.to(() => FilePreviewPage(
+            path: filePath,
+            password: passwordFor(currentPath.value),
+          ));
     }
   }
 
@@ -695,7 +784,8 @@ class _FilesController extends GetxController {
 
     final parts = currentPath.value.split('/');
     parts.removeLast();
-    currentPath.value = parts.isEmpty || parts.length == 1 ? '/' : parts.join('/');
+    currentPath.value =
+        parts.isEmpty || parts.length == 1 ? '/' : parts.join('/');
     loadFiles();
   }
 
@@ -713,11 +803,13 @@ class _FilesController extends GetxController {
 
   Future<void> createFolder(String name) async {
     try {
-      final path = currentPath.value == '/' ? '/$name' : '${currentPath.value}/$name';
+      final path =
+          currentPath.value == '/' ? '/$name' : '${currentPath.value}/$name';
       await _session.fs.mkdir(path);
       await loadFiles();
     } catch (e) {
-      Get.snackbar(S.current.error, S.current.failedToCreateFolder(e.toString()));
+      Get.snackbar(
+          S.current.error, S.current.failedToCreateFolder(e.toString()));
     }
   }
 
@@ -737,6 +829,7 @@ class _FilesController extends GetxController {
       }
 
       final dir = currentPath.value;
+      final password = passwordFor(dir);
       final fs = _session.fs;
 
       // Queue upload jobs for each selected file
@@ -756,7 +849,7 @@ class _FilesController extends GetxController {
                   title: f.name,
                   dir: dir,
                   size: f.size,
-                  password: '',
+                  password: password,
                   onProgress: onProgress,
                   cancelToken: token,
                   fallback: () async {
@@ -765,7 +858,7 @@ class _FilesController extends GetxController {
                       dstPath,
                       file.openRead(),
                       await file.length(),
-                      password: '',
+                      password: password,
                       onProgress: onProgress,
                       cancelToken: token,
                     );
@@ -817,9 +910,8 @@ class _FilesController extends GetxController {
     final selected = selectedFiles.toList();
     if (selected.isEmpty) return;
 
-    final objects = files
-        .where((f) => selected.contains(f.name))
-        .toList(growable: false);
+    final objects =
+        files.where((f) => selected.contains(f.name)).toList(growable: false);
     if (objects.isEmpty) return;
 
     final dir = currentPath.value;
@@ -903,6 +995,7 @@ class _FilesController extends GetxController {
       isLoading.value = true;
       error.value = '';
 
+      await ServiceManager.instance.ensureServiceRunning();
       await _session.connectLocal();
       await loadFiles();
 
@@ -922,7 +1015,10 @@ class _FilesController extends GetxController {
         : '${currentPath.value}/${file.name}';
 
     // fs/get returns raw_url and a fresh sign; list entries may lack both
-    final full = await _session.fs.get(filePath);
+    final full = await _session.fs.get(
+      filePath,
+      password: passwordFor(currentPath.value),
+    );
     return full.rawUrl.isNotEmpty
         ? full.rawUrl
         : _session.fs.downloadUrl(filePath, sign: full.sign);
@@ -968,7 +1064,8 @@ class _FilesController extends GetxController {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: Text(file.name, maxLines: 2, overflow: TextOverflow.ellipsis),
+              title:
+                  Text(file.name, maxLines: 2, overflow: TextOverflow.ellipsis),
               dense: true,
             ),
             const Divider(),

@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/generated_api.dart';
-import 'package:openlist_mobile/pages/native/files_page.dart';
+import 'package:openlist_mobile/screens/files_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _prefix = 'dev.flutter.pigeon.openlist_mobile.ServerApi.';
@@ -44,7 +44,7 @@ Widget _app() => GetMaterialApp(
       ],
       supportedLocales: S.delegate.supportedLocales,
       locale: const Locale('en'),
-      home: const FilesPage(),
+      home: const FilesScreen(),
     );
 
 void main() {
@@ -52,7 +52,7 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('files page offers to start a stopped local core',
+  testWidgets('files screen offers to start a stopped local core',
       (tester) async {
     final calls = <String>[];
     _mockServerApi(calls);
@@ -60,11 +60,13 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    expect(find.text(S.current.serverNotRunning), findsOneWidget);
+    expect(find.text(S.current.connectToServer), findsOneWidget);
     expect(calls, contains('getStatus'));
 
-    await tester.tap(find.text(S.current.startServer));
+    await tester.tap(find.text(S.current.connectToServer));
     await tester.pumpAndSettle();
     expect(calls, contains('start'));
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
   });
 }

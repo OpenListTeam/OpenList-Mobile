@@ -88,7 +88,7 @@ import UIKit
   }
   
   override func applicationDidEnterBackground(_ application: UIApplication) {
-    // Begin background task to prevent WebView process suspension
+    // Request limited time to finish in-flight work; this does not keep the server alive indefinitely.
     backgroundTask = application.beginBackgroundTask { [weak self] in
       // Background task is about to expire, clean up
       self?.endBackgroundTask()
