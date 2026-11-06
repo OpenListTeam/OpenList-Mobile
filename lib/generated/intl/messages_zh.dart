@@ -338,6 +338,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dataDirectoryChangeWarning": MessageLookupByLibrary.simpleMessage(
       "服务将直接使用所选目录，不会迁移现有数据。请只选择应用可访问的本地目录。",
     ),
+    "dataDirectoryRestartRequired": MessageLookupByLibrary.simpleMessage(
+      "服务运行中时，必须重启才能使用新的数据目录。",
+    ),
     "databaseNotSavedIssue": MessageLookupByLibrary.simpleMessage("数据库未保存问题"),
     "databaseNotSavedIssueDesc": MessageLookupByLibrary.simpleMessage(
       "如不手动关闭OpenList，则数据库可能不会被保存到对应的db文件中，如遇到此问题，请手动关闭以解决此问题。（开关位于主程序菜单OpenList界面，以及通知栏的通知上）",

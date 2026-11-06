@@ -46,6 +46,7 @@
   "webBrowserDownloadInProgress": "下载进行中，无法停止浏览器",
   "dataDirectory": "data 文件夹路径",
   "dataDirectoryChangeWarning": "服务将直接使用所选目录，不会迁移现有数据。请只选择应用可访问的本地目录。",
+  "dataDirectoryRestartRequired": "服务运行中时，必须重启才能使用新的数据目录。",
   "defaultDirectory": "默认目录",
   "askForDownloadDirectory": "每次下载选择保存位置",
   "askForDownloadDirectoryDesc": "每次下载前询问文件保存位置",

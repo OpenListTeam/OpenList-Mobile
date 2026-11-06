@@ -404,6 +404,16 @@ class S {
     );
   }
 
+  /// `服务运行中时，必须重启才能使用新的数据目录。`
+  String get dataDirectoryRestartRequired {
+    return Intl.message(
+      '服务运行中时，必须重启才能使用新的数据目录。',
+      name: 'dataDirectoryRestartRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `默认目录`
   String get defaultDirectory {
     return Intl.message('默认目录', name: 'defaultDirectory', desc: '', args: []);

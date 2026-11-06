@@ -486,37 +486,22 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
     }
   }
 
-  Future<bool> _confirmRestart() async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(S.current.confirm),
-        content: Text(S.current.configSavedRestartRequired),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(S.current.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(S.current.confirm),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
-  }
-
   Future<void> _pickDataDirectory() async {
     final path = await FilePicker.platform.getDirectoryPath(
       dialogTitle: S.current.dataDirectory,
     );
     if (path == null) return;
+    final serviceRunning = await ServiceManager.instance.checkServiceStatus();
+    if (!mounted) return;
+    final confirmation = [
+      S.current.dataDirectoryChangeWarning,
+      if (serviceRunning) S.current.dataDirectoryRestartRequired,
+    ].join('\n\n');
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
             title: Text(S.current.dataDirectory),
-            content: Text(S.current.dataDirectoryChangeWarning),
+            content: Text(confirmation),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
@@ -531,19 +516,26 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
         ) ??
         false;
     if (!confirmed || !mounted) return;
+
+    final previousPath = _dataDirectory;
     try {
       await NativeBridge.appConfig.setDataDir(path);
     } catch (error) {
-      if (mounted) {
-        Get.snackbar(S.current.error, '$error');
-      }
+      if (mounted) Get.snackbar(S.current.error, '$error');
       return;
     }
     if (!mounted) return;
     setState(() => _dataDirectory = path);
-    if (await ServiceManager.instance.checkServiceStatus() && mounted) {
-      final restart = await _confirmRestart();
-      if (restart) await ServiceManager.instance.restartService();
+    if (serviceRunning && !await ServiceManager.instance.restartService()) {
+      try {
+        await NativeBridge.appConfig.setDataDir(previousPath);
+        if (mounted) setState(() => _dataDirectory = previousPath);
+      } catch (error) {
+        if (mounted) Get.snackbar(S.current.error, '$error');
+      }
+      if (mounted) {
+        Get.snackbar(S.current.error, S.current.serviceRestartFailed);
+      }
     }
   }
 

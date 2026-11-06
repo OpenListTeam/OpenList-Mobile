@@ -413,6 +413,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "dataDirectoryChangeWarning": MessageLookupByLibrary.simpleMessage(
       "The server will use the selected directory without moving existing data. Select only an accessible local folder.",
     ),
+    "dataDirectoryRestartRequired": MessageLookupByLibrary.simpleMessage(
+      "The running service must restart to use this directory.",
+    ),
     "databaseNotSavedIssue": MessageLookupByLibrary.simpleMessage(
       "Database Not Saved Issue",
     ),
