@@ -184,6 +184,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "allSystemsOperational": MessageLookupByLibrary.simpleMessage(
       "All systems operational",
     ),
+    "apiToken": MessageLookupByLibrary.simpleMessage("API token"),
     "apkDownloadCompleteMessage": MessageLookupByLibrary.simpleMessage(
       "APK file download completed, do you want to install?",
     ),
@@ -944,6 +945,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "requiredField": MessageLookupByLibrary.simpleMessage("Required"),
     "reset2fa": MessageLookupByLibrary.simpleMessage("Reset 2FA"),
+    "resetToken": MessageLookupByLibrary.simpleMessage("Reset API token"),
+    "resetTokenConfirm": MessageLookupByLibrary.simpleMessage(
+      "Resetting the API token invalidates clients using the current token. Continue?",
+    ),
+    "resetTokenSuccess": MessageLookupByLibrary.simpleMessage(
+      "API token reset",
+    ),
     "restartServer": MessageLookupByLibrary.simpleMessage("Restart server"),
     "restartingService": MessageLookupByLibrary.simpleMessage(
       "Restarting OpenList service...",

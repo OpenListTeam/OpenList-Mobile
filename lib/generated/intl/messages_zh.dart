@@ -165,6 +165,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "administration": MessageLookupByLibrary.simpleMessage("管理"),
     "administrator": MessageLookupByLibrary.simpleMessage("管理员"),
     "allSystemsOperational": MessageLookupByLibrary.simpleMessage("所有系统正常运行"),
+    "apiToken": MessageLookupByLibrary.simpleMessage("API 令牌"),
     "apkDownloadCompleteMessage": MessageLookupByLibrary.simpleMessage(
       "APK文件已下载完成，是否要安装？",
     ),
@@ -723,6 +724,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "requestIgnoreBattery": MessageLookupByLibrary.simpleMessage("允许后台运行"),
     "requiredField": MessageLookupByLibrary.simpleMessage("必填"),
     "reset2fa": MessageLookupByLibrary.simpleMessage("重置两步验证"),
+    "resetToken": MessageLookupByLibrary.simpleMessage("重置 API 令牌"),
+    "resetTokenConfirm": MessageLookupByLibrary.simpleMessage(
+      "重置 API 令牌会使使用当前令牌的客户端失效，是否继续？",
+    ),
+    "resetTokenSuccess": MessageLookupByLibrary.simpleMessage("API 令牌已重置"),
     "restartServer": MessageLookupByLibrary.simpleMessage("重启服务器"),
     "restartingService": MessageLookupByLibrary.simpleMessage(
       "正在重启OpenList服务...",

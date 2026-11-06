@@ -3009,6 +3009,36 @@ class S {
     return Intl.message('站点设置', name: 'siteSettings', desc: '', args: []);
   }
 
+  /// `API 令牌`
+  String get apiToken {
+    return Intl.message('API 令牌', name: 'apiToken', desc: '', args: []);
+  }
+
+  /// `重置 API 令牌`
+  String get resetToken {
+    return Intl.message('重置 API 令牌', name: 'resetToken', desc: '', args: []);
+  }
+
+  /// `重置 API 令牌会使使用当前令牌的客户端失效，是否继续？`
+  String get resetTokenConfirm {
+    return Intl.message(
+      '重置 API 令牌会使使用当前令牌的客户端失效，是否继续？',
+      name: 'resetTokenConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `API 令牌已重置`
+  String get resetTokenSuccess {
+    return Intl.message(
+      'API 令牌已重置',
+      name: 'resetTokenSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `站点`
   String get groupSite {
     return Intl.message('站点', name: 'groupSite', desc: '', args: []);

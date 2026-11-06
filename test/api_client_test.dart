@@ -23,10 +23,9 @@ class _FakeAdapter implements HttpClientAdapter {
   Future<ResponseBody> fetch(RequestOptions options,
       Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
     requests.add(options);
-    return ResponseBody.fromString(jsonEncode(respond(options)), 200,
-        headers: {
-          Headers.contentTypeHeader: [Headers.jsonContentType],
-        });
+    return ResponseBody.fromString(jsonEncode(respond(options)), 200, headers: {
+      Headers.contentTypeHeader: [Headers.jsonContentType],
+    });
   }
 
   @override
@@ -143,8 +142,7 @@ void main() {
     );
     final req = adapter.requests.single;
     expect(req.method, 'PUT');
-    expect(req.headers['File-Path'],
-        '/dir/${Uri.encodeComponent('新 文件.txt')}');
+    expect(req.headers['File-Path'], '/dir/${Uri.encodeComponent('新 文件.txt')}');
     expect(req.headers['As-Task'], 'false');
     expect(req.headers['Overwrite'], 'false');
     expect(req.headers['Last-Modified'], '1700000000000');
@@ -239,7 +237,13 @@ void main() {
   test('search posts paging and parses hits', () async {
     final (c, adapter) = _client((_) => _ok({
           'content': [
-            {'parent': '/a', 'name': 'b.mp4', 'is_dir': false, 'size': 9, 'type': 2}
+            {
+              'parent': '/a',
+              'name': 'b.mp4',
+              'is_dir': false,
+              'size': 9,
+              'type': 2
+            }
           ],
           'total': 7,
         }));
@@ -268,7 +272,13 @@ void main() {
   test('user list keeps raw fields and decodes permission bits', () async {
     final (c, adapter) = _client((_) => _ok({
           'content': [
-            {'id': 2, 'username': 'u', 'role': 0, 'permission': 9, 'sso_id': 's'}
+            {
+              'id': 2,
+              'username': 'u',
+              'role': 0,
+              'permission': 9,
+              'sso_id': 's'
+            }
           ],
           'total': 1,
         }));
@@ -297,6 +307,13 @@ void main() {
     await api.saveSettings([items.first]);
     final body = adapter.requests.last.data as List;
     expect((body.single as Map)['value'], 'B');
+  });
+
+  test('reset token returns the new token', () async {
+    final (c, adapter) = _client((_) => _ok('new-token'));
+    final token = await AdminApi(c).resetToken();
+    expect(token, 'new-token');
+    expect(adapter.requests.single.path, '/api/admin/setting/reset_token');
   });
 
   test('driver alert splits level and text', () {

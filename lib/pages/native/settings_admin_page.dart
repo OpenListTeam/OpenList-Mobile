@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 
@@ -33,6 +34,8 @@ class SettingsAdminPage extends StatefulWidget {
 class _SettingsAdminPageState extends State<SettingsAdminPage> {
   int _group = _groups.first.$1;
   List<SettingItem> _items = const [];
+  String? _token;
+  bool _resettingToken = false;
 
   /// Values as loaded, keyed by setting key, to detect changes.
   Map<String, String> _original = const {};
@@ -47,6 +50,41 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   void initState() {
     super.initState();
     _load();
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    try {
+      final items = await OpenListSession.instance.admin.listSettings([0]);
+      final token = items
+          .where((item) => item.key == 'token')
+          .map((item) => item.value)
+          .firstOrNull;
+      if (mounted) setState(() => _token = token);
+    } catch (_) {
+      if (mounted) setState(() => _token = null);
+    }
+  }
+
+  Future<void> _resetToken() async {
+    if (!await confirmDialog(
+      context,
+      S.current.resetTokenConfirm,
+      title: S.current.resetToken,
+    )) {
+      return;
+    }
+    setState(() => _resettingToken = true);
+    try {
+      final token = await OpenListSession.instance.admin.resetToken();
+      if (mounted) {
+        setState(() => _token = token);
+        showMessage(S.current.resetTokenSuccess);
+      }
+    } catch (e) {
+      if (mounted) showError(e);
+    }
+    if (mounted) setState(() => _resettingToken = false);
   }
 
   Future<void> _load() async {
@@ -56,9 +94,10 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
       _error = null;
     });
     try {
-      final items = (await OpenListSession.instance.admin.listSettings([_group]))
-          .where((e) => !e.deprecated)
-          .toList();
+      final items =
+          (await OpenListSession.instance.admin.listSettings([_group]))
+              .where((e) => !e.deprecated)
+              .toList();
       if (!mounted || gen != _generation) return;
       _items = items;
       _original = {for (final i in items) i.key: i.value};
@@ -111,8 +150,11 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
         isExpanded: true,
         decoration: InputDecoration(
             labelText: item.key, helperText: help, helperMaxLines: 3),
-        items: [for (final o in options) DropdownMenuItem(value: o, child: Text(o))],
-        onChanged: item.readOnly ? null : (v) => item.value = v ?? '',
+        items: [
+          for (final o in options) DropdownMenuItem(value: o, child: Text(o))
+        ],
+        onChanged:
+            item.readOnly ? null : (v) => setState(() => item.value = v ?? ''),
       );
     }
     final multiline = item.type == 'text';
@@ -132,7 +174,7 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(S.of(context).siteSettings), actions: [
+      appBar: AppBar(title: Text(S.of(context).coreSettings), actions: [
         IconButton(
           tooltip: S.of(context).save,
           icon: const Icon(Icons.check),
@@ -182,6 +224,30 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
     return AbsorbPointer(
       absorbing: _saving,
       child: ListView(padding: const EdgeInsets.all(16), children: [
+        if (_token != null) ...[
+          Text(S.current.apiToken,
+              style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          SelectableText(_token!),
+          const SizedBox(height: 8),
+          Row(children: [
+            OutlinedButton.icon(
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: _token!));
+                showMessage(S.current.copiedToClipboard);
+              },
+              icon: const Icon(Icons.copy),
+              label: Text(S.current.copy),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: _resettingToken ? null : _resetToken,
+              icon: const Icon(Icons.refresh),
+              label: Text(S.current.resetToken),
+            ),
+          ]),
+          const Divider(height: 32),
+        ],
         for (final i in _items) ...[_field(i), const SizedBox(height: 12)],
       ]),
     );

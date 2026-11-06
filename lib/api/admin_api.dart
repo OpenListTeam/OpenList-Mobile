@@ -85,7 +85,15 @@ class AdminApi {
         .toList();
   }
 
-  Future<void> saveSettings(List<SettingItem> items) => client.post(
-      '/api/admin/setting/save',
-      body: items.map((e) => e.toJson()).toList());
+  Future<void> saveSettings(List<SettingItem> items) =>
+      client.post('/api/admin/setting/save',
+          body: items.map((e) => e.toJson()).toList());
+
+  Future<String> resetToken() async {
+    final data = await client.post('/api/admin/setting/reset_token');
+    if (data is! String || data.isEmpty) {
+      throw const FormatException('The core returned an invalid API token');
+    }
+    return data;
+  }
 }
