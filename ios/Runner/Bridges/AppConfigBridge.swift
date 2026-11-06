@@ -138,10 +138,8 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
 
     override init() {
         super.init()
-        if let reference = defaults.string(forKey: Keys.selectedDirectory),
-           let url = try? bookmarkURL(reference: reference) {
-            activeDirectoryURL = url
-            _ = url.startAccessingSecurityScopedResource()
+        if let reference = defaults.string(forKey: Keys.selectedDirectory) {
+            _ = try? directory(for: reference)
         }
     }
 
@@ -207,12 +205,8 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
     }
 
     func resetSelectedDirectory(completion: @escaping (Result<Void, Error>) -> Void) {
-        if let reference = defaults.string(forKey: Keys.selectedDirectory),
-           let url = try? bookmarkURL(reference: reference),
-           activeDirectoryURL?.path == url.path {
-            url.stopAccessingSecurityScopedResource()
-            activeDirectoryURL = nil
-        }
+        activeDirectoryURL?.stopAccessingSecurityScopedResource()
+        activeDirectoryURL = nil
         defaults.removeObject(forKey: Keys.selectedDirectory)
         completion(.success(()))
     }
@@ -391,10 +385,10 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
 
     private func directory(for reference: String) throws -> DirectoryHandle {
         if reference == Keys.defaultDirectory { return try defaultDirectory() }
-        guard let data = defaults.data(forKey: directoryKey(reference, "bookmark")) else {
+        guard defaults.data(forKey: directoryKey(reference, "bookmark")) != nil else {
             throw PigeonError(code: "directory-not-found", message: "Download directory not found", details: nil)
         }
-        let url = try bookmarkURL(data: data)
+        let url = try bookmarkURL(reference: reference)
         try activate(url)
         let name = defaults.string(forKey: directoryKey(reference, "name")) ?? url.lastPathComponent
         return DirectoryHandle(reference: reference, name: name, url: url)
@@ -404,13 +398,26 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
         guard let data = defaults.data(forKey: directoryKey(reference, "bookmark")) else {
             throw PigeonError(code: "directory-not-found", message: "Download directory not found", details: nil)
         }
-        return try bookmarkURL(data: data)
+        let (url, stale) = try bookmarkURL(data: data)
+        if stale {
+            guard url.startAccessingSecurityScopedResource() else {
+                throw PigeonError(code: "directory-access-denied", message: "Download directory permission was revoked", details: nil)
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+            let refreshed = try url.bookmarkData(
+                options: [.withSecurityScope],
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            )
+            defaults.set(refreshed, forKey: directoryKey(reference, "bookmark"))
+        }
+        return url
     }
 
-    private func bookmarkURL(data: Data) throws -> URL {
+    private func bookmarkURL(data: Data) throws -> (URL, Bool) {
         var stale = false
         let url = try URL(resolvingBookmarkData: data, options: [.withSecurityScope, .withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale)
-        return url
+        return (url, stale)
     }
 
     private func activate(_ url: URL) throws {
