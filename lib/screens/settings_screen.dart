@@ -37,6 +37,13 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = OpenListSession.instance;
+    return AnimatedBuilder(
+      animation: session,
+      builder: (context, _) => _build(context, session),
+    );
+  }
+
+  Widget _build(BuildContext context, OpenListSession session) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
