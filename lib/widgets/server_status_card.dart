@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated_api.dart';
@@ -61,7 +59,8 @@ class ServerStatusCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: AppDesign.successGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppDesign.radiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppDesign.radiusSmall),
                     ),
                     child: Text(
                       _modeLabel(mode),
@@ -83,7 +82,8 @@ class ServerStatusCard extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onStartStop,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isRunning ? colorScheme.error : AppDesign.primaryBlue,
+                  backgroundColor:
+                      isRunning ? colorScheme.error : AppDesign.primaryBlue,
                   foregroundColor: Colors.white,
                   elevation: 0,
                 ),
@@ -101,60 +101,58 @@ class ServerStatusCard extends StatelessWidget {
               ),
             ),
 
-            // Android only: Network mode toggle
-            if (Platform.isAndroid) ...[
-              const SizedBox(height: AppDesign.space16),
-              InkWell(
-                onTap: onModeChange,
-                borderRadius: BorderRadius.circular(AppDesign.radiusButton),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDesign.space16,
-                    vertical: AppDesign.space12,
+            const SizedBox(height: AppDesign.space16),
+            InkWell(
+              onTap: onModeChange,
+              borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDesign.space16,
+                  vertical: AppDesign.space12,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color:
+                        isDark ? AppDesign.borderDark : AppDesign.borderLight,
                   ),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: isDark ? AppDesign.borderDark : AppDesign.borderLight,
+                  borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      mode == 'local' ? Icons.computer : Icons.wifi,
+                      size: 20,
+                      color: colorScheme.primary,
                     ),
-                    borderRadius: BorderRadius.circular(AppDesign.radiusButton),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        mode == 'local' ? Icons.computer : Icons.wifi,
-                        size: 20,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: AppDesign.space12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Network Mode',
-                              style: AppDesign.body2.copyWith(
-                                color: isDark ? Colors.white70 : Colors.black54,
-                              ),
+                    const SizedBox(width: AppDesign.space12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Network Mode',
+                            style: AppDesign.body2.copyWith(
+                              color: isDark ? Colors.white70 : Colors.black54,
                             ),
-                            Text(
-                              _modeLabel(mode),
-                              style: AppDesign.body1.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
+                          ),
+                          Text(
+                            _modeLabel(mode),
+                            style: AppDesign.body1.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      Icon(
-                        Icons.chevron_right,
-                        color: isDark ? Colors.white54 : Colors.black45,
-                      ),
-                    ],
-                  ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: isDark ? Colors.white54 : Colors.black45,
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
 
             // Connection details (when running)
             if (isRunning && status != null) ...[
@@ -165,8 +163,9 @@ class ServerStatusCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(AppDesign.space16),
                   decoration: BoxDecoration(
-                    color: (isDark ? AppDesign.primaryBlue : AppDesign.primaryBlue)
-                        .withOpacity(0.08),
+                    color:
+                        (isDark ? AppDesign.primaryBlue : AppDesign.primaryBlue)
+                            .withOpacity(0.08),
                     borderRadius: BorderRadius.circular(AppDesign.radiusButton),
                   ),
                   child: Row(

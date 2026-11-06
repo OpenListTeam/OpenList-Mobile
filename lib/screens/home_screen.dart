@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -104,20 +104,53 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleModeChange() async {
     final newMode = await showModalBottomSheet<String>(
       context: context,
+      isScrollControlled: true,
       builder: (context) => _NetworkModeSheet(currentMode: _mode),
     );
 
-    if (newMode != null && newMode != _mode) {
-      try {
-        await _sm.setMode(newMode);
-        setState(() => _mode = newMode);
+    if (newMode == null || newMode == _mode) return;
 
-        if (_status?.running ?? false) {
-          _showMessage(S.current.modeChangedRestart);
+    try {
+      if (newMode == 'public') {
+        final report = jsonDecode(await _sm.getSecurityReport(newMode));
+        if (report is Map && report['blocked'] == true) {
+          _showMessage(S.current.publicBlocked);
+          return;
         }
-      } catch (e) {
-        _showMessage(S.current.modeChangeFailed(e.toString()));
+        if (!mounted ||
+            !await _showConfirmDialog(
+              S.current.modePublic,
+              S.current.publicModeWarning,
+            )) {
+          return;
+        }
       }
+
+      final isRunning = _status?.running ?? false;
+      if (isRunning &&
+          !await _showConfirmDialog(
+            S.current.restartServer,
+            S.current.modeChangeRestart,
+          )) {
+        return;
+      }
+
+      await _sm.setMode(newMode);
+      if (isRunning && !await _sm.restartService()) {
+        try {
+          await _sm.setMode(_mode);
+        } catch (rollbackError) {
+          debugPrint('Failed to roll back network mode: $rollbackError');
+        }
+        if (mounted) _showMessage(S.current.serviceRestartFailed);
+        await _load();
+        return;
+      }
+
+      if (mounted) setState(() => _mode = newMode);
+      await _load();
+    } catch (e) {
+      if (mounted) _showMessage(S.current.modeChangeFailed(e.toString()));
     }
   }
 
@@ -167,22 +200,20 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.only(bottom: AppDesign.space24),
           children: [
-            // Server status card (Android only, or always visible with limited controls on iOS)
-            if (Platform.isAndroid || true) // Show on both for now
-              ServerStatusCard(
-                status: _status,
-                mode: _mode,
-                onStartStop: _handleStartStop,
-                onModeChange: _handleModeChange,
-                onTapDetails: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ServerDetailScreen(),
-                    ),
-                  );
-                },
-              ),
+            ServerStatusCard(
+              status: _status,
+              mode: _mode,
+              onStartStop: _handleStartStop,
+              onModeChange: _handleModeChange,
+              onTapDetails: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ServerDetailScreen(),
+                  ),
+                );
+              },
+            ),
 
             // Quick Access section
             Padding(
