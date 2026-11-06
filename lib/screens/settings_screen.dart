@@ -448,32 +448,42 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
   }
 
   Future<void> _load() async {
-    final values = await Future.wait([
-      DownloadManager.getDownloadDirectoryTarget(),
-      DownloadManager.getAskForDownloadDirectory(),
-      if (Platform.isAndroid) NativeBridge.appConfig.getDataDir(),
-    ]);
-    if (!mounted) return;
-    final target = values[0] as DownloadDirectoryTarget?;
-    setState(() {
-      _downloadDirectory = target?.name ?? '';
-      _askForDirectory = values[1] as bool;
-      if (Platform.isAndroid) _dataDirectory = values[2] as String;
-    });
+    try {
+      final values = await Future.wait([
+        DownloadManager.getDownloadDirectoryTarget(),
+        DownloadManager.getAskForDownloadDirectory(),
+        if (Platform.isAndroid) NativeBridge.appConfig.getDataDir(),
+      ]);
+      if (!mounted) return;
+      final target = values[0] as DownloadDirectoryTarget?;
+      setState(() {
+        _downloadDirectory = target?.name ?? '';
+        _askForDirectory = values[1] as bool;
+        if (Platform.isAndroid) _dataDirectory = values[2] as String;
+      });
+    } catch (error) {
+      if (mounted) Get.snackbar(S.current.error, '$error');
+    }
   }
 
   Future<void> _pickDownloadDirectory() async {
-    final target = await DownloadManager.chooseDownloadDirectory();
-    if (target == null || !mounted) return;
-    if (!target.isNative && target.directory != null) {
-      if (!await DownloadManager.setDownloadDirectory(target.directory!.path)) {
-        if (mounted) {
-          Get.snackbar(S.current.error, S.current.downloadDirectoryNotWritable);
+    try {
+      final target = await DownloadManager.chooseDownloadDirectory();
+      if (target == null || !mounted) return;
+      if (!target.isNative && target.directory != null) {
+        if (!await DownloadManager.setDownloadDirectory(
+            target.directory!.path)) {
+          if (mounted) {
+            Get.snackbar(
+                S.current.error, S.current.downloadDirectoryNotWritable);
+          }
+          return;
         }
-        return;
       }
+      if (mounted) setState(() => _downloadDirectory = target.name);
+    } catch (error) {
+      if (mounted) Get.snackbar(S.current.error, '$error');
     }
-    if (mounted) setState(() => _downloadDirectory = target.name);
   }
 
   Future<bool> _confirmRestart() async {

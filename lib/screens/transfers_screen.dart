@@ -6,6 +6,7 @@ import 'package:openlist_mobile/api/upload_queue.dart';
 import 'package:openlist_mobile/design/theme.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/generated_api.dart';
+import 'package:openlist_mobile/utils/download_destination.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
 
 /// Transfers screen showing uploads and downloads
@@ -501,10 +502,19 @@ class _DownloadsTabState extends State<_DownloadsTab> {
 
   Future<void> _clearDownloadFiles() async {
     if (DownloadManager.activeTasks.isNotEmpty) return;
-    final target = await DownloadManager.getDownloadDirectoryTarget();
+    final DownloadDirectoryTarget? target;
+    try {
+      target = await DownloadManager.getDownloadDirectoryTarget();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$error')));
+      }
+      return;
+    }
     if (target == null || !mounted) return;
-    if (!await _confirm(
-        S.current.confirmClear, '${S.current.confirmClearAllFiles}\n\n${target.name}')) {
+    if (!await _confirm(S.current.confirmClear,
+        '${S.current.confirmClearAllFiles}\n\n${target.name}')) {
       return;
     }
     final cleared = await DownloadManager.clearDownloadDirectory();

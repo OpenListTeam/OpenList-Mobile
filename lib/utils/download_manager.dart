@@ -174,8 +174,7 @@ class DownloadManager {
   static final _DownloadChangeNotifier _changes = _DownloadChangeNotifier();
   static const String _historyKey = 'download_task_history.v1';
   static const String _downloadDirectoryKey = 'download_directory.v1';
-  static const String _downloadDirectoryNameKey =
-      'download_directory_name.v1';
+  static const String _downloadDirectoryNameKey = 'download_directory_name.v1';
   static const String _downloadDirectoryReferenceKey =
       'download_directory_reference.v1';
   static const String _askForDownloadDirectoryKey =
@@ -352,12 +351,12 @@ class DownloadManager {
       Platform.isAndroid || Platform.isIOS;
 
   static Future<DownloadDirectoryTarget?> getDownloadDirectoryTarget() async {
+    if (_usesNativeDownloadStorage) {
+      final directory =
+          await NativeBridge.downloadStorage.getDefaultDirectory();
+      return DownloadDirectoryTarget.native(directory);
+    }
     try {
-      if (_usesNativeDownloadStorage) {
-        final directory =
-            await NativeBridge.downloadStorage.getDefaultDirectory();
-        return DownloadDirectoryTarget.native(directory);
-      }
       final configured = await getConfiguredDownloadDirectory();
       final directory = configured == null || configured.isEmpty
           ? await _getOpenListDownloadDirectory()
@@ -509,10 +508,21 @@ class DownloadManager {
     await initialize();
 
     final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
-    final target = await _getDownloadTargetForTask();
+    final DownloadDirectoryTarget? target;
+    try {
+      target = await _getDownloadTargetForTask();
+    } catch (error) {
+      log('Failed to get download directory: $error');
+      _showSnackbar(getx.GetSnackBar(
+        message: '${S.current.error}: $error',
+        duration: const Duration(seconds: 4),
+      ));
+      return false;
+    }
     if (target == null) return false;
     final requestedFilename =
         _safeFilename(filename ?? _getFilenameFromUrl(url));
+
     late final DownloadDestination destination;
     try {
       destination =
@@ -826,7 +836,17 @@ class DownloadManager {
     await initialize();
 
     final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
-    final target = await _getDownloadTargetForTask();
+    final DownloadDirectoryTarget? target;
+    try {
+      target = await _getDownloadTargetForTask();
+    } catch (error) {
+      log('Failed to get download directory: $error');
+      _showSnackbar(getx.GetSnackBar(
+        message: '${S.current.error}: $error',
+        duration: const Duration(seconds: 4),
+      ));
+      return false;
+    }
     if (target == null) return false;
     final requestedFilename =
         _safeFilename(filename ?? _getFilenameFromUrl(source));
@@ -1381,8 +1401,15 @@ class DownloadManager {
       for (final task in _completedTasks)
         if (task.directoryReference != null) task.directoryReference!,
     };
-    final currentTarget = await getDownloadDirectoryTarget();
-    if (currentTarget != null) directoryReferences.add(currentTarget.reference);
+    DownloadDirectoryTarget? currentTarget;
+    try {
+      currentTarget = await getDownloadDirectoryTarget();
+      if (currentTarget != null) {
+        directoryReferences.add(currentTarget.reference);
+      }
+    } catch (error) {
+      log('Failed to get current download directory: $error');
+    }
 
     if (_usesNativeDownloadStorage) {
       for (final reference in directoryReferences) {
@@ -1450,20 +1477,25 @@ class DownloadManager {
   }
 
   static Future<bool> openDownloadDirectory() async {
-    final target = await getDownloadDirectoryTarget();
-    if (target == null) return false;
-    if (target.isNative) {
-      return NativeBridge.downloadStorage.openDirectory(target.reference);
+    try {
+      final target = await getDownloadDirectoryTarget();
+      if (target == null) return false;
+      if (target.isNative) {
+        return NativeBridge.downloadStorage.openDirectory(target.reference);
+      }
+      final directory = target.directory!;
+      await openFileManager(
+        androidConfig: AndroidConfig(
+          folderType: AndroidFolderType.other,
+          folderPath: directory.path,
+        ),
+        iosConfig: IosConfig(folderPath: directory.path),
+      );
+      return true;
+    } catch (error) {
+      log('Failed to open download directory: $error');
+      return false;
     }
-    final directory = target.directory!;
-    await openFileManager(
-      androidConfig: AndroidConfig(
-        folderType: AndroidFolderType.other,
-        folderPath: directory.path,
-      ),
-      iosConfig: IosConfig(folderPath: directory.path),
-    );
-    return true;
   }
 
   static Future<bool> deleteDownloadedFile(DownloadFile file) async {
@@ -1510,9 +1542,9 @@ class DownloadManager {
   static Future<bool> clearDownloadDirectory() async {
     if (_activeTasks.isNotEmpty) return false;
     await initialize();
-    final target = await getDownloadDirectoryTarget();
-    if (target == null || _activeTasks.isNotEmpty) return false;
     try {
+      final target = await getDownloadDirectoryTarget();
+      if (target == null || _activeTasks.isNotEmpty) return false;
       if (target.isNative) {
         await NativeBridge.downloadStorage.clearDirectory(target.reference);
       } else {

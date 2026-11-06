@@ -152,9 +152,8 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
     func getDefaultDirectory(completion: @escaping (Result<DownloadDirectory, Error>) -> Void) {
         do {
             let directory: DirectoryHandle
-            if let selected = defaults.string(forKey: Keys.selectedDirectory),
-               let selectedDirectory = try? directory(for: selected) {
-                directory = selectedDirectory
+            if let selected = defaults.string(forKey: Keys.selectedDirectory) {
+                directory = try self.directory(for: selected)
             } else {
                 directory = try defaultDirectory()
             }

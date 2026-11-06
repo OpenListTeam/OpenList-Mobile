@@ -57,10 +57,7 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
             val directory = if (selected == null) {
                 ensureDefaultDirectory()
             } else {
-                runCatching { resolveDirectory(selected) }.getOrElse {
-                    preferences.edit().remove(SELECTED_DIRECTORY).apply()
-                    ensureDefaultDirectory()
-                }
+                resolveDirectory(selected)
             }
             directoryResult(directory)
         }
