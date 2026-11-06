@@ -10,10 +10,7 @@ import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import com.openlist.pigeon.GeneratedApi
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.RandomAccessFile
-import java.nio.ByteBuffer
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -173,7 +170,10 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
             if (handle.file != null) {
                 RandomAccessFile(handle.file, "rw").use { it.setLength(0) }
             } else {
-                withOutput(handle) { channel -> channel.truncate(0) }
+                val document = handle.document ?: throw IllegalArgumentException("Download file not found")
+                resolver.openOutputStream(document.uri, "wt")
+                    ?.use { }
+                    ?: throw IllegalStateException("Cannot open download file")
             }
         }
     }
@@ -193,11 +193,10 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
                     it.write(data)
                 }
             } else {
-                withOutput(handle) { channel ->
-                    channel.position(offset)
-                    val bytes = ByteBuffer.wrap(data)
-                    while (bytes.hasRemaining()) channel.write(bytes)
-                }
+                val document = handle.document ?: throw IllegalArgumentException("Download file not found")
+                val output = resolver.openOutputStream(document.uri, "wa")
+                    ?: throw IllegalStateException("Cannot open download file")
+                output.use { it.write(data) }
             }
         }
     }
@@ -207,8 +206,6 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
             val handle = resolveFile(fileReference) ?: throw IllegalArgumentException("Download file not found")
             if (handle.file != null) {
                 RandomAccessFile(handle.file, "rw").use { it.fd.sync() }
-            } else {
-                withOutput(handle) { channel -> channel.force(true) }
             }
         }
     }
@@ -436,25 +433,8 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
 
     private fun fileLength(handle: FileHandle): Long {
         if (handle.file != null) return handle.file.length()
-        return withInput(handle) { channel -> channel.size() }
-    }
-
-    private fun <T> withInput(handle: FileHandle, block: (java.nio.channels.FileChannel) -> T): T {
-        val document = handle.document ?: throw IllegalArgumentException("Download file not found")
-        val descriptor = resolver.openFileDescriptor(document.uri, "r")
-            ?: throw IllegalStateException("Cannot open download file")
-        descriptor.use { pfd ->
-            FileInputStream(pfd.fileDescriptor).use { input -> return block(input.channel) }
-        }
-    }
-
-    private fun <T> withOutput(handle: FileHandle, block: (java.nio.channels.FileChannel) -> T): T {
-        val document = handle.document ?: throw IllegalArgumentException("Download file not found")
-        val descriptor = resolver.openFileDescriptor(document.uri, "rw")
-            ?: throw IllegalStateException("Cannot open download file")
-        descriptor.use { pfd ->
-            FileOutputStream(pfd.fileDescriptor).use { output -> return block(output.channel) }
-        }
+        return handle.document?.length()
+            ?: throw IllegalArgumentException("Download file not found")
     }
 
     private fun directoryResult(directory: DirectoryHandle) = GeneratedApi.DownloadDirectory.Builder()
