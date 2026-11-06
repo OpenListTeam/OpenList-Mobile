@@ -186,7 +186,7 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
         }
         do {
             try activate(url)
-            let bookmark = try url.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
+            let bookmark = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
             let reference = "directory-\(UUID().uuidString)"
             let name = url.lastPathComponent.isEmpty ? "Selected folder" : url.lastPathComponent
             defaults.set(bookmark, forKey: directoryKey(reference, "bookmark"))
@@ -240,7 +240,7 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
     }
 
     func truncateFile(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        withFileHandle(reference: fileReference, completion: completion) { handle in
+        withFileHandle(fileReference: fileReference, completion: completion) { handle in
             handle.truncateFile(atOffset: 0)
         }
     }
@@ -250,14 +250,14 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
             completion(.failure(PigeonError(code: "invalid-offset", message: "File offset must not be negative", details: nil)))
             return
         }
-        withFileHandle(reference: fileReference, completion: completion) { handle in
+        withFileHandle(fileReference: fileReference, completion: completion) { handle in
             handle.seek(toFileOffset: UInt64(offset))
             handle.write(data.data)
         }
     }
 
     func flushFile(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        withFileHandle(reference: fileReference, completion: completion) { handle in
+        withFileHandle(fileReference: fileReference, completion: completion) { handle in
             handle.synchronizeFile()
         }
     }
@@ -405,7 +405,7 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
             }
             defer { url.stopAccessingSecurityScopedResource() }
             let refreshed = try url.bookmarkData(
-                options: [.withSecurityScope],
+                options: [],
                 includingResourceValuesForKeys: nil,
                 relativeTo: nil
             )
@@ -416,7 +416,7 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
 
     private func bookmarkURL(data: Data) throws -> (URL, Bool) {
         var stale = false
-        let url = try URL(resolvingBookmarkData: data, options: [.withSecurityScope, .withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale)
+        let url = try URL(resolvingBookmarkData: data, options: [.withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale)
         return (url, stale)
     }
 

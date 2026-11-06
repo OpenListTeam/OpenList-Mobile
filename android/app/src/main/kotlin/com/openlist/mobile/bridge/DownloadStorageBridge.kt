@@ -321,7 +321,7 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
     override fun openFile(fileReference: String, result: GeneratedApi.Result<Boolean>) {
         executeOnMain(result) {
             val handle = resolveFile(fileReference) ?: return@executeOnMain false
-            val uri = handle.document?.uri ?: handle.file?.let { fileUri(it) } ?: return@executeOnMain false
+            val uri = handle.document?.uri ?: handle.file?.let { Uri.parse(fileUri(it)) } ?: return@executeOnMain false
             val mime = mimeType(handle.name)
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, mime)
@@ -379,7 +379,8 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
             val directory = File(path)
             if (!directory.exists() && !directory.mkdirs()) throw IllegalStateException("Download directory is unavailable")
             if (!directory.isDirectory || !directory.canWrite()) throw IllegalStateException("Download directory is not writable")
-            return DirectoryHandle(reference, preferences.getString("$DIRECTORY_PREFIX$reference.name", directory.name), path = directory)
+            val name = preferences.getString("$DIRECTORY_PREFIX$reference.name", directory.name) ?: directory.name
+            return DirectoryHandle(reference, name, path = directory)
         }
         val uriString = preferences.getString("$DIRECTORY_PREFIX$reference.uri", null)
             ?: throw IllegalArgumentException("Download directory not found")
@@ -389,7 +390,9 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
         if (!tree.exists() || !tree.isDirectory || !tree.canWrite()) {
             throw IllegalStateException("Download directory permission was revoked")
         }
-        return DirectoryHandle(reference, preferences.getString("$DIRECTORY_PREFIX$reference.name", tree.name ?: "Selected folder"), tree = tree)
+        val name = preferences.getString("$DIRECTORY_PREFIX$reference.name", tree.name ?: "Selected folder")
+            ?: tree.name ?: "Selected folder"
+        return DirectoryHandle(reference, name, tree = tree)
     }
 
     private fun resolveFile(reference: String): FileHandle? {
@@ -441,7 +444,7 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
         val descriptor = resolver.openFileDescriptor(document.uri, "r")
             ?: throw IllegalStateException("Cannot open download file")
         descriptor.use { pfd ->
-            FileInputStream(pfd.fileDescriptor).use { input -> block(input.channel) }
+            FileInputStream(pfd.fileDescriptor).use { input -> return block(input.channel) }
         }
     }
 
@@ -450,7 +453,7 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
         val descriptor = resolver.openFileDescriptor(document.uri, "rw")
             ?: throw IllegalStateException("Cannot open download file")
         descriptor.use { pfd ->
-            FileOutputStream(pfd.fileDescriptor).use { output -> block(output.channel) }
+            FileOutputStream(pfd.fileDescriptor).use { output -> return block(output.channel) }
         }
     }
 
