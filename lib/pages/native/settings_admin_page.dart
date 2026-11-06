@@ -291,7 +291,7 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
     return AbsorbPointer(
       absorbing: _saving,
       child: ListView(padding: const EdgeInsets.all(16), children: [
-        if (_token != null) ...[
+        if (_group == _offlineDownloadGroup && _token != null) ...[
           Text(S.current.apiToken,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
