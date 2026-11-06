@@ -85,6 +85,27 @@ void main() {
     }
   });
 
+  test('lists and deletes untracked file metadata', () async {
+    final directory =
+        await Directory.systemTemp.createTemp('openlist-download-metadata-');
+    final file = File('${directory.path}${Platform.pathSeparator}photo.jpg');
+    try {
+      await file.writeAsBytes(const [1, 2, 3, 4]);
+      expect(
+          await DownloadManager.setDownloadDirectory(directory.path), isTrue);
+
+      final files = await DownloadManager.getDownloadedFileMetadata();
+      final metadata = files.singleWhere((entry) => entry.name == 'photo.jpg');
+      expect(metadata.reference, file.path);
+      expect(metadata.size, 4);
+      expect(await DownloadManager.deleteDownloadedFile(metadata), isTrue);
+      expect(await file.exists(), isFalse);
+    } finally {
+      await DownloadManager.resetDownloadDirectory();
+      await directory.delete(recursive: true);
+    }
+  });
+
   test('dismissing the save-directory picker creates no download task',
       () async {
     FilePicker.platform = _FilePicker(null);
