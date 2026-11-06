@@ -207,6 +207,17 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
         completion?(.success(nil))
     }
 
+    func resetSelectedDirectory(completion: @escaping (Result<Void, Error>) -> Void) {
+        if let reference = defaults.string(forKey: Keys.selectedDirectory),
+           let url = try? bookmarkURL(reference: reference),
+           activeDirectoryURL?.path == url.path {
+            url.stopAccessingSecurityScopedResource()
+            activeDirectoryURL = nil
+        }
+        defaults.removeObject(forKey: Keys.selectedDirectory)
+        completion(.success(()))
+    }
+
     func reserveFile(directoryReference: String, filename: String, completion: @escaping (Result<DownloadFile, Error>) -> Void) {
         do {
             let directory = try directory(for: directoryReference)

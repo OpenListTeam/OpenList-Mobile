@@ -50,18 +50,17 @@ void main() {
     }
   });
 
-  test('clearing downloads keeps files not managed by DownloadManager',
-      () async {
+  test('clearing downloads removes untracked files too', () async {
     final directory =
         await Directory.systemTemp.createTemp('openlist-download-clear-');
     final unrelated = File('${directory.path}/unrelated.txt');
     try {
-      await unrelated.writeAsString('keep');
+      await unrelated.writeAsString('remove');
       expect(
           await DownloadManager.setDownloadDirectory(directory.path), isTrue);
 
       expect(await DownloadManager.clearDownloadDirectory(), isTrue);
-      expect(await unrelated.exists(), isTrue);
+      expect(await unrelated.exists(), isFalse);
     } finally {
       await DownloadManager.resetDownloadDirectory();
       await directory.delete(recursive: true);

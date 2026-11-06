@@ -2521,6 +2521,8 @@ public class GeneratedApi {
     void getDefaultDirectory(@NonNull Result<DownloadDirectory> result);
     /** Presents the platform directory picker and persists its permission. */
     void chooseDirectory(@NonNull NullableResult<DownloadDirectory> result);
+    /** Resets the selected directory to the platform default without deleting files. */
+    void resetSelectedDirectory(@NonNull VoidResult result);
     /** Creates a temporary file reservation and returns its opaque reference. */
     void reserveFile(@NonNull String directoryReference, @NonNull String filename, @NonNull Result<DownloadFile> result);
 
@@ -2607,6 +2609,33 @@ public class GeneratedApi {
                     };
 
                 api.chooseDirectory(resultCallback);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.openlist_mobile.DownloadStorage.resetSelectedDirectory" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                VoidResult resultCallback =
+                    new VoidResult() {
+                      public void success() {
+                        wrapped.add(0, null);
+                        reply.reply(wrapped);
+                      }
+
+                      public void error(Throwable error) {
+                        ArrayList<Object> wrappedError = wrapError(error);
+                        reply.reply(wrappedError);
+                      }
+                    };
+
+                api.resetSelectedDirectory(resultCallback);
               });
         } else {
           channel.setMessageHandler(null);

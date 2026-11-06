@@ -233,8 +233,7 @@ class DownloadManager {
     }();
   }
 
-  static Future<String> _registerDirectoryReference(
-      Directory directory) async {
+  static Future<String> _registerDirectoryReference(Directory directory) async {
     await _loadDirectoryReferences();
     final path = directory.absolute.path;
     for (final entry in _directoryReferences.entries) {
@@ -363,10 +362,12 @@ class DownloadManager {
       final directory = configured == null || configured.isEmpty
           ? await _getOpenListDownloadDirectory()
           : await _prepareDownloadDirectory(configured);
-      return directory == null ? null : DownloadDirectoryTarget.path(
-          reference: await _registerDirectoryReference(directory),
-          directory: directory,
-        );
+      return directory == null
+          ? null
+          : DownloadDirectoryTarget.path(
+              reference: await _registerDirectoryReference(directory),
+              directory: directory,
+            );
     } catch (error) {
       log('Failed to get download directory: $error');
       return null;
@@ -379,7 +380,8 @@ class DownloadManager {
         final directory = await NativeBridge.downloadStorage.chooseDirectory();
         if (directory == null) return null;
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_downloadDirectoryReferenceKey, directory.reference);
+        await prefs.setString(
+            _downloadDirectoryReferenceKey, directory.reference);
         await prefs.setString(_downloadDirectoryNameKey, directory.name);
         await prefs.remove(_downloadDirectoryKey);
         _notifyChanged(filesChanged: true);
@@ -487,6 +489,9 @@ class DownloadManager {
   }
 
   static Future<void> resetDownloadDirectory() async {
+    if (_usesNativeDownloadStorage) {
+      await NativeBridge.downloadStorage.resetSelectedDirectory();
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_downloadDirectoryKey);
     await prefs.remove(_downloadDirectoryReferenceKey);
@@ -506,10 +511,12 @@ class DownloadManager {
     final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
     final target = await _getDownloadTargetForTask();
     if (target == null) return false;
-    final requestedFilename = _safeFilename(filename ?? _getFilenameFromUrl(url));
+    final requestedFilename =
+        _safeFilename(filename ?? _getFilenameFromUrl(url));
     late final DownloadDestination destination;
     try {
-      destination = await _reserveDestination(target, requestedFilename, taskId);
+      destination =
+          await _reserveDestination(target, requestedFilename, taskId);
     } catch (error) {
       log('Failed to reserve download file: $error');
       _showSnackbar(getx.GetSnackBar(
@@ -791,7 +798,8 @@ class DownloadManager {
     }
   }
 
-  static Future<void> _discardDestination(DownloadDestination destination) async {
+  static Future<void> _discardDestination(
+      DownloadDestination destination) async {
     try {
       await destination.discard();
     } catch (error) {
@@ -820,10 +828,12 @@ class DownloadManager {
     final taskId = '${DateTime.now().millisecondsSinceEpoch}-${_nextTaskId++}';
     final target = await _getDownloadTargetForTask();
     if (target == null) return false;
-    final requestedFilename = _safeFilename(filename ?? _getFilenameFromUrl(source));
+    final requestedFilename =
+        _safeFilename(filename ?? _getFilenameFromUrl(source));
     late final DownloadDestination destination;
     try {
-      destination = await _reserveDestination(target, requestedFilename, taskId);
+      destination =
+          await _reserveDestination(target, requestedFilename, taskId);
     } catch (error) {
       log('Failed to reserve Blob download file: $error');
       _showSnackbar(getx.GetSnackBar(
@@ -913,7 +923,8 @@ class DownloadManager {
       return true;
     } catch (error) {
       final cancelled = _cancelledTaskIds.contains(taskId);
-      task.status = cancelled ? DownloadStatus.cancelled : DownloadStatus.failed;
+      task.status =
+          cancelled ? DownloadStatus.cancelled : DownloadStatus.failed;
       if (!cancelled) {
         task.errorMessage = error is DioException
             ? 'Download failed (${error.type.name})'
@@ -1335,8 +1346,7 @@ class DownloadManager {
     return (await _getOpenListDownloadDirectory())?.path;
   }
 
-  static Future<DownloadFile?> getDownloadFileForTask(
-      DownloadTask task) async {
+  static Future<DownloadFile?> getDownloadFileForTask(DownloadTask task) async {
     final destination = task.destination;
     if (destination != null) return destination.stat();
     if (task.filePath.isEmpty) return null;
@@ -1377,8 +1387,8 @@ class DownloadManager {
     if (_usesNativeDownloadStorage) {
       for (final reference in directoryReferences) {
         try {
-          for (final file in
-              await NativeBridge.downloadStorage.listFiles(reference)) {
+          for (final file
+              in await NativeBridge.downloadStorage.listFiles(reference)) {
             if (seen.add(file.reference)) files.add(file);
           }
         } catch (error) {
@@ -1425,7 +1435,8 @@ class DownloadManager {
 
   static Future<bool> openDownloadedFileLocation(DownloadFile file) async {
     if (_usesNativeDownloadStorage) {
-      return NativeBridge.downloadStorage.openDirectory(file.directoryReference);
+      return NativeBridge.downloadStorage
+          .openDirectory(file.directoryReference);
     }
     final directory = File(file.reference).parent.path;
     await openFileManager(
@@ -1512,8 +1523,8 @@ class DownloadManager {
           }
         }
       }
-      _completedTasks.removeWhere(
-          (task) => task.directoryReference == target.reference);
+      _completedTasks
+          .removeWhere((task) => task.directoryReference == target.reference);
       _notifyChanged(persistHistory: true, filesChanged: true);
       return true;
     } catch (error) {

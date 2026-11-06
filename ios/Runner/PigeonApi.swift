@@ -1206,6 +1206,8 @@ protocol DownloadStorage {
   func getDefaultDirectory(completion: @escaping (Result<DownloadDirectory, Error>) -> Void)
   /// Presents the platform directory picker and persists its permission.
   func chooseDirectory(completion: @escaping (Result<DownloadDirectory?, Error>) -> Void)
+  /// Resets the selected directory to the platform default without deleting files.
+  func resetSelectedDirectory(completion: @escaping (Result<Void, Error>) -> Void)
   /// Creates a temporary file reservation and returns its opaque reference.
   func reserveFile(directoryReference: String, filename: String, completion: @escaping (Result<DownloadFile, Error>) -> Void)
   func getFileLength(fileReference: String, completion: @escaping (Result<Int64, Error>) -> Void)
@@ -1260,6 +1262,22 @@ class DownloadStorageSetup {
       }
     } else {
       chooseDirectoryChannel.setMessageHandler(nil)
+    }
+    /// Resets the selected directory to the platform default without deleting files.
+    let resetSelectedDirectoryChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.resetSelectedDirectory\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      resetSelectedDirectoryChannel.setMessageHandler { _, reply in
+        api.resetSelectedDirectory { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      resetSelectedDirectoryChannel.setMessageHandler(nil)
     }
     /// Creates a temporary file reservation and returns its opaque reference.
     let reserveFileChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.openlist_mobile.DownloadStorage.reserveFile\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)

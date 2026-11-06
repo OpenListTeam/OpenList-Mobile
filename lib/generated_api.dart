@@ -1751,6 +1751,30 @@ class DownloadStorage {
     }
   }
 
+  /// Resets the selected directory to the platform default without deleting files.
+  Future<void> resetSelectedDirectory() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.openlist_mobile.DownloadStorage.resetSelectedDirectory$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
   /// Creates a temporary file reservation and returns its opaque reference.
   Future<DownloadFile> reserveFile(String directoryReference, String filename) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.openlist_mobile.DownloadStorage.reserveFile$pigeonVar_messageChannelSuffix';

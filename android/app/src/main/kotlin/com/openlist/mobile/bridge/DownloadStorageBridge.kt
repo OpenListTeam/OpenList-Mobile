@@ -116,6 +116,25 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
         return true
     }
 
+    override fun resetSelectedDirectory(result: GeneratedApi.VoidResult) {
+        executeVoid(result) {
+            val selected = preferences.getString(SELECTED_DIRECTORY, null)
+            val uri = selected?.let {
+                preferences.getString("$DIRECTORY_PREFIX$it.uri", null)
+            }
+            if (uri != null) {
+                runCatching {
+                    resolver.releasePersistableUriPermission(
+                        Uri.parse(uri),
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                    )
+                }
+            }
+            preferences.edit().remove(SELECTED_DIRECTORY).apply()
+        }
+    }
+
     override fun reserveFile(
         directoryReference: String,
         filename: String,

@@ -180,6 +180,10 @@ abstract class DownloadStorage {
   @async
   DownloadDirectory? chooseDirectory();
 
+  /// Resets the selected directory to the platform default without deleting files.
+  @async
+  void resetSelectedDirectory();
+
   /// Creates a temporary file reservation and returns its opaque reference.
   @async
   DownloadFile reserveFile(String directoryReference, String filename);
