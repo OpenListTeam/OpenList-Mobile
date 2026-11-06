@@ -525,7 +525,7 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
       await NativeBridge.appConfig.setDataDir(path);
     } catch (error) {
       if (mounted) {
-        Get.snackbar(S.current.error, S.current.downloadDirectoryNotWritable);
+        Get.snackbar(S.current.error, '$error');
       }
       return;
     }

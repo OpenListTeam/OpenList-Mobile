@@ -17,13 +17,17 @@ object AppConfigBridge : GeneratedApi.AppConfig {
 
     override fun setDataDir(dir: String) {
         val selected = dir.trim()
-        val rawPath = if (selected.startsWith("file://")) {
-            android.net.Uri.parse(selected).path ?: selected
-        } else {
-            selected
+        val uri = android.net.Uri.parse(selected)
+        val rawPath = when (uri.scheme) {
+            "file" -> uri.path ?: throw IllegalArgumentException("Invalid data directory path")
+            null -> selected
+            else -> throw IllegalArgumentException("Data directory must be a filesystem path")
         }
         if (rawPath.isNotEmpty()) {
             val directory = java.io.File(rawPath)
+            if (!directory.isAbsolute) {
+                throw IllegalArgumentException("Data directory must be an absolute filesystem path")
+            }
             if (!directory.exists() && !directory.mkdirs()) {
                 throw IllegalArgumentException("Cannot create data directory")
             }
