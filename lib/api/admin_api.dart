@@ -1,6 +1,95 @@
 import 'models.dart';
 import 'openlist_client.dart';
 
+class OfflineDownloadToolConfig {
+  const OfflineDownloadToolConfig({
+    required this.name,
+    required this.endpoint,
+    required this.fields,
+  });
+
+  final String name;
+  final String endpoint;
+  final Map<String, String> fields;
+
+  Map<String, String> requestBody(Map<String, String> values) => {
+        for (final entry in fields.entries)
+          entry.value: values[entry.key] ?? '',
+      };
+}
+
+const offlineDownloadToolConfigs = <OfflineDownloadToolConfig>[
+  OfflineDownloadToolConfig(
+    name: 'Aria2',
+    endpoint: 'set_aria2',
+    fields: {'aria2_uri': 'uri', 'aria2_secret': 'secret'},
+  ),
+  OfflineDownloadToolConfig(
+    name: 'qBittorrent',
+    endpoint: 'set_qbit',
+    fields: {
+      'qbittorrent_url': 'url',
+      'qbittorrent_seedtime': 'seedtime',
+    },
+  ),
+  OfflineDownloadToolConfig(
+    name: 'Transmission',
+    endpoint: 'set_transmission',
+    fields: {
+      'transmission_uri': 'uri',
+      'transmission_seedtime': 'seedtime',
+    },
+  ),
+  OfflineDownloadToolConfig(
+    name: '115',
+    endpoint: 'set_115',
+    fields: {'115_temp_dir': 'temp_dir'},
+  ),
+  OfflineDownloadToolConfig(
+    name: '115 Open',
+    endpoint: 'set_115_open',
+    fields: {'115_open_temp_dir': 'temp_dir'},
+  ),
+  OfflineDownloadToolConfig(
+    name: '123 Pan',
+    endpoint: 'set_123_pan',
+    fields: {'123_temp_dir': 'temp_dir'},
+  ),
+  OfflineDownloadToolConfig(
+    name: '123 Open',
+    endpoint: 'set_123_open',
+    fields: {
+      '123_open_temp_dir': 'temp_dir',
+      '123_open_callback_url': 'callback_url',
+    },
+  ),
+  OfflineDownloadToolConfig(
+    name: 'PikPak',
+    endpoint: 'set_pikpak',
+    fields: {'pikpak_temp_dir': 'temp_dir'},
+  ),
+  OfflineDownloadToolConfig(
+    name: 'Thunder',
+    endpoint: 'set_thunder',
+    fields: {'thunder_temp_dir': 'temp_dir'},
+  ),
+  OfflineDownloadToolConfig(
+    name: 'ThunderX',
+    endpoint: 'set_thunderx',
+    fields: {'thunderx_temp_dir': 'temp_dir'},
+  ),
+  OfflineDownloadToolConfig(
+    name: 'Thunder Browser',
+    endpoint: 'set_thunder_browser',
+    fields: {'thunder_browser_temp_dir': 'temp_dir'},
+  ),
+  OfflineDownloadToolConfig(
+    name: 'GuangYaPan',
+    endpoint: 'set_guangyapan',
+    fields: {'guangyapan_temp_dir': 'temp_dir'},
+  ),
+];
+
 /// Admin endpoints (`/api/admin`, admin only).
 class AdminApi {
   AdminApi(this.client);
@@ -88,6 +177,20 @@ class AdminApi {
   Future<void> saveSettings(List<SettingItem> items) =>
       client.post('/api/admin/setting/save',
           body: items.map((e) => e.toJson()).toList());
+
+  Future<String> configureOfflineDownload(
+    OfflineDownloadToolConfig config,
+    Map<String, String> values,
+  ) async {
+    final data = await client.post(
+      '/api/admin/setting/${config.endpoint}',
+      body: config.requestBody(values),
+    );
+    if (data is! String) {
+      throw const FormatException('The core returned an invalid tool status');
+    }
+    return data;
+  }
 
   Future<String> resetToken() async {
     final data = await client.post('/api/admin/setting/reset_token');

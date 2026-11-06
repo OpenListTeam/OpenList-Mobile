@@ -309,6 +309,60 @@ void main() {
     expect((body.single as Map)['value'], 'B');
   });
 
+  test('offline tool settings use the runtime initialization endpoint',
+      () async {
+    final (c, adapter) = _client((_) => _ok('aria2 version: 1.37'));
+    final config = offlineDownloadToolConfigs
+        .singleWhere((item) => item.endpoint == 'set_aria2');
+    final status = await AdminApi(c).configureOfflineDownload(config, {
+      'aria2_uri': 'http://aria2:6800/jsonrpc',
+      'aria2_secret': 'secret',
+    });
+    expect(status, 'aria2 version: 1.37');
+    final req = adapter.requests.single;
+    expect(req.path, '/api/admin/setting/set_aria2');
+    expect(req.data, {
+      'uri': 'http://aria2:6800/jsonrpc',
+      'secret': 'secret',
+    });
+  });
+
+  test('offline tool settings preserve core errors', () async {
+    final (c, _) = _client((_) => {
+          'code': 400,
+          'message': 'unsupported storage driver',
+        });
+    final config = offlineDownloadToolConfigs
+        .singleWhere((item) => item.endpoint == 'set_115');
+    expect(
+      () =>
+          AdminApi(c).configureOfflineDownload(config, {'115_temp_dir': '/x'}),
+      throwsA(isA<ApiException>()
+          .having((e) => e.code, 'code', 400)
+          .having((e) => e.message, 'message', 'unsupported storage driver')),
+    );
+  });
+
+  test('offline tool settings cover every core runtime endpoint', () {
+    expect(
+      offlineDownloadToolConfigs.map((config) => config.endpoint).toList(),
+      [
+        'set_aria2',
+        'set_qbit',
+        'set_transmission',
+        'set_115',
+        'set_115_open',
+        'set_123_pan',
+        'set_123_open',
+        'set_pikpak',
+        'set_thunder',
+        'set_thunderx',
+        'set_thunder_browser',
+        'set_guangyapan',
+      ],
+    );
+  });
+
   test('reset token returns the new token', () async {
     final (c, adapter) = _client((_) => _ok('new-token'));
     final token = await AdminApi(c).resetToken();

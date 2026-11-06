@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:openlist_mobile/api/admin_api.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
 
@@ -22,6 +23,33 @@ final _groups = <(int, String Function())>[
   (12, () => S.current.groupMedia),
   (13, () => S.current.groupTranscode),
 ];
+
+const _offlineDownloadGroup = 5;
+
+final _offlineDownloadKeys = <String>{
+  for (final config in offlineDownloadToolConfigs) ...config.fields.keys,
+};
+
+SettingItem _offlinePlaceholder(String key) => SettingItem({
+      'key': key,
+      'value': '',
+      'type': key.endsWith('_seedtime') ? 'number' : 'string',
+      'group': _offlineDownloadGroup,
+      'flag': 1,
+    });
+
+List<SettingItem> _completeOfflineSettings(List<SettingItem> loaded) {
+  final byKey = {for (final item in loaded) item.key: item};
+  for (final key in _offlineDownloadKeys) {
+    byKey.putIfAbsent(key, () => _offlinePlaceholder(key));
+  }
+  return [
+    for (final config in offlineDownloadToolConfigs)
+      for (final key in config.fields.keys) byKey[key]!,
+    for (final item in loaded)
+      if (!_offlineDownloadKeys.contains(item.key)) item,
+  ];
+}
 
 /// Edits site settings group by group (admin only); saves changed items only.
 class SettingsAdminPage extends StatefulWidget {
@@ -94,10 +122,13 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
       _error = null;
     });
     try {
-      final items =
+      final loaded =
           (await OpenListSession.instance.admin.listSettings([_group]))
               .where((e) => !e.deprecated)
               .toList();
+      final items = _group == _offlineDownloadGroup
+          ? _completeOfflineSettings(loaded)
+          : loaded;
       if (!mounted || gen != _generation) return;
       _items = items;
       _original = {for (final i in items) i.key: i.value};
@@ -118,7 +149,21 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
     }
     setState(() => _saving = true);
     try {
-      await OpenListSession.instance.admin.saveSettings(changed);
+      final values = {for (final item in _items) item.key: item.value};
+      final handled = <String>{};
+      for (final config in offlineDownloadToolConfigs) {
+        if (!changed.any((item) => config.fields.containsKey(item.key))) {
+          continue;
+        }
+        await OpenListSession.instance.admin
+            .configureOfflineDownload(config, values);
+        handled.addAll(config.fields.keys);
+      }
+      final regular =
+          changed.where((item) => !handled.contains(item.key)).toList();
+      if (regular.isNotEmpty) {
+        await OpenListSession.instance.admin.saveSettings(regular);
+      }
       _original = {for (final i in _items) i.key: i.value};
       showMessage(S.current.saved);
     } catch (e) {
@@ -168,6 +213,28 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
       decoration: InputDecoration(
           labelText: item.key, helperText: help, helperMaxLines: 3),
       onChanged: (v) => item.value = v,
+    );
+  }
+
+  Widget _offlineBody(BuildContext context) {
+    final byKey = {for (final item in _items) item.key: item};
+    final extra = _items
+        .where((item) => !_offlineDownloadKeys.contains(item.key))
+        .toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final config in offlineDownloadToolConfigs) ...[
+          Text(config.name, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          for (final key in config.fields.keys) ...[
+            _field(byKey[key]!),
+            const SizedBox(height: 12),
+          ],
+          const Divider(height: 24),
+        ],
+        for (final item in extra) ...[_field(item), const SizedBox(height: 12)],
+      ],
     );
   }
 
@@ -248,7 +315,10 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
           ]),
           const Divider(height: 32),
         ],
-        for (final i in _items) ...[_field(i), const SizedBox(height: 12)],
+        if (_group == _offlineDownloadGroup)
+          _offlineBody(context)
+        else
+          for (final i in _items) ...[_field(i), const SizedBox(height: 12)],
       ]),
     );
   }
