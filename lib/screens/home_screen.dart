@@ -14,6 +14,7 @@ import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:openlist_mobile/widgets/server_status_card.dart';
 import 'package:openlist_mobile/widgets/cards.dart';
 import 'package:openlist_mobile/screens/server_detail_screen.dart';
+import 'package:openlist_mobile/screens/transfers_screen.dart';
 
 /// Home/Dashboard screen - Content-first design with server controls
 class HomeScreen extends StatefulWidget {
@@ -188,10 +189,9 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text(S.current.appName),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // TODO: Notifications
-            },
+            tooltip: S.current.downloads,
+            icon: const Icon(Icons.download_for_offline_outlined),
+            onPressed: () => Get.to(() => const TransfersScreen(initialTab: 1)),
           ),
         ],
       ),

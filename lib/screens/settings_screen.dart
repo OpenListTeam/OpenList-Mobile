@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get/get.dart';
 import 'package:openlist_mobile/api/session.dart';
 import 'package:openlist_mobile/contant/native_bridge.dart';
@@ -358,6 +359,12 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _clearCache() async {
+    await InAppWebViewController.clearAllCache();
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+  }
+
   void _showClearCacheDialog(BuildContext context) async {
     final confirmed = await _showConfirmDialog(
       context,
@@ -366,8 +373,16 @@ class SettingsScreen extends StatelessWidget {
     );
 
     if (confirmed) {
-      // TODO: Clear cache
-      Get.snackbar(S.current.success, S.current.cacheCleared);
+      try {
+        await _clearCache();
+        if (context.mounted) {
+          Get.snackbar(S.current.success, S.current.cacheCleared);
+        }
+      } catch (error) {
+        if (context.mounted) {
+          Get.snackbar(S.current.error, '$error');
+        }
+      }
     }
   }
 

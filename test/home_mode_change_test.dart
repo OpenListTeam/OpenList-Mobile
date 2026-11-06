@@ -135,6 +135,18 @@ void main() {
     expect(calls, ['setMode:lan']);
   });
 
+  testWidgets('home downloads action opens the Downloads tab', (tester) async {
+    _mockHomeApi([]);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(S.current.downloads));
+    await tester.pumpAndSettle();
+
+    expect(find.text(S.current.transfers), findsOneWidget);
+    expect(find.text(S.current.downloads), findsOneWidget);
+  });
+
   testWidgets('rolls back the saved mode when restart fails', (tester) async {
     final calls = <String>[];
     _mockHomeApi(calls, restartFails: true);
