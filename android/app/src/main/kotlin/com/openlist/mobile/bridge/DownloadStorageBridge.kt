@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.DocumentsContract
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import com.openlist.pigeon.GeneratedApi
@@ -226,11 +227,12 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
                 downloadFile(handle.reference, handle.directory.reference, destinationName, destination, null)
             } else {
                 val document = handle.document ?: throw IllegalArgumentException("Download file not found")
-                if (!document.renameTo(destinationName)) {
-                    throw IllegalStateException("Cannot finalize download file")
-                }
-                val renamed = handle.directory.tree!!.findFile(destinationName)
-                    ?: DocumentFile.fromSingleUri(activity, document.uri)
+                val renamedUri = DocumentsContract.renameDocument(
+                    resolver,
+                    document.uri,
+                    destinationName,
+                ) ?: throw IllegalStateException("Cannot finalize download file")
+                val renamed = DocumentFile.fromSingleUri(activity, renamedUri)
                     ?: throw IllegalStateException("Finalized download file is unavailable")
                 saveFile(handle.reference, handle.directory.reference, destinationName, "", renamed.uri.toString())
                 downloadFile(handle.reference, handle.directory.reference, destinationName, null, renamed)
