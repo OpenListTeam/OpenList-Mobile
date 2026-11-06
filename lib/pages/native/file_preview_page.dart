@@ -134,7 +134,14 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
     }
     final obj = _obj!;
     if (_isArchive) {
-      return ArchivePreviewView(path: widget.path, password: widget.password);
+      final obj = _obj!;
+      return ArchivePreviewView(
+        path: widget.path,
+        password: widget.password,
+        url: _url,
+        headers: _previewHeaders,
+        size: obj.size,
+      );
     }
     if (_isPdf) {
       return PdfPreviewView(url: _url, headers: _previewHeaders);

@@ -193,6 +193,7 @@ class DownloadManager {
   static final Set<String> _cancelledTaskIds = {};
   static final Set<String> _reservedFilePaths = {};
   static final Set<String> _removeWhenFinished = {};
+  static final Map<String, Future<void> Function()> _retryActions = {};
   static final Map<String, String> _directoryReferences = {};
   static int _nextTaskId = 0;
   static int _nextDirectoryReference = 0;
@@ -832,6 +833,7 @@ class DownloadManager {
     required int totalBytes,
     required Future<List<int>> Function(int offset) readChunk,
     String? filename,
+    Future<void> Function()? retry,
   }) async {
     await initialize();
 
@@ -923,6 +925,7 @@ class DownloadManager {
         ..status = DownloadStatus.completed
         ..endTime = DateTime.now()
         ..progress = 1.0;
+      _retryActions.remove(taskId);
       _activeTasks.remove(taskId);
       if (!_removeWhenFinished.remove(taskId)) {
         _completedTasks.insert(0, task);
@@ -955,6 +958,9 @@ class DownloadManager {
       _activeTasks.remove(taskId);
       if (!_removeWhenFinished.remove(taskId)) {
         _completedTasks.insert(0, task);
+        if (retry != null) _retryActions[taskId] = retry;
+      } else {
+        _retryActions.remove(taskId);
       }
       _notifyChanged(persistHistory: true, filesChanged: true);
 
@@ -1020,6 +1026,7 @@ class DownloadManager {
   /// 清除已完成的下载记录
   static void clearCompletedTasks() {
     _completedTasks.clear();
+    _retryActions.clear();
     _notifyChanged(persistHistory: true);
   }
 
@@ -1030,12 +1037,23 @@ class DownloadManager {
       cancelDownload(taskId);
       return;
     }
-    _completedTasks.removeWhere((task) => task.id == taskId);
+    _completedTasks.removeWhere((task) {
+      if (task.id != taskId) return false;
+      _retryActions.remove(taskId);
+      return true;
+    });
     _notifyChanged(persistHistory: true);
   }
 
   static Future<void> retryDownload(String taskId) async {
     await initialize();
+    final retry = _retryActions.remove(taskId);
+    if (retry != null) {
+      _completedTasks.removeWhere((task) => task.id == taskId);
+      _notifyChanged(persistHistory: true);
+      await retry();
+      return;
+    }
     final index = _completedTasks.indexWhere((task) => task.id == taskId);
     if (index < 0) return;
     final task = _completedTasks[index];
@@ -1570,7 +1588,7 @@ class DownloadManager {
     final directory =
         configured ?? (await _getOpenListDownloadDirectory())?.path;
     if (directory == null) return false;
-    return deleteFileAtPath('${directory}${Platform.pathSeparator}$filename');
+    return deleteFileAtPath('$directory${Platform.pathSeparator}$filename');
   }
 
   static Future<bool> deleteFileAtPath(String path) async {
