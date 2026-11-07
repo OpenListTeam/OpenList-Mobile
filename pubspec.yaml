@@ -57,7 +57,7 @@ dependencies:
   shared_preferences: ^2.5.6
   flutter_highlight: ^0.7.0
   flutter_smooth_markdown: ^0.10.0
-  flutter_secure_storage: ^10.3.4
+  flutter_secure_storage: ^11.2.0
   package_info_plus: ^10.2.2
   url_launcher: ^6.3.3
   video_player: ^2.14.1
