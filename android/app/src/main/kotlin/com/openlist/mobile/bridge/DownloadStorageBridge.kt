@@ -511,7 +511,7 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
     private fun newDirectoryReference() = "directory-${UUID.randomUUID()}"
     private fun newFileReference() = "file-${UUID.randomUUID()}"
 
-    private fun <T> execute(result: GeneratedApi.Result<T>, block: () -> T) {
+    private fun <T : Any> execute(result: GeneratedApi.Result<T>, block: () -> T) {
         ioExecutor.execute {
             try {
                 result.success(block())
@@ -542,7 +542,7 @@ class DownloadStorageBridge(private val activity: Activity) : GeneratedApi.Downl
         }
     }
 
-    private fun <T> executeOnMain(result: GeneratedApi.Result<T>, block: () -> T) {
+    private fun <T : Any> executeOnMain(result: GeneratedApi.Result<T>, block: () -> T) {
         activity.runOnUiThread {
             try {
                 result.success(block())
