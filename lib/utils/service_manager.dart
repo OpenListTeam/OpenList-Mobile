@@ -48,7 +48,9 @@ class ServiceManager {
     Event.setUp(_ServerEvents(this));
     // Status is pushed by native; polling is only a fallback.
     _statusCheckTimer = Timer.periodic(
-        const Duration(seconds: 30), (_) => checkServiceStatus());
+      const Duration(seconds: 30),
+      (_) => checkServiceStatus(),
+    );
     await checkServiceStatus();
   }
 
@@ -66,6 +68,28 @@ class ServiceManager {
   }
 
   Future<bool> restartService() => _call('restart', _server.restart);
+
+  Future<bool> restartServiceAndWait({
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
+    if (await checkServiceStatus()) {
+      if (!await stopService() ||
+          !await _waitForServiceStatus(false, timeout)) {
+        return false;
+      }
+    }
+    if (!await startService()) return false;
+    return _waitForServiceStatus(true, timeout);
+  }
+
+  Future<bool> _waitForServiceStatus(bool running, Duration timeout) async {
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (await checkServiceStatus() == running) return true;
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+    return false;
+  }
 
   Future<bool> _call(String name, Future<void> Function() fn) async {
     try {

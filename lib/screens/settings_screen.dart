@@ -46,11 +46,11 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _build(BuildContext context, OpenListSession session) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasLocalCore = session.kind == ConnectionKind.local;
+    final isAdmin = session.user?.isAdmin ?? false;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.current.settings),
-      ),
+      appBar: AppBar(title: Text(S.current.settings)),
       body: ListView(
         children: [
           // User info section
@@ -61,10 +61,7 @@ class SettingsScreen extends StatelessWidget {
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: AppDesign.primaryBlue.withOpacity(0.1),
-                  child: Icon(
-                    Icons.person,
-                    color: AppDesign.primaryBlue,
-                  ),
+                  child: Icon(Icons.person, color: AppDesign.primaryBlue),
                 ),
                 title: Text(
                   session.user?.username ?? 'Unknown',
@@ -112,9 +109,7 @@ class SettingsScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const ServerDetailScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const ServerDetailScreen()),
                 );
               },
             ),
@@ -150,128 +145,10 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppDesign.space24),
 
-          // Admin section (only if admin)
-          if (session.user?.isAdmin ?? false) ...[
+          // Local core password management is available without an API session.
+          if (hasLocalCore || isAdmin) ...[
             _SectionHeader(title: S.current.administration),
-            _SettingsTile(
-              icon: Icons.tune,
-              title: S.current.coreSettings,
-              subtitle: S.current.coreSettingsDesc,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SettingsAdminPage(),
-                  ),
-                );
-              },
-            ),
-            _SettingsTile(
-              icon: Icons.rule_folder_outlined,
-              title: S.current.metaManagement,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MetaAdminPage()),
-                );
-              },
-            ),
-            _SettingsTile(
-              icon: Icons.share,
-              title: S.current.adminShareManagement,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SharesAdminPage()),
-                );
-              },
-            ),
-            _SettingsTile(
-              icon: Icons.manage_search,
-              title: S.current.adminIndexes,
-              subtitle: S.current.adminManualScan,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const IndexAdminPage()),
-                );
-              },
-            ),
-            _SettingsTile(
-              icon: Icons.perm_media_outlined,
-              title: S.current.adminMediaTitle,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MediaAdminPage()),
-                );
-              },
-            ),
-            _SettingsTile(
-              icon: Icons.video_settings_outlined,
-              title: S.current.transcodeManagement,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const TranscodeAdminPage()),
-                );
-              },
-            ),
-            _SettingsTile(
-              icon: Icons.people,
-              title: S.current.userManagement,
-              subtitle: S.current.userManagementDesc,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UsersPage()),
-                );
-              },
-            ),
-            _SettingsTile(
-              icon: Icons.storage,
-              title: S.current.manageStorages,
-              subtitle: S.current.manageStoragesDesc,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const StoragesPage()),
-                );
-              },
-            ),
-            _SettingsTile(
-              icon: Icons.task_alt,
-              title: S.current.tasks,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const TasksPage()),
-                );
-              },
-            ),
-            if (Platform.isAndroid && session.kind == ConnectionKind.local)
-              _SettingsTile(
-                icon: Icons.dns,
-                title: S.current.serverRuntime,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ServerPage()),
-                  );
-                },
-              ),
-            if (Platform.isAndroid && session.kind == ConnectionKind.local) ...[
-              _SettingsTile(
-                icon: Icons.security,
-                title: S.current.tlsCertificates,
-                subtitle: S.current.tlsCertificatesDesc,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const TlsPage()),
-                  );
-                },
-              ),
+            if (hasLocalCore)
               _SettingsTile(
                 icon: Icons.lock,
                 title: S.current.changeAdminPassword,
@@ -280,6 +157,128 @@ class SettingsScreen extends StatelessWidget {
                   await AdminPassword.showEditor(context);
                 },
               ),
+            if (isAdmin) ...[
+              _SettingsTile(
+                icon: Icons.tune,
+                title: S.current.coreSettings,
+                subtitle: S.current.coreSettingsDesc,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SettingsAdminPage(),
+                    ),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.rule_folder_outlined,
+                title: S.current.metaManagement,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MetaAdminPage()),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.share,
+                title: S.current.adminShareManagement,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SharesAdminPage()),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.manage_search,
+                title: S.current.adminIndexes,
+                subtitle: S.current.adminManualScan,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const IndexAdminPage()),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.perm_media_outlined,
+                title: S.current.adminMediaTitle,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MediaAdminPage()),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.video_settings_outlined,
+                title: S.current.transcodeManagement,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const TranscodeAdminPage(),
+                    ),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.people,
+                title: S.current.userManagement,
+                subtitle: S.current.userManagementDesc,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const UsersPage()),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.storage,
+                title: S.current.manageStorages,
+                subtitle: S.current.manageStoragesDesc,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StoragesPage()),
+                  );
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.task_alt,
+                title: S.current.tasks,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TasksPage()),
+                  );
+                },
+              ),
+              if (Platform.isAndroid && hasLocalCore) ...[
+                _SettingsTile(
+                  icon: Icons.dns,
+                  title: S.current.serverRuntime,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ServerPage()),
+                    );
+                  },
+                ),
+                _SettingsTile(
+                  icon: Icons.security,
+                  title: S.current.tlsCertificates,
+                  subtitle: S.current.tlsCertificatesDesc,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TlsPage()),
+                    );
+                  },
+                ),
+              ],
             ],
             const SizedBox(height: AppDesign.space24),
           ],
@@ -421,7 +420,10 @@ class SettingsScreen extends StatelessWidget {
               onTap: () async {
                 await controller.changeLanguage(
                   LanguageOption(
-                      name: 'english', code: 'en', locale: const Locale('en')),
+                    name: 'english',
+                    code: 'en',
+                    locale: const Locale('en'),
+                  ),
                 );
                 Navigator.pop(context);
               },
@@ -431,9 +433,10 @@ class SettingsScreen extends StatelessWidget {
               onTap: () async {
                 await controller.changeLanguage(
                   LanguageOption(
-                      name: 'simplifiedChinese',
-                      code: 'zh',
-                      locale: const Locale('zh')),
+                    name: 'simplifiedChinese',
+                    code: 'zh',
+                    locale: const Locale('zh'),
+                  ),
                 );
                 Navigator.pop(context);
               },
@@ -487,11 +490,7 @@ class SettingsScreen extends StatelessWidget {
           color: AppDesign.primaryBlue.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          Icons.folder_open,
-          size: 40,
-          color: AppDesign.primaryBlue,
-        ),
+        child: Icon(Icons.folder_open, size: 40, color: AppDesign.primaryBlue),
       ),
       children: [
         const SizedBox(height: AppDesign.space16),
@@ -599,10 +598,13 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
       if (target == null || !mounted) return;
       if (!target.isNative && target.directory != null) {
         if (!await DownloadManager.setDownloadDirectory(
-            target.directory!.path)) {
+          target.directory!.path,
+        )) {
           if (mounted) {
             Get.snackbar(
-                S.current.error, S.current.downloadDirectoryNotWritable);
+              S.current.error,
+              S.current.downloadDirectoryNotWritable,
+            );
           }
           return;
         }
@@ -625,7 +627,8 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
       S.current.dataDirectoryChangeWarning,
       if (serviceRunning) S.current.dataDirectoryRestartRequired,
     ].join('\n\n');
-    final confirmed = await showDialog<bool>(
+    final confirmed =
+        await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
             title: Text(S.current.dataDirectory),

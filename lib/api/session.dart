@@ -32,7 +32,8 @@ class OpenListSession extends ChangeNotifier {
   static const _secure = FlutterSecureStorage(
     aOptions: AndroidOptions(resetOnError: true, migrateWithBackup: true),
     iOptions: IOSOptions(
-        accessibility: KeychainAccessibility.first_unlock_this_device),
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
   );
 
   OpenListClient? _client;
@@ -100,11 +101,15 @@ class OpenListSession extends ChangeNotifier {
   }
 
   /// Signs in to a remote OpenList server.
-  Future<void> connectRemote(String url, String username, String password,
-      {String otpCode = ''}) async {
+  Future<void> connectRemote(
+    String url,
+    String username,
+    String password, {
+    String otpCode = '',
+  }) async {
     final client = OpenListClient(baseUrl: url.trim());
-    final token =
-        await AuthApi(client).login(username, password, otpCode: otpCode);
+    final token = await AuthApi(client)
+        .login(username, password, otpCode: otpCode);
     await _activate(ConnectionKind.remote, client.baseUrl, token);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kKind, ConnectionKind.remote.name);
@@ -135,6 +140,13 @@ class OpenListSession extends ChangeNotifier {
       await prefs.remove(_kToken);
     }
     return token ?? '';
+  }
+
+  Future<void> disconnectLocal() async {
+    if (_kind != ConnectionKind.local) return;
+    _reset(ConnectionKind.local);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kKind, ConnectionKind.local.name);
   }
 
   Future<void> logout() async {
