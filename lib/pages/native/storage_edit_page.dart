@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/session.dart';
+import 'package:openlist_mobile/utils/android_storage_permission.dart';
 import 'package:openlist_mobile/utils/driver_localization.dart';
 
 import '../../generated/l10n.dart';
@@ -139,6 +141,10 @@ class _StorageEditPageState extends State<StorageEditPage> {
 
   Future<void> _save() async {
     if (_info == null || !(_formKey.currentState?.validate() ?? false)) return;
+    if (Platform.isAndroid && _driver == 'Local') {
+      if (!await AndroidStoragePermission.ensure(context)) return;
+    }
+    if (!mounted) return;
     setState(() => _saving = true);
     try {
       final admin = OpenListSession.instance.admin;

@@ -21,12 +21,13 @@ import 'package:openlist_mobile/pages/native/tasks_page.dart';
 import 'package:openlist_mobile/pages/native/tls_page.dart';
 import 'package:openlist_mobile/pages/openlist/pwd_edit_dialog.dart';
 import 'package:openlist_mobile/screens/server_detail_screen.dart';
+import 'package:openlist_mobile/utils/android_storage_permission.dart';
+import 'package:openlist_mobile/utils/download_destination.dart';
+import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
 import 'package:openlist_mobile/utils/language_manager.dart';
 import 'package:openlist_mobile/utils/service_manager.dart';
 import 'package:openlist_mobile/utils/theme_controller.dart';
-import 'package:openlist_mobile/utils/download_manager.dart';
-import 'package:openlist_mobile/utils/download_destination.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -539,11 +540,31 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
   String _downloadDirectory = '';
   String _dataDirectory = '';
   bool _askForDirectory = false;
+  bool _allFilesGranted = true;
+  late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
     super.initState();
+    _lifecycleListener = AppLifecycleListener(onResume: _refreshPermission);
     _load();
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  Future<void> _refreshPermission() async {
+    try {
+      final granted = await AndroidStoragePermission.isGranted();
+      if (mounted && granted != _allFilesGranted) {
+        setState(() => _allFilesGranted = granted);
+      }
+    } catch (error) {
+      if (mounted) Get.snackbar(S.current.error, '$error');
+    }
   }
 
   Future<void> _load() async {
@@ -551,6 +572,7 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
       final values = await Future.wait([
         DownloadManager.getDownloadDirectoryTarget(),
         DownloadManager.getAskForDownloadDirectory(),
+        AndroidStoragePermission.isGranted(),
         if (Platform.isAndroid) NativeBridge.appConfig.getDataDir(),
       ]);
       if (!mounted) return;
@@ -558,11 +580,17 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
       setState(() {
         _downloadDirectory = target?.name ?? '';
         _askForDirectory = values[1] as bool;
-        if (Platform.isAndroid) _dataDirectory = values[2] as String;
+        _allFilesGranted = values[2] as bool;
+        if (Platform.isAndroid) _dataDirectory = values[3] as String;
       });
     } catch (error) {
       if (mounted) Get.snackbar(S.current.error, '$error');
     }
+  }
+
+  Future<void> _grantAllFilesAccess() async {
+    final granted = await AndroidStoragePermission.request();
+    if (mounted) setState(() => _allFilesGranted = granted);
   }
 
   Future<void> _pickDownloadDirectory() async {
@@ -586,6 +614,7 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
   }
 
   Future<void> _pickDataDirectory() async {
+    if (!await AndroidStoragePermission.ensure(context)) return;
     final path = await FilePicker.platform.getDirectoryPath(
       dialogTitle: S.current.dataDirectory,
     );
@@ -643,6 +672,13 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
     return Column(
       children: [
         if (Platform.isAndroid) ...[
+          if (!_allFilesGranted)
+            _SettingsTile(
+              icon: Icons.admin_panel_settings_outlined,
+              title: S.current.grantManagerStoragePermission,
+              subtitle: S.current.grantStoragePermissionDesc,
+              onTap: _grantAllFilesAccess,
+            ),
           _SettingsTile(
             icon: Icons.download,
             title: S.current.downloadDirectory,

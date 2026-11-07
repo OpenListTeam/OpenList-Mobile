@@ -793,7 +793,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Grant [external storage] permission",
     ),
     "grantStoragePermissionDesc": MessageLookupByLibrary.simpleMessage(
-      "Mounting local storage is a must, otherwise no permission to read and write files",
+      "Required to read and write the selected data directory and mount local storage",
     ),
     "groupFtp": MessageLookupByLibrary.simpleMessage("FTP"),
     "groupGlobal": MessageLookupByLibrary.simpleMessage("Global"),

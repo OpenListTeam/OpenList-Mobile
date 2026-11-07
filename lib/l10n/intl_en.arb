@@ -29,7 +29,7 @@
   "importantSettings": "Important settings",
   "uiSettings": "UI",
   "grantManagerStoragePermission": "Grant [Manage external storage] permission",
-  "grantStoragePermissionDesc": "Mounting local storage is a must, otherwise no permission to read and write files",
+  "grantStoragePermissionDesc": "Required to read and write the selected data directory and mount local storage",
   "grantStoragePermission": "Grant [external storage] permission",
   "grantNotificationPermission": "Grant [Notification] permission",
   "grantNotificationPermissionDesc": "Used for foreground service keep alive",

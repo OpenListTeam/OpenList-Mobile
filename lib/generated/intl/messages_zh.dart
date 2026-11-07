@@ -616,7 +616,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "申请【读写外置存储权限】",
     ),
     "grantStoragePermissionDesc": MessageLookupByLibrary.simpleMessage(
-      "挂载本地存储时必须授予，否则无权限读写文件",
+      "读写选定的 data 文件夹以及挂载本地存储时必须授予，否则无权限读写文件",
     ),
     "groupFtp": MessageLookupByLibrary.simpleMessage("FTP"),
     "groupGlobal": MessageLookupByLibrary.simpleMessage("全局"),
