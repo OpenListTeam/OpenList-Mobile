@@ -6,29 +6,29 @@ import '../../generated/l10n.dart';
 import 'common.dart';
 
 String roleText(int role) => switch (role) {
-      UserRole.admin => S.current.roleAdmin,
-      UserRole.guest => S.current.roleGuest,
-      _ => S.current.roleGeneral,
-    };
+  UserRole.admin => S.current.roleAdmin,
+  UserRole.guest => S.current.roleGuest,
+  _ => S.current.roleGeneral,
+};
 
 String permText(int bit) => switch (bit) {
-      UserPerm.seeHides => S.current.permSeeHides,
-      UserPerm.accessWithoutPassword => S.current.permAccessWithoutPassword,
-      UserPerm.offlineDownload => S.current.permOfflineDownload,
-      UserPerm.write => S.current.permWrite,
-      UserPerm.rename => S.current.permRename,
-      UserPerm.move => S.current.permMove,
-      UserPerm.copy => S.current.permCopy,
-      UserPerm.remove => S.current.permRemove,
-      UserPerm.webdavRead => S.current.permWebdavRead,
-      UserPerm.webdavManage => S.current.permWebdavManage,
-      UserPerm.ftpAccess => S.current.permFtpAccess,
-      UserPerm.ftpManage => S.current.permFtpManage,
-      UserPerm.readArchives => S.current.permReadArchives,
-      UserPerm.decompress => S.current.permDecompress,
-      UserPerm.share => S.current.permShare,
-      _ => S.current.permCustomShareId,
-    };
+  UserPerm.seeHides => S.current.permSeeHides,
+  UserPerm.accessWithoutPassword => S.current.permAccessWithoutPassword,
+  UserPerm.offlineDownload => S.current.permOfflineDownload,
+  UserPerm.write => S.current.permWrite,
+  UserPerm.rename => S.current.permRename,
+  UserPerm.move => S.current.permMove,
+  UserPerm.copy => S.current.permCopy,
+  UserPerm.remove => S.current.permRemove,
+  UserPerm.webdavRead => S.current.permWebdavRead,
+  UserPerm.webdavManage => S.current.permWebdavManage,
+  UserPerm.ftpAccess => S.current.permFtpAccess,
+  UserPerm.ftpManage => S.current.permFtpManage,
+  UserPerm.readArchives => S.current.permReadArchives,
+  UserPerm.decompress => S.current.permDecompress,
+  UserPerm.share => S.current.permShare,
+  _ => S.current.permCustomShareId,
+};
 
 /// Creates a general user, or edits an existing one. The core forbids
 /// creating admin/guest users and changing a user's role, so role is shown
@@ -76,11 +76,14 @@ class _UserEditPageState extends State<UserEditPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     // Start from the raw user so unmodelled fields round-trip on update.
-    final body = widget.user?.toJson() ?? <String, dynamic>{'role': UserRole.general};
+    final body =
+        widget.user?.toJson() ?? <String, dynamic>{'role': UserRole.general};
     body
       ..['username'] = _username.text.trim()
       ..['password'] = _password.text
-      ..['base_path'] = _basePath.text.trim().isEmpty ? '/' : _basePath.text.trim()
+      ..['base_path'] = _basePath.text.trim().isEmpty
+          ? '/'
+          : _basePath.text.trim()
       ..['permission'] = _permission
       ..['disabled'] = _disabled;
     try {
@@ -114,59 +117,68 @@ class _UserEditPageState extends State<UserEditPage> {
         absorbing: _saving,
         child: Form(
           key: _formKey,
-          child: ListView(padding: const EdgeInsets.all(16), children: [
-            if (_saving) const LinearProgressIndicator(),
-            TextFormField(
-              controller: _username,
-              decoration: InputDecoration(labelText: '${S.of(context).username} *'),
-              validator: (v) =>
-                  (v ?? '').trim().isEmpty ? S.current.requiredField : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _password,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: _isNew ? '${S.of(context).password} *' : S.of(context).password,
-                helperText: _isNew ? null : S.of(context).passwordKeepHint,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              if (_saving) const LinearProgressIndicator(),
+              TextFormField(
+                controller: _username,
+                decoration: InputDecoration(
+                  labelText: '${S.of(context).username} *',
+                ),
+                validator: (v) =>
+                    (v ?? '').trim().isEmpty ? S.current.requiredField : null,
               ),
-              validator: (v) =>
-                  _isNew && (v ?? '').isEmpty ? S.current.requiredField : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _basePath,
-              decoration: InputDecoration(labelText: S.of(context).basePath),
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(S.of(context).role),
-              subtitle: Text(roleText(u?.role ?? UserRole.general)),
-            ),
-            if (!isAdmin)
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(S.of(context).userDisabled),
-                value: _disabled,
-                onChanged: (v) => setState(() => _disabled = v),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _password,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: _isNew
+                      ? '${S.of(context).password} *'
+                      : S.of(context).password,
+                  helperText: _isNew ? null : S.of(context).passwordKeepHint,
+                ),
+                validator: (v) => _isNew && (v ?? '').isEmpty
+                    ? S.current.requiredField
+                    : null,
               ),
-            const Divider(),
-            ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(S.of(context).permissions)),
-            for (final bit in UserPerm.all)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: Text(permText(bit)),
-                value: (_permission >> bit) & 1 == 1,
-                onChanged: (v) => setState(() {
-                  _permission = v == true
-                      ? _permission | (1 << bit)
-                      : _permission & ~(1 << bit);
-                }),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _basePath,
+                decoration: InputDecoration(labelText: S.of(context).basePath),
               ),
-          ]),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(S.of(context).role),
+                subtitle: Text(roleText(u?.role ?? UserRole.general)),
+              ),
+              if (!isAdmin)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(S.of(context).userDisabled),
+                  value: _disabled,
+                  onChanged: (v) => setState(() => _disabled = v),
+                ),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(S.of(context).permissions),
+              ),
+              for (final bit in UserPerm.all)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: Text(permText(bit)),
+                  value: (_permission >> bit) & 1 == 1,
+                  onChanged: (v) => setState(() {
+                    _permission = v == true
+                        ? _permission | (1 << bit)
+                        : _permission & ~(1 << bit);
+                  }),
+                ),
+            ],
+          ),
         ),
       ),
     );

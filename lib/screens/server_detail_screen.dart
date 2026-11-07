@@ -56,16 +56,13 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
     final https = s.httpsPort > 0 && (s.forceHttps || s.httpPort <= 0);
     final port = https ? s.httpsPort : s.httpPort;
     final hosts = s.addresses.isEmpty ? ['127.0.0.1'] : s.addresses;
-    return [
-      for (final h in hosts) '${https ? 'https' : 'http'}://$h:$port'
-    ];
+    return [for (final h in hosts) '${https ? 'https' : 'http'}://$h:$port'];
   }
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(S.current.copiedToClipboard)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(S.current.copiedToClipboard)));
   }
 
   @override
@@ -79,10 +76,7 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
         title: Text(S.current.serverDetails),
         actions: [
           if (isRunning)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _load,
-            ),
+            IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],
       ),
       body: ListView(
@@ -116,14 +110,18 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isRunning ? S.current.serverRunning : S.current.serverStopped,
+                          isRunning
+                              ? S.current.serverRunning
+                              : S.current.serverStopped,
                           style: AppDesign.headline3.copyWith(
                             color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
                         const SizedBox(height: AppDesign.space4),
                         Text(
-                          isRunning ? S.current.allSystemsOperational : S.current.startServerToAcceptConnections,
+                          isRunning
+                              ? S.current.allSystemsOperational
+                              : S.current.startServerToAcceptConnections,
                           style: AppDesign.body2.copyWith(
                             color: isDark ? Colors.white70 : Colors.black54,
                           ),
@@ -140,10 +138,12 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
           if (isRunning && urls.isNotEmpty) ...[
             const SizedBox(height: AppDesign.space24),
             _SectionHeader(title: S.current.connectionUrls),
-            ...urls.map((url) => _ConnectionUrlCard(
-              url: url,
-              onCopy: () => _copyToClipboard(url),
-            )),
+            ...urls.map(
+              (url) => _ConnectionUrlCard(
+                url: url,
+                onCopy: () => _copyToClipboard(url),
+              ),
+            ),
           ],
 
           // Runtime statistics
@@ -158,7 +158,9 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
                     _StatRow(
                       icon: Icons.schedule,
                       label: S.current.uptime,
-                      value: _formatDuration((_runtime['uptime_sec'] as num).toInt()),
+                      value: _formatDuration(
+                        (_runtime['uptime_sec'] as num).toInt(),
+                      ),
                     ),
                   if (_runtime['goroutines'] != null)
                     _StatRow(
@@ -170,7 +172,9 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
                     _StatRow(
                       icon: Icons.memory,
                       label: S.current.memory,
-                      value: _formatBytes((_runtime['heap_alloc'] as num).toInt()),
+                      value: _formatBytes(
+                        (_runtime['heap_alloc'] as num).toInt(),
+                      ),
                     ),
                 ],
               ),
@@ -255,10 +259,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _ConnectionUrlCard extends StatelessWidget {
-  const _ConnectionUrlCard({
-    required this.url,
-    required this.onCopy,
-  });
+  const _ConnectionUrlCard({required this.url, required this.onCopy});
 
   final String url;
   final VoidCallback onCopy;
@@ -273,10 +274,7 @@ class _ConnectionUrlCard extends StatelessWidget {
         vertical: AppDesign.space4,
       ),
       child: ListTile(
-        leading: Icon(
-          Icons.link,
-          color: AppDesign.primaryBlue,
-        ),
+        leading: Icon(Icons.link, color: AppDesign.primaryBlue),
         title: SelectableText(
           url,
           style: AppDesign.body1.copyWith(
@@ -284,10 +282,7 @@ class _ConnectionUrlCard extends StatelessWidget {
             fontFamily: 'monospace',
           ),
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.copy),
-          onPressed: onCopy,
-        ),
+        trailing: IconButton(icon: const Icon(Icons.copy), onPressed: onCopy),
       ),
     );
   }

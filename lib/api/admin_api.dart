@@ -17,9 +17,8 @@ class OfflineDownloadToolConfig {
   final Map<String, String> fields;
 
   Map<String, String> requestBody(Map<String, String> values) => {
-        for (final entry in fields.entries)
-          entry.value: values[entry.key] ?? '',
-      };
+    for (final entry in fields.entries) entry.value: values[entry.key] ?? '',
+  };
 }
 
 const offlineDownloadToolConfigs = <OfflineDownloadToolConfig>[
@@ -31,18 +30,12 @@ const offlineDownloadToolConfigs = <OfflineDownloadToolConfig>[
   OfflineDownloadToolConfig(
     name: 'qBittorrent',
     endpoint: 'set_qbit',
-    fields: {
-      'qbittorrent_url': 'url',
-      'qbittorrent_seedtime': 'seedtime',
-    },
+    fields: {'qbittorrent_url': 'url', 'qbittorrent_seedtime': 'seedtime'},
   ),
   OfflineDownloadToolConfig(
     name: 'Transmission',
     endpoint: 'set_transmission',
-    fields: {
-      'transmission_uri': 'uri',
-      'transmission_seedtime': 'seedtime',
-    },
+    fields: {'transmission_uri': 'uri', 'transmission_seedtime': 'seedtime'},
   ),
   OfflineDownloadToolConfig(
     name: '115',
@@ -101,8 +94,10 @@ class AdminApi {
   final OpenListClient client;
 
   Future<List<Storage>> listStorages() async {
-    final data = await client
-        .get('/api/admin/storage/list', query: {'page': 1, 'per_page': 0});
+    final data = await client.get(
+      '/api/admin/storage/list',
+      query: {'page': 1, 'per_page': 0},
+    );
     final content = (data is Map ? data['content'] as List? : null) ?? const [];
     return content
         .map((e) => Storage.fromJson(Map<String, dynamic>.from(e)))
@@ -142,14 +137,18 @@ class AdminApi {
   }
 
   Future<DriverInfo> driverInfo(String driver) async {
-    final data =
-        await client.get('/api/admin/driver/info', query: {'driver': driver});
+    final data = await client.get(
+      '/api/admin/driver/info',
+      query: {'driver': driver},
+    );
     return DriverInfo.fromJson(Map<String, dynamic>.from(data ?? {}));
   }
 
   Future<List<AdminUser>> listUsers() async {
-    final data = await client
-        .get('/api/admin/user/list', query: {'page': 1, 'per_page': 0});
+    final data = await client.get(
+      '/api/admin/user/list',
+      query: {'page': 1, 'per_page': 0},
+    );
     final content = (data is Map ? data['content'] as List? : null) ?? const [];
     return content
         .map((e) => AdminUser.fromJson(Map<String, dynamic>.from(e)))
@@ -171,20 +170,25 @@ class AdminApi {
 
   /// Settings of the given groups (`internal/model/setting.go` constants).
   Future<List<SettingItem>> listSettings(List<int> groups) async {
-    final data = await client
-        .get('/api/admin/setting/list', query: {'groups': groups.join(',')});
+    final data = await client.get(
+      '/api/admin/setting/list',
+      query: {'groups': groups.join(',')},
+    );
     return ((data as List?) ?? const [])
         .map((e) => SettingItem.fromJson(Map<String, dynamic>.from(e)))
         .toList();
   }
 
-  Future<void> saveSettings(List<SettingItem> items) =>
-      client.post('/api/admin/setting/save',
-          body: items.map((e) => e.toJson()).toList());
+  Future<void> saveSettings(List<SettingItem> items) => client.post(
+    '/api/admin/setting/save',
+    body: items.map((e) => e.toJson()).toList(),
+  );
 
   Future<List<SettingItem>> defaultSettings(int group) async {
-    final data = await client
-        .post('/api/admin/setting/default', query: {'group': group});
+    final data = await client.post(
+      '/api/admin/setting/default',
+      query: {'group': group},
+    );
     return ((data as List?) ?? const [])
         .map((e) => SettingItem.fromJson(Map<String, dynamic>.from(e)))
         .toList();
@@ -194,8 +198,10 @@ class AdminApi {
       client.post('/api/admin/setting/delete', query: {'key': key});
 
   Future<List<Map<String, dynamic>>> listMetas() async {
-    final data = await client
-        .get('/api/admin/meta/list', query: {'page': 1, 'per_page': 0});
+    final data = await client.get(
+      '/api/admin/meta/list',
+      query: {'page': 1, 'per_page': 0},
+    );
     final content = (data is Map ? data['content'] as List? : null) ?? const [];
     return content
         .map((item) => Map<String, dynamic>.from(item as Map))
@@ -208,15 +214,19 @@ class AdminApi {
   }
 
   Future<void> saveMeta(Map<String, dynamic> meta, {required bool create}) =>
-      client.post('/api/admin/meta/${create ? 'create' : 'update'}',
-          body: meta);
+      client.post(
+        '/api/admin/meta/${create ? 'create' : 'update'}',
+        body: meta,
+      );
 
   Future<void> deleteMeta(int id) =>
       client.post('/api/admin/meta/delete', query: {'id': id});
 
   Future<List<Map<String, dynamic>>> listShares() async {
-    final data =
-        await client.get('/api/share/list', query: {'page': 1, 'per_page': 0});
+    final data = await client.get(
+      '/api/share/list',
+      query: {'page': 1, 'per_page': 0},
+    );
     final content = (data is Map ? data['content'] as List? : null) ?? const [];
     return content
         .map((item) => Map<String, dynamic>.from(item as Map))
@@ -244,10 +254,13 @@ class AdminApi {
 
   Future<void> buildIndex() => client.post('/api/admin/index/build');
 
-  Future<void> updateIndex(
-          {List<String> paths = const [], int maxDepth = -1}) =>
-      client.post('/api/admin/index/update',
-          body: {'paths': paths, 'max_depth': maxDepth});
+  Future<void> updateIndex({
+    List<String> paths = const [],
+    int maxDepth = -1,
+  }) => client.post(
+    '/api/admin/index/update',
+    body: {'paths': paths, 'max_depth': maxDepth},
+  );
 
   Future<void> stopIndex() => client.post('/api/admin/index/stop');
 
@@ -259,8 +272,10 @@ class AdminApi {
   }
 
   Future<void> startManualScan({required String path, required double limit}) =>
-      client
-          .post('/api/admin/scan/start', body: {'path': path, 'limit': limit});
+      client.post(
+        '/api/admin/scan/start',
+        body: {'path': path, 'limit': limit},
+      );
 
   Future<void> stopManualScan() => client.post('/api/admin/scan/stop');
 
@@ -274,19 +289,24 @@ class AdminApi {
   Future<void> saveMediaConfig(Map<String, dynamic> config) =>
       client.post('/api/admin/media/config/save', body: config);
 
-  Future<List<Map<String, dynamic>>> listMediaScanPaths(
-      {String? mediaType}) async {
-    final data = await client.get('/api/admin/media/scan_paths',
-        query: mediaType == null ? null : {'media_type': mediaType});
+  Future<List<Map<String, dynamic>>> listMediaScanPaths({
+    String? mediaType,
+  }) async {
+    final data = await client.get(
+      '/api/admin/media/scan_paths',
+      query: mediaType == null ? null : {'media_type': mediaType},
+    );
     return ((data as List?) ?? const [])
         .map((item) => Map<String, dynamic>.from(item as Map))
         .toList();
   }
 
   Future<Map<String, dynamic>> createMediaScanPath(
-          Map<String, dynamic> scanPath) async =>
-      Map<String, dynamic>.from(await client
-          .post('/api/admin/media/scan_paths/create', body: scanPath) as Map);
+    Map<String, dynamic> scanPath,
+  ) async => Map<String, dynamic>.from(
+    await client.post('/api/admin/media/scan_paths/create', body: scanPath)
+        as Map,
+  );
 
   Future<void> updateMediaScanPath(Map<String, dynamic> scanPath) =>
       client.post('/api/admin/media/scan_paths/update', body: scanPath);
@@ -298,13 +318,18 @@ class AdminApi {
       client.post('/api/admin/media/scan_paths/clear', query: {'id': id});
 
   Future<void> startMediaScan(String mediaType, {int scanPathId = 0}) =>
-      client.post('/api/admin/media/scan/start',
-          body: {'media_type': mediaType, 'scan_path_id': scanPathId});
+      client.post(
+        '/api/admin/media/scan/start',
+        body: {'media_type': mediaType, 'scan_path_id': scanPathId},
+      );
 
   Future<Map<String, dynamic>> mediaScanProgress(String mediaType) async =>
-      Map<String, dynamic>.from(await client.get(
+      Map<String, dynamic>.from(
+        await client.get(
           '/api/admin/media/scan/progress',
-          query: {'media_type': mediaType}) as Map);
+          query: {'media_type': mediaType},
+        ) as Map,
+      );
 
   Future<Map<String, dynamic>> listAdminMediaItems({
     required String mediaType,
@@ -312,12 +337,15 @@ class AdminApi {
     int pageSize = 30,
     int? scanPathId,
   }) async {
-    final data = await client.get('/api/admin/media/items', query: {
-      'media_type': mediaType,
-      'page': page,
-      'page_size': pageSize,
-      if (scanPathId != null) 'scan_path_id': scanPathId,
-    });
+    final data = await client.get(
+      '/api/admin/media/items',
+      query: {
+        'media_type': mediaType,
+        'page': page,
+        'page_size': pageSize,
+        if (scanPathId != null) 'scan_path_id': scanPathId,
+      },
+    );
     return Map<String, dynamic>.from(data as Map);
   }
 
@@ -344,24 +372,32 @@ class AdminApi {
     final body = OpenListClient.unwrap(response.statusCode ?? 0, decoded);
     if (body is! Map) {
       throw const FormatException(
-          'The core returned invalid media export data');
+        'The core returned invalid media export data',
+      );
     }
     return Map<String, dynamic>.from(body);
   }
 
-  Future<Map<String, dynamic>> importMedia(Map<String, dynamic> data,
-          {int? scanPathId}) async =>
-      Map<String, dynamic>.from(await client.post('/api/admin/media/import',
-              body: data,
-              query: scanPathId == null ? null : {'scan_path_id': scanPathId})
-          as Map);
+  Future<Map<String, dynamic>> importMedia(
+    Map<String, dynamic> data, {
+    int? scanPathId,
+  }) async => Map<String, dynamic>.from(
+    await client.post(
+      '/api/admin/media/import',
+      body: data,
+      query: scanPathId == null ? null : {'scan_path_id': scanPathId},
+    ) as Map,
+  );
 
-  Future<Map<String, dynamic>> generateMediaStrm(
-          {String? mediaType, int scanPathId = 0}) async =>
-      Map<String, dynamic>.from(await client.post(
-              '/api/admin/media/strm/generate',
-              body: {'media_type': mediaType ?? '', 'scan_path_id': scanPathId})
-          as Map);
+  Future<Map<String, dynamic>> generateMediaStrm({
+    String? mediaType,
+    int scanPathId = 0,
+  }) async => Map<String, dynamic>.from(
+    await client.post(
+      '/api/admin/media/strm/generate',
+      body: {'media_type': mediaType ?? '', 'scan_path_id': scanPathId},
+    ) as Map,
+  );
 
   Future<List<Map<String, dynamic>>> listMediaAppKeys() async {
     final data = await client.get('/api/admin/media/appkey/list');
@@ -371,26 +407,34 @@ class AdminApi {
   }
 
   Future<Map<String, dynamic>> createMediaAppKey(String name) async =>
-      Map<String, dynamic>.from(await client
-          .post('/api/admin/media/appkey/create', body: {'name': name}) as Map);
+      Map<String, dynamic>.from(
+        await client.post(
+          '/api/admin/media/appkey/create',
+          body: {'name': name},
+        ) as Map,
+      );
 
   Future<void> deleteMediaAppKey(int id) =>
       client.post('/api/admin/media/appkey/delete', query: {'id': id});
 
   Future<void> startMediaScrape(String mediaType, {int itemId = 0}) =>
-      client.post('/api/admin/media/scrape/start',
-          body: {'media_type': mediaType, 'item_id': itemId});
+      client.post(
+        '/api/admin/media/scrape/start',
+        body: {'media_type': mediaType, 'item_id': itemId},
+      );
 
   Future<void> clearMedia(String mediaType) =>
       client.post('/api/admin/media/clear', query: {'media_type': mediaType});
 
-  Future<void> clearMediaScrape({String? mediaType}) =>
-      client.post('/api/admin/media/clear_scrape',
-          query: mediaType == null ? null : {'media_type': mediaType});
+  Future<void> clearMediaScrape({String? mediaType}) => client.post(
+    '/api/admin/media/clear_scrape',
+    query: mediaType == null ? null : {'media_type': mediaType},
+  );
 
-  Future<void> deleteInvalidMedia({String? mediaType}) =>
-      client.post('/api/admin/media/delete_invalid',
-          query: mediaType == null ? null : {'media_type': mediaType});
+  Future<void> deleteInvalidMedia({String? mediaType}) => client.post(
+    '/api/admin/media/delete_invalid',
+    query: mediaType == null ? null : {'media_type': mediaType},
+  );
 
   Future<List<Map<String, dynamic>>> listTranscodeWorkers() async {
     final data = await client.get('/api/admin/transcode/workers');

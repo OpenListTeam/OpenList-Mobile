@@ -73,18 +73,9 @@ class DriverLocalization {
       'vendor': '服务类型',
       'tls_insecure_skip_verify': '跳过 TLS 证书验证',
     },
-    'Local': {
-      'root': '根目录',
-      'enable_signature': '启用签名验证',
-    },
-    '123Pan': {
-      'authorization': '授权令牌',
-      'root_folder_id': '根目录 ID',
-    },
-    'Quark': {
-      'cookie': 'Cookie',
-      'root_folder_id': '根目录 ID',
-    },
+    'Local': {'root': '根目录', 'enable_signature': '启用签名验证'},
+    '123Pan': {'authorization': '授权令牌', 'root_folder_id': '根目录 ID'},
+    'Quark': {'cookie': 'Cookie', 'root_folder_id': '根目录 ID'},
     'PikPak': {
       'username': '用户名',
       'password': '密码',
@@ -138,34 +129,33 @@ class DriverLocalization {
   static String driverLabel({
     required String languageCode,
     required String driver,
-  }) =>
-      _translate(_driverNames[driver], languageCode, driver);
+  }) => _translate(_driverNames[driver], languageCode, driver);
 
   static String fieldLabel({
     required String languageCode,
     required String driver,
     required String field,
     required String fallback,
-  }) =>
-      _translate(_fields[driver]?[field], languageCode, fallback);
+  }) => _translate(_fields[driver]?[field], languageCode, fallback);
 
   static String optionLabel({
     required String languageCode,
     required String driver,
     required String field,
     required String option,
-  }) =>
-      _translate(_options[driver]?[field]?[option], languageCode, option);
+  }) => _translate(_options[driver]?[field]?[option], languageCode, option);
 
   static String alertText({
     required String languageCode,
     required String driver,
     required String text,
-  }) =>
-      _translate(_alerts[driver]?[text], languageCode, text);
+  }) => _translate(_alerts[driver]?[text], languageCode, text);
 
   static String _translate(
-      String? translated, String languageCode, String fallback) {
+    String? translated,
+    String languageCode,
+    String fallback,
+  ) {
     if (languageCode.toLowerCase().startsWith('zh') && translated != null) {
       return translated;
     }

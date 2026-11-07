@@ -108,12 +108,14 @@ class _StorageEditPageState extends State<StorageEditPage> {
       }
       _rawAddition = added;
       for (final i in info.common) {
-        _common[i.name] =
-            raw.containsKey(i.name) ? raw[i.name] : i.defaultValue;
+        _common[i.name] = raw.containsKey(i.name)
+            ? raw[i.name]
+            : i.defaultValue;
       }
       for (final i in info.additional) {
-        _addition[i.name] =
-            added.containsKey(i.name) ? added[i.name] : i.defaultValue;
+        _addition[i.name] = added.containsKey(i.name)
+            ? added[i.name]
+            : i.defaultValue;
       }
       _info = info;
     } catch (e) {
@@ -221,7 +223,10 @@ class _StorageEditPageState extends State<StorageEditPage> {
         value: options.contains(current) ? current : null,
         isExpanded: true,
         decoration: InputDecoration(
-            labelText: label, helperText: help, helperMaxLines: 3),
+          labelText: label,
+          helperText: help,
+          helperMaxLines: 3,
+        ),
         items: [
           for (final o in options)
             DropdownMenuItem(
@@ -252,7 +257,10 @@ class _StorageEditPageState extends State<StorageEditPage> {
           ? const TextInputType.numberWithOptions(signed: true, decimal: true)
           : null,
       decoration: InputDecoration(
-          labelText: label, helperText: help, helperMaxLines: 3),
+        labelText: label,
+        helperText: help,
+        helperMaxLines: 3,
+      ),
       onChanged: (v) => values[item.name] = v,
       validator: (v) {
         final t = (v ?? '').trim();
@@ -270,8 +278,9 @@ class _StorageEditPageState extends State<StorageEditPage> {
     final info = _info;
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(_isNew ? S.of(context).addStorage : S.of(context).editStorage),
+        title: Text(
+          _isNew ? S.of(context).addStorage : S.of(context).editStorage,
+        ),
         actions: [
           IconButton(
             tooltip: S.of(context).save,
@@ -284,59 +293,67 @@ class _StorageEditPageState extends State<StorageEditPage> {
         absorbing: _saving,
         child: Form(
           key: _formKey,
-          child: ListView(padding: const EdgeInsets.all(16), children: [
-            if (_saving || (_loading && info != null))
-              const LinearProgressIndicator(),
-            if (_isNew)
-              DropdownButtonFormField<String>(
-                value: _driver,
-                isExpanded: true,
-                decoration: InputDecoration(labelText: S.of(context).driver),
-                items: [
-                  for (final d in _drivers)
-                    DropdownMenuItem(
-                      value: d,
-                      child: Text(DriverLocalization.driverLabel(
-                        languageCode:
-                            Localizations.localeOf(context).languageCode,
-                        driver: d,
-                      )),
-                    )
-                ],
-                onChanged: (d) {
-                  if (d != null && d != _driver) _selectDriver(d);
-                },
-              )
-            else
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(S.of(context).driver),
-                subtitle: Text(widget.storage!.driver),
-              ),
-            const SizedBox(height: 12),
-            if (_loading && info == null)
-              const Center(child: CircularProgressIndicator())
-            else if (_error != null)
-              StateMessage(icon: Icons.error_outline, text: errorText(_error!))
-            else if (info != null) ...[
-              if (info.alertText.isNotEmpty) _alert(info),
-              if (info.noUpload)
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              if (_saving || (_loading && info != null))
+                const LinearProgressIndicator(),
+              if (_isNew)
+                DropdownButtonFormField<String>(
+                  value: _driver,
+                  isExpanded: true,
+                  decoration: InputDecoration(labelText: S.of(context).driver),
+                  items: [
+                    for (final d in _drivers)
+                      DropdownMenuItem(
+                        value: d,
+                        child: Text(
+                          DriverLocalization.driverLabel(
+                            languageCode: Localizations.localeOf(context)
+                                .languageCode,
+                            driver: d,
+                          ),
+                        ),
+                      ),
+                  ],
+                  onChanged: (d) {
+                    if (d != null && d != _driver) _selectDriver(d);
+                  },
+                )
+              else
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.upload_file_outlined),
-                  title: Text(S.of(context).driverNoUpload),
+                  title: Text(S.of(context).driver),
+                  subtitle: Text(widget.storage!.driver),
                 ),
-              for (final i in info.common) ...[
-                _field(i, _common),
-                const SizedBox(height: 12)
-              ],
-              const Divider(),
-              for (final i in info.additional) ...[
-                _field(i, _addition),
-                const SizedBox(height: 12),
+              const SizedBox(height: 12),
+              if (_loading && info == null)
+                const Center(child: CircularProgressIndicator())
+              else if (_error != null)
+                StateMessage(
+                  icon: Icons.error_outline,
+                  text: errorText(_error!),
+                )
+              else if (info != null) ...[
+                if (info.alertText.isNotEmpty) _alert(info),
+                if (info.noUpload)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.upload_file_outlined),
+                    title: Text(S.of(context).driverNoUpload),
+                  ),
+                for (final i in info.common) ...[
+                  _field(i, _common),
+                  const SizedBox(height: 12),
+                ],
+                const Divider(),
+                for (final i in info.additional) ...[
+                  _field(i, _addition),
+                  const SizedBox(height: 12),
+                ],
               ],
             ],
-          ]),
+          ),
         ),
       ),
     );

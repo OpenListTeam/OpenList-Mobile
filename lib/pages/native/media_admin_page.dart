@@ -11,12 +11,12 @@ import 'common.dart';
 const _mediaTypes = ['video', 'music', 'image', 'book'];
 
 String _mediaTypeLabel(String type) => switch (type) {
-      'video' => S.current.adminMediaTypeVideo,
-      'music' => S.current.adminMediaTypeMusic,
-      'image' => S.current.adminMediaTypeImage,
-      'book' => S.current.adminMediaTypeBook,
-      _ => type,
-    };
+  'video' => S.current.adminMediaTypeVideo,
+  'music' => S.current.adminMediaTypeMusic,
+  'image' => S.current.adminMediaTypeImage,
+  'book' => S.current.adminMediaTypeBook,
+  _ => type,
+};
 
 class MediaAdminPage extends StatefulWidget {
   const MediaAdminPage({super.key});
@@ -31,8 +31,9 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
 
   Future<void> _export(BuildContext context, String mediaType) async {
     try {
-      final data = await OpenListSession.instance.admin
-          .exportMedia(mediaType: mediaType);
+      final data = await OpenListSession.instance.admin.exportMedia(
+        mediaType: mediaType,
+      );
       final bytes = Uint8List.fromList(
         utf8.encode(const JsonEncoder.withIndent('  ').convert(data)),
       );
@@ -58,8 +59,9 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
       final bytes = await file.readAsBytes();
       final decoded = jsonDecode(utf8.decode(bytes));
       if (decoded is! Map) throw const FormatException('Invalid media export');
-      await OpenListSession.instance.admin
-          .importMedia(Map<String, dynamic>.from(decoded));
+      await OpenListSession.instance.admin.importMedia(
+        Map<String, dynamic>.from(decoded),
+      );
       if (context.mounted) showMessage(S.current.adminMediaImportDone);
     } catch (e) {
       if (context.mounted) showError(e);
@@ -68,13 +70,16 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
 
   Future<void> _generateStrm(BuildContext context, String mediaType) async {
     try {
-      final result = await OpenListSession.instance.admin
-          .generateMediaStrm(mediaType: mediaType);
+      final result = await OpenListSession.instance.admin.generateMediaStrm(
+        mediaType: mediaType,
+      );
       if (context.mounted) {
-        showMessage(S.current.adminMediaStrmDone(
-          '${result['written'] ?? 0}',
-          '${result['path'] ?? ''}',
-        ));
+        showMessage(
+          S.current.adminMediaStrmDone(
+            '${result['written'] ?? 0}',
+            '${result['path'] ?? ''}',
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) showError(e);
@@ -134,13 +139,16 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: Text(S.current.cancel)),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(S.current.cancel),
+            ),
             FilledButton.tonal(
               onPressed: () async {
-                final name = await promptText(context,
-                    title: S.current.adminMediaNewAppKey,
-                    label: S.current.adminMediaAppKeyName);
+                final name = await promptText(
+                  context,
+                  title: S.current.adminMediaNewAppKey,
+                  label: S.current.adminMediaAppKeyName,
+                );
                 if (name == null) return;
                 try {
                   final created = await api.createMediaAppKey(name);
@@ -150,12 +158,14 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
                     builder: (keyContext) => AlertDialog(
                       title: Text(S.current.adminMediaKeyCreated),
                       content: SelectableText(
-                          '${S.current.adminMediaKeyShownOnce}\n\n${created['key'] ?? ''}'),
+                        '${S.current.adminMediaKeyShownOnce}\n\n${created['key'] ?? ''}',
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () async {
                             await Clipboard.setData(
-                                ClipboardData(text: '${created['key'] ?? ''}'));
+                              ClipboardData(text: '${created['key'] ?? ''}'),
+                            );
                             if (keyContext.mounted) {
                               Navigator.pop(keyContext);
                               showMessage(S.current.copiedToClipboard);
@@ -164,8 +174,9 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
                           child: Text(S.current.copy),
                         ),
                         TextButton(
-                            onPressed: () => Navigator.pop(keyContext),
-                            child: Text(S.current.confirm)),
+                          onPressed: () => Navigator.pop(keyContext),
+                          child: Text(S.current.confirm),
+                        ),
                       ],
                     ),
                   );
@@ -185,60 +196,63 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
 
   @override
   Widget build(BuildContext context) => DefaultTabController(
-        length: _mediaTypes.length,
-        child: Builder(
-          builder: (context) => Scaffold(
-            appBar: AppBar(
-              title: Text(S.of(context).adminMediaTitle),
-              actions: [
-                PopupMenuButton<String>(
-                  onSelected: (action) {
-                    final mediaType = _currentMediaType(context);
-                    switch (action) {
-                      case 'export':
-                        _export(context, mediaType);
-                      case 'import':
-                        _import(context);
-                      case 'strm':
-                        _generateStrm(context, mediaType);
-                      case 'keys':
-                        _manageAppKeys(context);
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    PopupMenuItem(
-                        value: 'export',
-                        child: Text(S.current.adminMediaExport)),
-                    PopupMenuItem(
-                        value: 'import',
-                        child: Text(S.current.adminMediaImport)),
-                    PopupMenuItem(
-                        value: 'strm',
-                        child: Text(S.current.adminMediaGenerateStrm)),
-                    PopupMenuItem(
-                        value: 'keys',
-                        child: Text(S.current.adminMediaAppKeys)),
-                  ],
+    length: _mediaTypes.length,
+    child: Builder(
+      builder: (context) => Scaffold(
+        appBar: AppBar(
+          title: Text(S.of(context).adminMediaTitle),
+          actions: [
+            PopupMenuButton<String>(
+              onSelected: (action) {
+                final mediaType = _currentMediaType(context);
+                switch (action) {
+                  case 'export':
+                    _export(context, mediaType);
+                  case 'import':
+                    _import(context);
+                  case 'strm':
+                    _generateStrm(context, mediaType);
+                  case 'keys':
+                    _manageAppKeys(context);
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: 'export',
+                  child: Text(S.current.adminMediaExport),
+                ),
+                PopupMenuItem(
+                  value: 'import',
+                  child: Text(S.current.adminMediaImport),
+                ),
+                PopupMenuItem(
+                  value: 'strm',
+                  child: Text(S.current.adminMediaGenerateStrm),
+                ),
+                PopupMenuItem(
+                  value: 'keys',
+                  child: Text(S.current.adminMediaAppKeys),
                 ),
               ],
-              bottom: TabBar(
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                tabs: [
-                  for (final type in _mediaTypes)
-                    Tab(text: _mediaTypeLabel(type))
-                ],
-              ),
             ),
-            body: TabBarView(
-              children: [
-                for (final type in _mediaTypes)
-                  _MediaTypeAdminView(key: ValueKey(type), mediaType: type),
-              ],
-            ),
+          ],
+          bottom: TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            tabs: [
+              for (final type in _mediaTypes) Tab(text: _mediaTypeLabel(type)),
+            ],
           ),
         ),
-      );
+        body: TabBarView(
+          children: [
+            for (final type in _mediaTypes)
+              _MediaTypeAdminView(key: ValueKey(type), mediaType: type),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _MediaTypeAdminView extends StatefulWidget {
@@ -270,13 +284,17 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
         api.listMediaConfigs(),
         api.listMediaScanPaths(mediaType: widget.mediaType),
         api.listAdminMediaItems(
-            mediaType: widget.mediaType, page: _page, pageSize: _pageSize),
+          mediaType: widget.mediaType,
+          page: _page,
+          pageSize: _pageSize,
+        ),
         api.mediaScanProgress(widget.mediaType),
       ]);
       if (!mounted) return;
       _config = (results[0] as List<Map<String, dynamic>>).firstWhere(
-          (item) => item['media_type'] == widget.mediaType,
-          orElse: () => {'media_type': widget.mediaType, 'enabled': false});
+        (item) => item['media_type'] == widget.mediaType,
+        orElse: () => {'media_type': widget.mediaType, 'enabled': false},
+      );
       _paths = results[1] as List<Map<String, dynamic>>;
       final itemPage = results[2] as Map<String, dynamic>;
       _items = (itemPage['content'] as List? ?? const [])
@@ -291,12 +309,17 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
     if (mounted) setState(() => _loading = false);
   }
 
-  Future<void> _act(Future<void> Function() action,
-      {bool confirm = false}) async {
+  Future<void> _act(
+    Future<void> Function() action, {
+    bool confirm = false,
+  }) async {
     if (_busy) return;
     if (confirm &&
-        !await confirmDialog(context, S.current.adminMediaConfirmClear,
-            title: S.current.adminMediaTitle)) {
+        !await confirmDialog(
+          context,
+          S.current.adminMediaConfirmClear,
+          title: S.current.adminMediaTitle,
+        )) {
       return;
     }
     setState(() => _busy = true);
@@ -318,8 +341,9 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
     final name = TextEditingController(text: '${source?['name'] ?? ''}');
     final path = TextEditingController(text: '${source?['path'] ?? '/'}');
     final typeTag = TextEditingController(text: '${source?['type_tag'] ?? ''}');
-    final contentTags =
-        TextEditingController(text: '${source?['content_tags'] ?? ''}');
+    final contentTags = TextEditingController(
+      text: '${source?['content_tags'] ?? ''}',
+    );
     var pathMerge = source?['path_merge'] == true;
     var enableScrape = source?['enable_scrape'] != false;
     try {
@@ -327,52 +351,58 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: Text(source == null
-                ? S.current.adminAddPath
-                : S.current.adminSavePath),
+            title: Text(
+              source == null ? S.current.adminAddPath : S.current.adminSavePath,
+            ),
             content: SingleChildScrollView(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                _textField(name, S.current.adminMediaName),
-                _textField(path, S.current.adminMediaPath),
-                _textField(typeTag, S.current.adminMediaTypeTag),
-                _textField(contentTags, S.current.adminMediaContentTags),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(S.current.adminMediaPathMerge),
-                  value: pathMerge,
-                  onChanged: (value) => setDialogState(() => pathMerge = value),
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(S.current.adminMediaEnableScrape),
-                  value: enableScrape,
-                  onChanged: (value) =>
-                      setDialogState(() => enableScrape = value),
-                ),
-              ]),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _textField(name, S.current.adminMediaName),
+                  _textField(path, S.current.adminMediaPath),
+                  _textField(typeTag, S.current.adminMediaTypeTag),
+                  _textField(contentTags, S.current.adminMediaContentTags),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(S.current.adminMediaPathMerge),
+                    value: pathMerge,
+                    onChanged: (value) =>
+                        setDialogState(() => pathMerge = value),
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(S.current.adminMediaEnableScrape),
+                    value: enableScrape,
+                    onChanged: (value) =>
+                        setDialogState(() => enableScrape = value),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: Text(S.current.cancel)),
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(S.current.cancel),
+              ),
               FilledButton(
-                  onPressed: () {
-                    if (path.text.trim().isEmpty) {
-                      showMessage(S.current.adminMetaInvalidInput);
-                      return;
-                    }
-                    Navigator.pop(dialogContext, {
-                      if (source != null) 'id': source['id'],
-                      'media_type': widget.mediaType,
-                      'name': name.text.trim(),
-                      'path': path.text.trim(),
-                      'path_merge': pathMerge,
-                      'type_tag': typeTag.text.trim(),
-                      'content_tags': contentTags.text.trim(),
-                      'enable_scrape': enableScrape,
-                    });
-                  },
-                  child: Text(S.current.save)),
+                onPressed: () {
+                  if (path.text.trim().isEmpty) {
+                    showMessage(S.current.adminMetaInvalidInput);
+                    return;
+                  }
+                  Navigator.pop(dialogContext, {
+                    if (source != null) 'id': source['id'],
+                    'media_type': widget.mediaType,
+                    'name': name.text.trim(),
+                    'path': path.text.trim(),
+                    'path_merge': pathMerge,
+                    'type_tag': typeTag.text.trim(),
+                    'content_tags': contentTags.text.trim(),
+                    'enable_scrape': enableScrape,
+                  });
+                },
+                child: Text(S.current.save),
+              ),
             ],
           ),
         ),
@@ -394,23 +424,28 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
     }
   }
 
-  Widget _textField(TextEditingController controller, String label,
-          {int minLines = 1, int maxLines = 1}) =>
-      Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: TextField(
-          controller: controller,
-          minLines: minLines,
-          maxLines: maxLines,
-          decoration: InputDecoration(labelText: label),
-        ),
-      );
+  Widget _textField(
+    TextEditingController controller,
+    String label, {
+    int minLines = 1,
+    int maxLines = 1,
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: TextField(
+      controller: controller,
+      minLines: minLines,
+      maxLines: maxLines,
+      decoration: InputDecoration(labelText: label),
+    ),
+  );
 
   Future<void> _editItem(Map<String, dynamic> source) async {
-    final title =
-        TextEditingController(text: '${source['scraped_name'] ?? ''}');
-    final description =
-        TextEditingController(text: '${source['description'] ?? ''}');
+    final title = TextEditingController(
+      text: '${source['scraped_name'] ?? ''}',
+    );
+    final description = TextEditingController(
+      text: '${source['description'] ?? ''}',
+    );
     var hidden = source['hidden'] == true;
     try {
       final result = await showDialog<Map<String, dynamic>>(
@@ -419,37 +454,47 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
           builder: (context, setDialogState) => AlertDialog(
             title: Text(S.current.edit),
             content: SingleChildScrollView(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                _textField(title, S.current.adminMediaName),
-                _textField(description, S.current.description,
-                    minLines: 3, maxLines: 6),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(S.current.adminMediaHidden),
-                  value: hidden,
-                  onChanged: (value) => setDialogState(() => hidden = value),
-                ),
-              ]),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _textField(title, S.current.adminMediaName),
+                  _textField(
+                    description,
+                    S.current.description,
+                    minLines: 3,
+                    maxLines: 6,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(S.current.adminMediaHidden),
+                    value: hidden,
+                    onChanged: (value) => setDialogState(() => hidden = value),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: Text(S.current.cancel)),
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(S.current.cancel),
+              ),
               FilledButton(
-                  onPressed: () => Navigator.pop(dialogContext, {
-                        ...source,
-                        'scraped_name': title.text,
-                        'description': description.text,
-                        'hidden': hidden,
-                      }),
-                  child: Text(S.current.save)),
+                onPressed: () => Navigator.pop(dialogContext, {
+                  ...source,
+                  'scraped_name': title.text,
+                  'description': description.text,
+                  'hidden': hidden,
+                }),
+                child: Text(S.current.save),
+              ),
             ],
           ),
         ),
       );
       if (result == null || !mounted) return;
       await _act(
-          () => OpenListSession.instance.admin.updateAdminMediaItem(result));
+        () => OpenListSession.instance.admin.updateAdminMediaItem(result),
+      );
     } finally {
       title.dispose();
       description.dispose();
@@ -469,10 +514,11 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
     }
     if (_error != null && _config.isEmpty) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: _load);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: _load,
+      );
     }
     final enabled = _config['enabled'] == true;
     final running = _progress['running'] == true;
@@ -522,43 +568,43 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
                 onPressed: _busy || !enabled
                     ? null
                     : () => _act(
-                          () => OpenListSession.instance.admin.startMediaScan(
-                            widget.mediaType,
-                          ),
+                        () => OpenListSession.instance.admin.startMediaScan(
+                          widget.mediaType,
                         ),
+                      ),
                 child: Text(S.current.adminMediaScan),
               ),
               FilledButton.tonal(
                 onPressed: _busy || !enabled
                     ? null
                     : () => _act(
-                          () => OpenListSession.instance.admin.startMediaScrape(
-                            widget.mediaType,
-                          ),
+                        () => OpenListSession.instance.admin.startMediaScrape(
+                          widget.mediaType,
                         ),
+                      ),
                 child: Text(S.current.adminMediaScrape),
               ),
               PopupMenuButton<String>(
                 enabled: !_busy,
                 onSelected: (action) => switch (action) {
                   'clear' => _act(
-                      () => OpenListSession.instance.admin.clearMedia(
-                        widget.mediaType,
-                      ),
-                      confirm: true,
+                    () => OpenListSession.instance.admin.clearMedia(
+                      widget.mediaType,
                     ),
+                    confirm: true,
+                  ),
                   'scrape' => _act(
-                      () => OpenListSession.instance.admin.clearMediaScrape(
-                        mediaType: widget.mediaType,
-                      ),
-                      confirm: true,
+                    () => OpenListSession.instance.admin.clearMediaScrape(
+                      mediaType: widget.mediaType,
                     ),
+                    confirm: true,
+                  ),
                   _ => _act(
-                      () => OpenListSession.instance.admin.deleteInvalidMedia(
-                        mediaType: widget.mediaType,
-                      ),
-                      confirm: true,
+                    () => OpenListSession.instance.admin.deleteInvalidMedia(
+                      mediaType: widget.mediaType,
                     ),
+                    confirm: true,
+                  ),
                 },
                 itemBuilder: (_) => [
                   PopupMenuItem(
@@ -592,23 +638,23 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
                 onSelected: (action) => switch (action) {
                   'edit' => _editPath(path),
                   'scan' => _act(
-                      () => OpenListSession.instance.admin.startMediaScan(
-                        widget.mediaType,
-                        scanPathId: (path['id'] as num).toInt(),
-                      ),
+                    () => OpenListSession.instance.admin.startMediaScan(
+                      widget.mediaType,
+                      scanPathId: (path['id'] as num).toInt(),
                     ),
+                  ),
                   'clear' => _act(
-                      () => OpenListSession.instance.admin.clearMediaScanPath(
-                        (path['id'] as num).toInt(),
-                      ),
-                      confirm: true,
+                    () => OpenListSession.instance.admin.clearMediaScanPath(
+                      (path['id'] as num).toInt(),
                     ),
+                    confirm: true,
+                  ),
                   _ => _act(
-                      () => OpenListSession.instance.admin.deleteMediaScanPath(
-                        (path['id'] as num).toInt(),
-                      ),
-                      confirm: true,
+                    () => OpenListSession.instance.admin.deleteMediaScanPath(
+                      (path['id'] as num).toInt(),
                     ),
+                    confirm: true,
+                  ),
                 },
                 itemBuilder: (_) => [
                   PopupMenuItem(value: 'edit', child: Text(S.current.edit)),

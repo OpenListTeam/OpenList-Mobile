@@ -55,17 +55,17 @@ class FsObject {
   final String provider;
 
   factory FsObject.fromJson(Map<String, dynamic> j) => FsObject(
-        name: _str(j['name']),
-        size: _int(j['size']),
-        isDir: j['is_dir'] == true,
-        modified: _time(j['modified']),
-        created: _time(j['created']),
-        sign: _str(j['sign']),
-        thumb: _str(j['thumb']),
-        type: _int(j['type']),
-        rawUrl: _str(j['raw_url']),
-        provider: _str(j['provider']),
-      );
+    name: _str(j['name']),
+    size: _int(j['size']),
+    isDir: j['is_dir'] == true,
+    modified: _time(j['modified']),
+    created: _time(j['created']),
+    sign: _str(j['sign']),
+    thumb: _str(j['thumb']),
+    type: _int(j['type']),
+    rawUrl: _str(j['raw_url']),
+    provider: _str(j['provider']),
+  );
 }
 
 /// A single rename pair of the `fs/batch_rename` endpoint.
@@ -75,10 +75,7 @@ class RenameObj {
   final String srcName;
   final String newName;
 
-  Map<String, dynamic> toJson() => {
-        'src_name': srcName,
-        'new_name': newName,
-      };
+  Map<String, dynamic> toJson() => {'src_name': srcName, 'new_name': newName};
 }
 
 class FsListResult {
@@ -97,14 +94,14 @@ class FsListResult {
   final String provider;
 
   factory FsListResult.fromJson(Map<String, dynamic> j) => FsListResult(
-        content: ((j['content'] as List?) ?? const [])
-            .map((e) => FsObject.fromJson(Map<String, dynamic>.from(e)))
-            .toList(),
-        total: _int(j['total']),
-        readme: _str(j['readme']),
-        write: j['write'] == true,
-        provider: _str(j['provider']),
-      );
+    content: ((j['content'] as List?) ?? const [])
+        .map((e) => FsObject.fromJson(Map<String, dynamic>.from(e)))
+        .toList(),
+    total: _int(j['total']),
+    readme: _str(j['readme']),
+    write: j['write'] == true,
+    provider: _str(j['provider']),
+  );
 }
 
 /// Task states from `github.com/OpenListTeam/tache`.
@@ -159,17 +156,17 @@ class TaskInfo {
       state == TaskState.canceled;
 
   factory TaskInfo.fromJson(Map<String, dynamic> j) => TaskInfo(
-        id: _str(j['id']),
-        name: _str(j['name']),
-        creator: _str(j['creator']),
-        state: _int(j['state']),
-        status: _str(j['status']),
-        progress: _double(j['progress']),
-        startTime: _time(j['start_time']),
-        endTime: _time(j['end_time']),
-        totalBytes: _int(j['total_bytes']),
-        error: _str(j['error']),
-      );
+    id: _str(j['id']),
+    name: _str(j['name']),
+    creator: _str(j['creator']),
+    state: _int(j['state']),
+    status: _str(j['status']),
+    progress: _double(j['progress']),
+    startTime: _time(j['start_time']),
+    endTime: _time(j['end_time']),
+    totalBytes: _int(j['total_bytes']),
+    error: _str(j['error']),
+  );
 }
 
 /// Storage keeps the raw JSON so updates round-trip fields this client does
@@ -225,13 +222,13 @@ class DriverItem {
       .toList();
 
   factory DriverItem.fromJson(Map<String, dynamic> j) => DriverItem(
-        name: _str(j['name']),
-        type: _str(j['type']),
-        defaultValue: _str(j['default']),
-        options: _str(j['options']),
-        required: j['required'] == true,
-        help: _str(j['help']),
-      );
+    name: _str(j['name']),
+    type: _str(j['type']),
+    defaultValue: _str(j['default']),
+    options: _str(j['options']),
+    required: j['required'] == true,
+    help: _str(j['help']),
+  );
 }
 
 class DriverInfo {
@@ -246,11 +243,10 @@ class DriverInfo {
       .toList();
 
   factory DriverInfo.fromJson(Map<String, dynamic> j) => DriverInfo(
-        common: _items(j['common']),
-        additional: _items(j['additional']),
-        config:
-            j['config'] is Map ? Map<String, dynamic>.from(j['config']) : null,
-      );
+    common: _items(j['common']),
+    additional: _items(j['additional']),
+    config: j['config'] is Map ? Map<String, dynamic>.from(j['config']) : null,
+  );
 
   /// Driver notice from `config.alert` (`info|warning|danger|success|text`).
   String get alertLevel {
@@ -295,13 +291,13 @@ class UserInfo {
   bool get isGuest => role == UserRole.guest;
 
   factory UserInfo.fromJson(Map<String, dynamic> j) => UserInfo(
-        id: _int(j['id']),
-        username: _str(j['username']),
-        role: _int(j['role']),
-        basePath: _str(j['base_path']).isEmpty ? '/' : _str(j['base_path']),
-        permission: _int(j['permission']),
-        otp: j['otp'] == true,
-      );
+    id: _int(j['id']),
+    username: _str(j['username']),
+    role: _int(j['role']),
+    basePath: _str(j['base_path']).isEmpty ? '/' : _str(j['base_path']),
+    permission: _int(j['permission']),
+    otp: j['otp'] == true,
+  );
 }
 
 class MediaStatus {
@@ -316,10 +312,10 @@ class MediaStatus {
   final bool proxyCover;
 
   factory MediaStatus.fromJson(Map<String, dynamic> json) => MediaStatus(
-        enabled: json['enabled'] == true,
-        types: ((json['types'] as List?) ?? const []).map(_str).toList(),
-        proxyCover: json['proxy_cover'] == true,
-      );
+    enabled: json['enabled'] == true,
+    types: ((json['types'] as List?) ?? const []).map(_str).toList(),
+    proxyCover: json['proxy_cover'] == true,
+  );
 }
 
 class MediaEpisode {
@@ -329,11 +325,11 @@ class MediaEpisode {
   final String title;
 
   factory MediaEpisode.fromJson(Map<String, dynamic> json) => MediaEpisode(
-        fileName: _str(json['file_name']),
-        title: _str(json['title']).isEmpty
-            ? _str(json['file_name'])
-            : _str(json['title']),
-      );
+    fileName: _str(json['file_name']),
+    title: _str(json['title']).isEmpty
+        ? _str(json['file_name'])
+        : _str(json['title']),
+  );
 }
 
 class MediaItem {
@@ -409,12 +405,12 @@ class SearchHit {
   String get path => parent == '/' ? '/$name' : '$parent/$name';
 
   factory SearchHit.fromJson(Map<String, dynamic> j) => SearchHit(
-        parent: _str(j['parent']).isEmpty ? '/' : _str(j['parent']),
-        name: _str(j['name']),
-        isDir: j['is_dir'] == true,
-        size: _int(j['size']),
-        type: _int(j['type']),
-      );
+    parent: _str(j['parent']).isEmpty ? '/' : _str(j['parent']),
+    name: _str(j['name']),
+    isDir: j['is_dir'] == true,
+    size: _int(j['size']),
+    type: _int(j['type']),
+  );
 }
 
 /// User permission bits (`internal/model/user.go`).
@@ -487,11 +483,12 @@ class SettingItem {
   bool get readOnly => flag == 2;
   bool get deprecated => flag == 3;
 
-  List<String> get optionList => _str(raw['options'])
-      .split(',')
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
+  List<String> get optionList =>
+      _str(raw['options'])
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
 
   factory SettingItem.fromJson(Map<String, dynamic> j) => SettingItem(j);
 

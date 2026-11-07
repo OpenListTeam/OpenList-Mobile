@@ -56,8 +56,13 @@ class _SearchPageState extends State<SearchPage> {
     });
     try {
       final (hits, total) = await OpenListSession.instance.fs.search(
-          widget.parent, keywords,
-          scope: _scope, page: page, perPage: _perPage, password: widget.password);
+        widget.parent,
+        keywords,
+        scope: _scope,
+        page: page,
+        perPage: _perPage,
+        password: widget.password,
+      );
       if (!mounted || gen != _generation) return;
       setState(() {
         _hits = more ? [..._hits, ...hits] : hits;
@@ -99,51 +104,63 @@ class _SearchPageState extends State<SearchPage> {
           autofocus: true,
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
-              hintText: S.of(context).searchHint, border: InputBorder.none),
+            hintText: S.of(context).searchHint,
+            border: InputBorder.none,
+          ),
           onSubmitted: (_) => _search(),
         ),
         actions: [
           IconButton(
-              tooltip: S.of(context).search,
-              icon: const Icon(Icons.search),
-              onPressed: _search),
+            tooltip: S.of(context).search,
+            icon: const Icon(Icons.search),
+            onPressed: _search,
+          ),
         ],
       ),
-      body: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: SegmentedButton<int>(
-            segments: [
-              ButtonSegment(value: 0, label: Text(S.of(context).searchAll)),
-              ButtonSegment(value: 1, label: Text(S.of(context).searchFolders)),
-              ButtonSegment(value: 2, label: Text(S.of(context).searchFiles)),
-            ],
-            selected: {_scope},
-            onSelectionChanged: (v) {
-              setState(() => _scope = v.first);
-              if (_keywords.isNotEmpty) _search();
-            },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: SegmentedButton<int>(
+              segments: [
+                ButtonSegment(value: 0, label: Text(S.of(context).searchAll)),
+                ButtonSegment(
+                  value: 1,
+                  label: Text(S.of(context).searchFolders),
+                ),
+                ButtonSegment(value: 2, label: Text(S.of(context).searchFiles)),
+              ],
+              selected: {_scope},
+              onSelectionChanged: (v) {
+                setState(() => _scope = v.first);
+                if (_keywords.isNotEmpty) _search();
+              },
+            ),
           ),
-        ),
-        ListTile(dense: true, title: Text(widget.parent)),
-        if (_loading) const LinearProgressIndicator(),
-        Expanded(child: _body(context)),
-      ]),
+          ListTile(dense: true, title: Text(widget.parent)),
+          if (_loading) const LinearProgressIndicator(),
+          Expanded(child: _body(context)),
+        ],
+      ),
     );
   }
 
   Widget _body(BuildContext context) {
     if (_error != null && _hits.isEmpty) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: _search);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: _search,
+      );
     }
     if (_hits.isEmpty) {
       return _keywords.isEmpty || _loading
           ? const SizedBox.shrink()
-          : StateMessage(icon: Icons.search_off, text: S.of(context).noSearchResults);
+          : StateMessage(
+              icon: Icons.search_off,
+              text: S.of(context).noSearchResults,
+            );
     }
     final hasMore = _hits.length < _total;
     return ListView.builder(
@@ -165,8 +182,9 @@ class _SearchPageState extends State<SearchPage> {
           leading: Icon(_icon(h)),
           title: Text(h.name, overflow: TextOverflow.ellipsis),
           subtitle: Text(
-              h.isDir ? h.parent : '${h.parent} · ${formatBytes(h.size)}',
-              overflow: TextOverflow.ellipsis),
+            h.isDir ? h.parent : '${h.parent} · ${formatBytes(h.size)}',
+            overflow: TextOverflow.ellipsis,
+          ),
           onTap: () => _openHit(h),
         );
       },

@@ -8,13 +8,15 @@ class AuthApi {
   final OpenListClient client;
 
   /// Returns a token; the core hashes the password server side.
-  Future<String> login(String username, String password,
-      {String otpCode = ''}) async {
-    final data = await client.post('/api/auth/login', body: {
-      'username': username,
-      'password': password,
-      'otp_code': otpCode,
-    });
+  Future<String> login(
+    String username,
+    String password, {
+    String otpCode = '',
+  }) async {
+    final data = await client.post(
+      '/api/auth/login',
+      body: {'username': username, 'password': password, 'otp_code': otpCode},
+    );
     final token = data is Map ? data['token'] : null;
     if (token is! String || token.isEmpty) {
       throw ApiException(500, 'empty token');

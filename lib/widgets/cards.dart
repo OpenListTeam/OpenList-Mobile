@@ -47,8 +47,9 @@ class StorageCard extends StatelessWidget {
                       color: isConnected
                           ? AppDesign.primaryBlue.withOpacity(0.1)
                           : Colors.grey.withOpacity(0.1),
-                      borderRadius:
-                          BorderRadius.circular(AppDesign.radiusSmall),
+                      borderRadius: BorderRadius.circular(
+                        AppDesign.radiusSmall,
+                      ),
                     ),
                     child: Icon(
                       _getTypeIcon(),
@@ -140,8 +141,9 @@ class StorageCard extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: usedBytes / totalBytes,
                     minHeight: 6,
-                    backgroundColor:
-                        isDark ? AppDesign.borderDark : AppDesign.borderLight,
+                    backgroundColor: isDark
+                        ? AppDesign.borderDark
+                        : AppDesign.borderLight,
                     valueColor: AlwaysStoppedAnimation<Color>(
                       AppDesign.primaryBlue,
                     ),
@@ -209,11 +211,7 @@ class QuickAccessItem extends StatelessWidget {
                   color: AppDesign.primaryBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppDesign.radiusSmall),
                 ),
-                child: Icon(
-                  icon,
-                  color: AppDesign.primaryBlue,
-                  size: 20,
-                ),
+                child: Icon(icon, color: AppDesign.primaryBlue, size: 20),
               ),
               const Spacer(),
               Text(

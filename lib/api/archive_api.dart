@@ -15,13 +15,13 @@ class ArchiveMeta {
   final String rawUrl;
 
   factory ArchiveMeta.fromJson(Map<String, dynamic> json) => ArchiveMeta(
-        content: ((json['content'] as List?) ?? const [])
-            .map((e) => FsObject.fromJson(Map<String, dynamic>.from(e)))
-            .toList(),
-        encrypted: json['encrypted'] == true,
-        sign: '${json['sign'] ?? ''}',
-        rawUrl: '${json['raw_url'] ?? ''}',
-      );
+    content: ((json['content'] as List?) ?? const [])
+        .map((e) => FsObject.fromJson(Map<String, dynamic>.from(e)))
+        .toList(),
+    encrypted: json['encrypted'] == true,
+    sign: '${json['sign'] ?? ''}',
+    rawUrl: '${json['raw_url'] ?? ''}',
+  );
 }
 
 /// Authenticated archive inspection endpoints provided by OpenList Core.
@@ -29,35 +29,45 @@ class ArchiveApi {
   ArchiveApi(this.client);
   final OpenListClient client;
 
-  Future<ArchiveMeta> meta(String path,
-      {String password = '',
-      String archivePassword = '',
-      bool refresh = false}) async {
-    final data = await client.post('/api/fs/archive/meta', body: {
-      'path': path,
-      'password': password,
-      'archive_pass': archivePassword,
-      'refresh': refresh,
-    });
+  Future<ArchiveMeta> meta(
+    String path, {
+    String password = '',
+    String archivePassword = '',
+    bool refresh = false,
+  }) async {
+    final data = await client.post(
+      '/api/fs/archive/meta',
+      body: {
+        'path': path,
+        'password': password,
+        'archive_pass': archivePassword,
+        'refresh': refresh,
+      },
+    );
     return ArchiveMeta.fromJson(Map<String, dynamic>.from(data ?? {}));
   }
 
-  Future<FsListResult> list(String path,
-      {String password = '',
-      String archivePassword = '',
-      String innerPath = '/',
-      int page = 1,
-      int perPage = 0,
-      bool refresh = false}) async {
-    final data = await client.post('/api/fs/archive/list', body: {
-      'path': path,
-      'password': password,
-      'archive_pass': archivePassword,
-      'inner_path': innerPath,
-      'page': page,
-      'per_page': perPage,
-      'refresh': refresh,
-    });
+  Future<FsListResult> list(
+    String path, {
+    String password = '',
+    String archivePassword = '',
+    String innerPath = '/',
+    int page = 1,
+    int perPage = 0,
+    bool refresh = false,
+  }) async {
+    final data = await client.post(
+      '/api/fs/archive/list',
+      body: {
+        'path': path,
+        'password': password,
+        'archive_pass': archivePassword,
+        'inner_path': innerPath,
+        'page': page,
+        'per_page': perPage,
+        'refresh': refresh,
+      },
+    );
     return FsListResult.fromJson(Map<String, dynamic>.from(data ?? {}));
   }
 
@@ -72,15 +82,22 @@ class ArchiveApi {
 
   /// Builds the Core-provided extraction URL, preserving driver-specific `/ad`
   /// routes and archive signatures returned by the meta endpoint.
-  String entryUrl(ArchiveMeta meta, String innerPath,
-      {String archivePassword = ''}) {
+  String entryUrl(
+    ArchiveMeta meta,
+    String innerPath, {
+    String archivePassword = '',
+  }) {
     final base = Uri.parse(meta.rawUrl);
-    return base.replace(queryParameters: {
-      ...base.queryParameters,
-      if (meta.sign.isNotEmpty) 'sign': meta.sign,
-      'inner': innerPath,
-      if (archivePassword.isNotEmpty) 'pass': archivePassword,
-    }).toString();
+    return base
+        .replace(
+          queryParameters: {
+            ...base.queryParameters,
+            if (meta.sign.isNotEmpty) 'sign': meta.sign,
+            'inner': innerPath,
+            if (archivePassword.isNotEmpty) 'pass': archivePassword,
+          },
+        )
+        .toString();
   }
 
   /// Adds credentials only when the extraction URL belongs to this Core.

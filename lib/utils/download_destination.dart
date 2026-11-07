@@ -5,16 +5,18 @@ import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 
 class DownloadDirectoryTarget {
-  DownloadDirectoryTarget.path({required this.reference, required Directory directory})
-      : name = directory.path,
-        directory = directory,
-        native = null;
+  DownloadDirectoryTarget.path({
+    required this.reference,
+    required Directory directory,
+  }) : name = directory.path,
+       directory = directory,
+       native = null;
 
   DownloadDirectoryTarget.native(DownloadDirectory directory)
-      : reference = directory.reference,
-        name = directory.name,
-        directory = null,
-        native = directory;
+    : reference = directory.reference,
+      name = directory.name,
+      directory = null,
+      native = directory;
 
   final String reference;
   final String name;
@@ -164,7 +166,9 @@ class NativeDownloadDestination implements DownloadDestination {
   DownloadStorage get _storage => NativeBridge.downloadStorage;
 
   static Future<NativeDownloadDestination> reserve(
-      String directoryReference, String filename) async {
+    String directoryReference,
+    String filename,
+  ) async {
     final file = await NativeBridge.downloadStorage.reserveFile(
       directoryReference,
       filename,
@@ -190,11 +194,8 @@ class NativeDownloadDestination implements DownloadDestination {
   Future<void> truncate() => _storage.truncateFile(_fileReference);
 
   @override
-  Future<void> write(int offset, List<int> data) => _storage.writeFile(
-        _fileReference,
-        offset,
-        Uint8List.fromList(data),
-      );
+  Future<void> write(int offset, List<int> data) =>
+      _storage.writeFile(_fileReference, offset, Uint8List.fromList(data));
 
   @override
   Future<void> flush() => _storage.flushFile(_fileReference);

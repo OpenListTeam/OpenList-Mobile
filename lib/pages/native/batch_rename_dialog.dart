@@ -85,7 +85,9 @@ List<RenameObj> buildRenamePairs(
 String _sequentialName(String name, String pattern, int counter, int width) {
   final dot = name.lastIndexOf('.');
   final suffix = dot != -1 ? name.substring(dot) : '';
-  final padded = width > 0 ? counter.toString().padLeft(width, '0') : '$counter';
+  final padded = width > 0
+      ? counter.toString().padLeft(width, '0')
+      : '$counter';
   final base = pattern.contains('{number}')
       ? pattern.replaceAll('{number}', padded)
       : '$pattern$padded';
@@ -124,10 +126,10 @@ String _pad(int value, [int width = 2]) => value.toString().padLeft(width, '0');
 
 /// Resolves an error key returned by [validateRenameName] or the regex check.
 String _errorText(S strings, String key) => switch (key) {
-      'invalidFilenameChars' => strings.invalidFilenameChars,
-      'invalidRegex' => strings.invalidRegex,
-      _ => strings.emptyInput,
-    };
+  'invalidFilenameChars' => strings.invalidFilenameChars,
+  'invalidRegex' => strings.invalidRegex,
+  _ => strings.emptyInput,
+};
 
 /// Shows the batch rename dialog for the files of [dir].
 ///
@@ -242,17 +244,16 @@ class _BatchRenameDialogState extends State<_BatchRenameDialog> {
     final preview = _preview;
     return AlertDialog(
       title: Text(strings.batchRename),
-      content: preview == null ? _buildForm(strings) : _buildPreview(strings, preview),
+      content: preview == null
+          ? _buildForm(strings)
+          : _buildPreview(strings, preview),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(strings.cancel),
         ),
         if (preview == null)
-          FilledButton(
-            onPressed: _previewRename,
-            child: Text(strings.preview),
-          )
+          FilledButton(onPressed: _previewRename, child: Text(strings.preview))
         else ...[
           TextButton(
             onPressed: () => setState(() => _preview = null),
@@ -332,7 +333,9 @@ class _BatchRenameDialogState extends State<_BatchRenameDialog> {
             TextField(
               controller: _padding,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: strings.renamePaddingZeros),
+              decoration: InputDecoration(
+                labelText: strings.renamePaddingZeros,
+              ),
             ),
           ],
         ],
@@ -359,8 +362,11 @@ class _BatchRenameDialogState extends State<_BatchRenameDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.srcName,
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(
+                        p.srcName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         p.newName,

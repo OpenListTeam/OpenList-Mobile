@@ -14,27 +14,27 @@ import 'tls_page.dart';
 const _modes = ['local', 'lan', 'public'];
 
 String _modeLabel(String m) => switch (m) {
-      'lan' => S.current.modeLan,
-      'public' => S.current.modePublic,
-      _ => S.current.modeLocal,
-    };
+  'lan' => S.current.modeLan,
+  'public' => S.current.modePublic,
+  _ => S.current.modeLocal,
+};
 
 String _modeDesc(String m) => switch (m) {
-      'lan' => S.current.modeLanDesc,
-      'public' => S.current.modePublicDesc,
-      _ => S.current.modeLocalDesc,
-    };
+  'lan' => S.current.modeLanDesc,
+  'public' => S.current.modePublicDesc,
+  _ => S.current.modeLocalDesc,
+};
 
 String _checkLabel(String id) => switch (id) {
-      'tls' => S.current.checkTls,
-      'force_https' => S.current.checkForceHttps,
-      'guest_disabled' => S.current.checkGuestDisabled,
-      's3_tls' => S.current.checkS3Tls,
-      'ftp_plaintext' => S.current.checkFtpPlaintext,
-      'admin_2fa' => S.current.checkAdmin2fa,
-      'not_initialized' => S.current.checkNotInitialized,
-      _ => id,
-    };
+  'tls' => S.current.checkTls,
+  'force_https' => S.current.checkForceHttps,
+  'guest_disabled' => S.current.checkGuestDisabled,
+  's3_tls' => S.current.checkS3Tls,
+  'ftp_plaintext' => S.current.checkFtpPlaintext,
+  'admin_2fa' => S.current.checkAdmin2fa,
+  'not_initialized' => S.current.checkNotInitialized,
+  _ => id,
+};
 
 /// Server runtime: exposure mode, security checks, status and diagnostics.
 class ServerPage extends StatefulWidget {
@@ -111,8 +111,11 @@ class _ServerPageState extends State<ServerPage> {
       return;
     }
     if (mode == 'public' &&
-        !await confirmDialog(context, S.current.publicModeWarning,
-            title: S.current.modePublic)) {
+        !await confirmDialog(
+          context,
+          S.current.publicModeWarning,
+          title: S.current.modePublic,
+        )) {
       return;
     }
     try {
@@ -130,13 +133,13 @@ class _ServerPageState extends State<ServerPage> {
   }
 
   Widget _section(String title) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(title,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(color: Theme.of(context).colorScheme.primary)),
-      );
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+    child: Text(
+      title,
+      style: Theme.of(context).textTheme.titleSmall
+          ?.copyWith(color: Theme.of(context).colorScheme.primary),
+    ),
+  );
 
   List<String> _urls(ServerStatus s) {
     final https = s.httpsPort > 0 && (s.forceHttps || s.httpPort <= 0);
@@ -170,10 +173,13 @@ class _ServerPageState extends State<ServerPage> {
     return [
       if (r['uptime_sec'] != null)
         row(S.current.uptime, formatDuration(n('uptime_sec'))),
-      if (r['goroutines'] != null) row(S.current.goroutines, '${n('goroutines')}'),
+      if (r['goroutines'] != null)
+        row(S.current.goroutines, '${n('goroutines')}'),
       if (r['heap_alloc'] != null)
-        row(S.current.memory,
-            '${formatBytes(n('heap_alloc'))} / ${formatBytes(n('sys'))}'),
+        row(
+          S.current.memory,
+          '${formatBytes(n('heap_alloc'))} / ${formatBytes(n('sys'))}',
+        ),
       if (r['pss_kb'] != null)
         row(S.current.processMemory, formatBytes(n('pss_kb') * 1024)),
       if (r['cpu_time_ms'] != null)
@@ -191,9 +197,11 @@ class _ServerPageState extends State<ServerPage> {
       ListTile(
         leading: const Icon(Icons.battery_saver),
         title: Text(S.current.batteryOptimization),
-        subtitle: Text(d.ignoringBatteryOptimizations
-            ? S.current.batteryOptimizationIgnored
-            : S.current.batteryOptimizationActive),
+        subtitle: Text(
+          d.ignoringBatteryOptimizations
+              ? S.current.batteryOptimizationIgnored
+              : S.current.batteryOptimizationActive,
+        ),
         trailing: d.ignoringBatteryOptimizations
             ? null
             : TextButton(
@@ -202,7 +210,8 @@ class _ServerPageState extends State<ServerPage> {
                   _diag = await _sm.getBackgroundDiagnostics();
                   if (mounted) setState(() {});
                 },
-                child: Text(S.current.requestIgnoreBattery)),
+                child: Text(S.current.requestIgnoreBattery),
+              ),
       ),
       if (d.backgroundRestricted)
         ListTile(
@@ -230,8 +239,9 @@ class _ServerPageState extends State<ServerPage> {
             ? Text('${S.current.standbyBucket}: ${d.standbyBucket}')
             : null,
         trailing: TextButton(
-            onPressed: _sm.openAppDetailsSettings,
-            child: Text(S.current.appDetails)),
+          onPressed: _sm.openAppDetailsSettings,
+          child: Text(S.current.appDetails),
+        ),
       ),
     ];
   }
@@ -248,84 +258,105 @@ class _ServerPageState extends State<ServerPage> {
           await _sm.checkServiceStatus();
           await _load();
         },
-        child: ListView(children: [
-          ListTile(
-            leading: Icon(running ? Icons.cloud_done : Icons.cloud_off,
-                color: running ? Theme.of(context).colorScheme.primary : null),
-            title: Text(running ? S.of(context).running : S.of(context).stopped),
-            subtitle: Text(_modeLabel(s?.mode ?? _mode)),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Wrap(spacing: 8, children: [
-              if (!running)
-                FilledButton(
-                    onPressed: _sm.startService, child: Text(S.of(context).startServer)),
-              if (running) ...[
-                OutlinedButton(
-                    onPressed: _sm.stopService, child: Text(S.of(context).stopServer)),
-                OutlinedButton(
-                    onPressed: _sm.restartService,
-                    child: Text(S.of(context).restartServer)),
-              ],
-            ]),
-          ),
-          if ((s?.lastError ?? '').isNotEmpty)
+        child: ListView(
+          children: [
             ListTile(
-              leading: Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
-              title: Text(S.of(context).lastError),
-              subtitle: Text(s!.lastError!),
+              leading: Icon(
+                running ? Icons.cloud_done : Icons.cloud_off,
+                color: running ? Theme.of(context).colorScheme.primary : null,
+              ),
+              title: Text(
+                running ? S.of(context).running : S.of(context).stopped,
+              ),
+              subtitle: Text(_modeLabel(s?.mode ?? _mode)),
             ),
-          if (running && s != null) ...[
-            _section(S.of(context).addresses),
-            for (final u in _urls(s))
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  if (!running)
+                    FilledButton(
+                      onPressed: _sm.startService,
+                      child: Text(S.of(context).startServer),
+                    ),
+                  if (running) ...[
+                    OutlinedButton(
+                      onPressed: _sm.stopService,
+                      child: Text(S.of(context).stopServer),
+                    ),
+                    OutlinedButton(
+                      onPressed: _sm.restartService,
+                      child: Text(S.of(context).restartServer),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if ((s?.lastError ?? '').isNotEmpty)
               ListTile(
-                dense: true,
-                title: SelectableText(u),
-                trailing: IconButton(
-                  icon: const Icon(Icons.copy),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: u));
-                    showMessage(S.current.copiedToClipboard);
-                  },
+                leading: Icon(
+                  Icons.error_outline,
+                  color: Theme.of(context).colorScheme.error,
                 ),
+                title: Text(S.of(context).lastError),
+                subtitle: Text(s!.lastError!),
               ),
+            if (running && s != null) ...[
+              _section(S.of(context).addresses),
+              for (final u in _urls(s))
+                ListTile(
+                  dense: true,
+                  title: SelectableText(u),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: u));
+                      showMessage(S.current.copiedToClipboard);
+                    },
+                  ),
+                ),
+            ],
+            _section(S.of(context).exposureMode),
+            ListTile(
+              leading: const Icon(Icons.https_outlined),
+              title: Text(S.of(context).tlsCertificate),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => const TlsPage()))
+                      .then((_) => _load()),
+            ),
+            RadioGroupFallback(
+              value: _mode,
+              options: _modes,
+              label: _modeLabel,
+              description: _modeDesc,
+              onChanged: _selectMode,
+            ),
+            if (checks.isNotEmpty) ...[
+              _section(S.of(context).securityChecks),
+              if (_report['blocked'] == true)
+                ListTile(
+                  dense: true,
+                  leading: Icon(
+                    Icons.block,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  title: Text(S.of(context).publicBlocked),
+                ),
+              for (final c in checks)
+                if (c is Map) _check(c),
+            ],
+            if (running && _runtime.isNotEmpty) ...[
+              _section(S.of(context).runtimeStatus),
+              ..._runtimeTiles(),
+            ],
+            _section(S.of(context).backgroundRunning),
+            ..._backgroundTiles(),
+            const SizedBox(height: 24),
           ],
-          _section(S.of(context).exposureMode),
-          ListTile(
-            leading: const Icon(Icons.https_outlined),
-            title: Text(S.of(context).tlsCertificate),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const TlsPage()))
-                .then((_) => _load()),
-          ),
-          RadioGroupFallback(
-            value: _mode,
-            options: _modes,
-            label: _modeLabel,
-            description: _modeDesc,
-            onChanged: _selectMode,
-          ),
-          if (checks.isNotEmpty) ...[
-            _section(S.of(context).securityChecks),
-            if (_report['blocked'] == true)
-              ListTile(
-                dense: true,
-                leading: Icon(Icons.block, color: Theme.of(context).colorScheme.error),
-                title: Text(S.of(context).publicBlocked),
-              ),
-            for (final c in checks)
-              if (c is Map) _check(c),
-          ],
-          if (running && _runtime.isNotEmpty) ...[
-            _section(S.of(context).runtimeStatus),
-            ..._runtimeTiles(),
-          ],
-          _section(S.of(context).backgroundRunning),
-          ..._backgroundTiles(),
-          const SizedBox(height: 24),
-        ]),
+        ),
       ),
     );
   }
@@ -351,15 +382,21 @@ class RadioGroupFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      for (final o in options)
-        ListTile(
-          leading: Icon(o == value ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              color: o == value ? Theme.of(context).colorScheme.primary : null),
-          title: Text(label(o)),
-          subtitle: Text(description(o)),
-          onTap: () => onChanged(o),
-        ),
-    ]);
+    return Column(
+      children: [
+        for (final o in options)
+          ListTile(
+            leading: Icon(
+              o == value
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: o == value ? Theme.of(context).colorScheme.primary : null,
+            ),
+            title: Text(label(o)),
+            subtitle: Text(description(o)),
+            onTap: () => onChanged(o),
+          ),
+      ],
+    );
   }
 }

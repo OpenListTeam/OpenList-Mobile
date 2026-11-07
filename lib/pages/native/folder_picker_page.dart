@@ -62,19 +62,22 @@ class _FolderPickerPageState extends State<FolderPickerPage> {
       },
       child: Scaffold(
         appBar: AppBar(title: Text(widget.title)),
-        body: Column(children: [
-          ListTile(
-            leading: const Icon(Icons.folder_open),
-            title: Text(_path),
-            trailing: _path == '/'
-                ? null
-                : IconButton(
-                    icon: const Icon(Icons.arrow_upward),
-                    onPressed: () => _open(_parent)),
-          ),
-          const Divider(height: 1),
-          Expanded(child: _list()),
-        ]),
+        body: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.folder_open),
+              title: Text(_path),
+              trailing: _path == '/'
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.arrow_upward),
+                      onPressed: () => _open(_parent),
+                    ),
+            ),
+            const Divider(height: 1),
+            Expanded(child: _list()),
+          ],
+        ),
         bottomNavigationBar: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -92,10 +95,11 @@ class _FolderPickerPageState extends State<FolderPickerPage> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.current.retry,
-          onAction: _load);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.current.retry,
+        onAction: _load,
+      );
     }
     if (_dirs.isEmpty) {
       return StateMessage(icon: Icons.folder_off, text: S.current.emptyFolder);

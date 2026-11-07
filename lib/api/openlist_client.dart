@@ -26,11 +26,8 @@ class ApiException implements Exception {
 
 /// Thin Dio wrapper around the OpenList `{code, message, data}` envelope.
 class OpenListClient {
-  OpenListClient({
-    required String baseUrl,
-    this.token = '',
-    Dio? dio,
-  }) : dio = dio ?? Dio() {
+  OpenListClient({required String baseUrl, this.token = '', Dio? dio})
+    : dio = dio ?? Dio() {
     this.dio.options
       ..baseUrl = _trimSlash(baseUrl)
       ..connectTimeout = const Duration(seconds: 10)
@@ -38,10 +35,14 @@ class OpenListClient {
       ..responseType = ResponseType.json
       // Envelope codes carry the real status; let 4xx/5xx bodies through.
       ..validateStatus = (s) => s != null && s < 600;
-    this.dio.interceptors.add(InterceptorsWrapper(onRequest: (o, h) {
-      if (token.isNotEmpty) o.headers['Authorization'] = token;
-      h.next(o);
-    }));
+    this.dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (o, h) {
+          if (token.isNotEmpty) o.headers['Authorization'] = token;
+          h.next(o);
+        },
+      ),
+    );
     if (dio == null) _allowLoopbackSelfSigned(this.dio);
   }
 
@@ -62,18 +63,22 @@ class OpenListClient {
     if (uri == null || uri.scheme != 'https' || !isLoopbackHost(uri.host)) {
       return;
     }
-    dio.httpClientAdapter = IOHttpClientAdapter(createHttpClient: () {
-      return HttpClient()
-        ..badCertificateCallback = (_, h, __) => isLoopbackHost(h);
-    });
+    dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        return HttpClient()
+          ..badCertificateCallback = (_, h, __) => isLoopbackHost(h);
+      },
+    );
   }
 
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
       _send(() => dio.get(path, queryParameters: query));
 
-  Future<dynamic> post(String path,
-          {Object? body, Map<String, dynamic>? query}) =>
-      _send(() => dio.post(path, data: body ?? {}, queryParameters: query));
+  Future<dynamic> post(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? query,
+  }) => _send(() => dio.post(path, data: body ?? {}, queryParameters: query));
 
   Future<dynamic> put(
     String path, {
@@ -81,14 +86,15 @@ class OpenListClient {
     Map<String, dynamic>? headers,
     ProgressCallback? onSendProgress,
     CancelToken? cancelToken,
-  }) =>
-      _send(() => dio.put(
-            path,
-            data: data,
-            options: Options(headers: headers),
-            onSendProgress: onSendProgress,
-            cancelToken: cancelToken,
-          ));
+  }) => _send(
+    () => dio.put(
+      path,
+      data: data,
+      options: Options(headers: headers),
+      onSendProgress: onSendProgress,
+      cancelToken: cancelToken,
+    ),
+  );
 
   /// Runs [req] and returns the envelope `data`, throwing [ApiException].
   Future<dynamic> _send(Future<Response> Function() req) async {

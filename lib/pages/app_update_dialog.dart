@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'dart:io' show Platform;
+
 import 'package:flutter_smooth_markdown/flutter_smooth_markdown.dart';
 
 import '../generated/l10n.dart';
@@ -14,15 +16,18 @@ class AppUpdateDialog extends StatelessWidget {
   final String htmlUrl;
   final String version;
 
-  const AppUpdateDialog(
-      {super.key,
-      required this.content,
-      required this.apkUrl,
-      required this.version,
-      required this.htmlUrl});
+  const AppUpdateDialog({
+    super.key,
+    required this.content,
+    required this.apkUrl,
+    required this.version,
+    required this.htmlUrl,
+  });
 
   static checkUpdateAndShowDialog(
-      BuildContext context, ValueChanged<bool>? checkFinished) async {
+    BuildContext context,
+    ValueChanged<bool>? checkFinished,
+  ) async {
     if (Platform.isIOS) {
       try {
         final hasNewVersion = await AppStoreUpdate.checkAndShowUpdate();
@@ -33,12 +38,15 @@ class AppUpdateDialog extends StatelessWidget {
       return;
     }
 
-    final checker = UpdateChecker(owner: "openlistteam", repo: "OpenList-Mobile");
+    final checker = UpdateChecker(
+      owner: "openlistteam",
+      repo: "OpenList-Mobile",
+    );
     await checker.downloadData();
     final hasNewVersion = await checker.hasNewVersion();
-    
+
     checkFinished?.call(hasNewVersion);
-    
+
     if (hasNewVersion) {
       showDialog(
         context: context,
@@ -59,21 +67,15 @@ class AppUpdateDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasValidApkUrl = apkUrl.trim().isNotEmpty &&
-        Uri.tryParse(apkUrl) != null;
-    
+    final hasValidApkUrl =
+        apkUrl.trim().isNotEmpty && Uri.tryParse(apkUrl) != null;
+
     return AlertDialog(
       title: Row(
         children: [
-          Icon(
-            Icons.system_update,
-            color: theme.colorScheme.primary,
-            size: 28,
-          ),
+          Icon(Icons.system_update, color: theme.colorScheme.primary, size: 28),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(S.of(context).newVersionFound),
-          ),
+          Expanded(child: Text(S.of(context).newVersionFound)),
         ],
       ),
       content: SingleChildScrollView(
@@ -110,7 +112,7 @@ class AppUpdateDialog extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
-            
+
             Text(
               S.of(context).selectDownloadMethod,
               style: theme.textTheme.titleSmall?.copyWith(
@@ -118,7 +120,7 @@ class AppUpdateDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            
+
             if (Platform.isAndroid && hasValidApkUrl) ...[
               Card(
                 margin: EdgeInsets.zero,

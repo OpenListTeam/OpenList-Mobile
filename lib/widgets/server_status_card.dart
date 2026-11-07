@@ -59,8 +59,9 @@ class ServerStatusCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: AppDesign.successGreen.withOpacity(0.1),
-                      borderRadius:
-                          BorderRadius.circular(AppDesign.radiusSmall),
+                      borderRadius: BorderRadius.circular(
+                        AppDesign.radiusSmall,
+                      ),
                     ),
                     child: Text(
                       _modeLabel(mode),
@@ -82,8 +83,9 @@ class ServerStatusCard extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onStartStop,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isRunning ? colorScheme.error : AppDesign.primaryBlue,
+                  backgroundColor: isRunning
+                      ? colorScheme.error
+                      : AppDesign.primaryBlue,
                   foregroundColor: Colors.white,
                   elevation: 0,
                 ),
@@ -112,8 +114,9 @@ class ServerStatusCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color:
-                        isDark ? AppDesign.borderDark : AppDesign.borderLight,
+                    color: isDark
+                        ? AppDesign.borderDark
+                        : AppDesign.borderLight,
                   ),
                   borderRadius: BorderRadius.circular(AppDesign.radiusButton),
                 ),
@@ -170,11 +173,7 @@ class ServerStatusCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.link,
-                        size: 20,
-                        color: colorScheme.primary,
-                      ),
+                      Icon(Icons.link, size: 20, color: colorScheme.primary),
                       const SizedBox(width: AppDesign.space12),
                       Expanded(
                         child: Column(

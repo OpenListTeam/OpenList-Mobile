@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/settings/preference_widgets.dart';
@@ -51,7 +52,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Android-specific permission requests
             if (Platform.isAndroid) ...[
               Visibility(
-                visible: !controller._managerStorageGranted.value ||
+                visible:
+                    !controller._managerStorageGranted.value ||
                     !controller._notificationGranted.value ||
                     !controller._storageGranted.value,
                 child: DividerPreference(
@@ -76,8 +78,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () {
                     Permission.storage.request();
                   },
-                )),
-            Visibility(
+                ),
+              ),
+              Visibility(
                 visible: !controller._notificationGranted.value,
                 child: BasicPreference(
                   title: S.of(context).grantNotificationPermission,
@@ -246,27 +249,27 @@ class _SettingsController extends GetxController {
   get dataDir => _dataDir.value;
 
   set autoUpdate(value) => {
-        _autoUpdate.value = value,
-        NativeBridge.appConfig.setAutoCheckUpdateEnabled(value)
-      };
+    _autoUpdate.value = value,
+    NativeBridge.appConfig.setAutoCheckUpdateEnabled(value),
+  };
 
   get autoUpdate => _autoUpdate.value;
 
   final _wakeLock = true.obs;
 
   set wakeLock(value) => {
-        _wakeLock.value = value,
-        NativeBridge.appConfig.setWakeLockEnabled(value)
-      };
+    _wakeLock.value = value,
+    NativeBridge.appConfig.setWakeLockEnabled(value),
+  };
 
   get wakeLock => _wakeLock.value;
 
   final _autoStart = true.obs;
 
   set startAtBoot(value) => {
-        _autoStart.value = value,
-        NativeBridge.appConfig.setStartAtBootEnabled(value)
-      };
+    _autoStart.value = value,
+    NativeBridge.appConfig.setStartAtBootEnabled(value),
+  };
 
   get startAtBoot => _autoStart.value;
 
@@ -275,9 +278,9 @@ class _SettingsController extends GetxController {
   get silentJumpApp => _silentJumpApp.value;
 
   set silentJumpApp(value) => {
-        _silentJumpApp.value = value,
-        NativeBridge.appConfig.setSilentJumpAppEnabled(value)
-      };
+    _silentJumpApp.value = value,
+    NativeBridge.appConfig.setSilentJumpAppEnabled(value),
+  };
 
   @override
   void onInit() async {
@@ -299,7 +302,8 @@ class _SettingsController extends GetxController {
     final sdk = await NativeBridge.common.getDeviceSdkInt();
     _managerStorageGranted.value =
         sdk < 30 || await Permission.manageExternalStorage.isGranted;
-    _storageGranted.value = sdk >= 33 ||
+    _storageGranted.value =
+        sdk >= 33 ||
         (sdk >= 30 && _managerStorageGranted.value) ||
         await Permission.storage.isGranted;
     _notificationGranted.value =

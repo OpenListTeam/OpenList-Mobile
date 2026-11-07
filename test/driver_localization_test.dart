@@ -6,10 +6,12 @@ import 'package:openlist_mobile/utils/driver_localization.dart';
 
 void main() {
   test('English and Chinese ARB catalogs have matching keys', () {
-    final en = jsonDecode(File('lib/l10n/intl_en.arb').readAsStringSync())
-        as Map<String, dynamic>;
-    final zh = jsonDecode(File('lib/l10n/intl_zh.arb').readAsStringSync())
-        as Map<String, dynamic>;
+    final en = jsonDecode(
+      File('lib/l10n/intl_en.arb').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final zh = jsonDecode(
+      File('lib/l10n/intl_zh.arb').readAsStringSync(),
+    ) as Map<String, dynamic>;
 
     expect(zh.keys.toSet(), en.keys.toSet());
   });

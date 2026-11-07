@@ -69,18 +69,23 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
         await _loadLocalArchive();
       } else {
         final session = OpenListSession.instance;
-        final meta = _meta ??= await session.archive.meta(widget.path,
-            password: widget.password, archivePassword: _archivePassword);
+        final meta = _meta ??= await session.archive.meta(
+          widget.path,
+          password: widget.password,
+          archivePassword: _archivePassword,
+        );
         _meta = meta;
         if (meta.encrypted && _archivePassword.isEmpty) {
           _requiresPassword = true;
         } else if (meta.rawUrl.isEmpty) {
           _error = StateError(S.current.archiveExtractionUnavailable);
         } else {
-          _result = await session.archive.list(widget.path,
-              password: widget.password,
-              archivePassword: _archivePassword,
-              innerPath: _innerPath);
+          _result = await session.archive.list(
+            widget.path,
+            password: widget.password,
+            archivePassword: _archivePassword,
+            innerPath: _innerPath,
+          );
         }
       }
     } catch (error) {
@@ -101,8 +106,8 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
   }
 
   bool _isCallbackAdmissionError(Object error) {
-    final message =
-        (error is ApiException ? error.message : '$error').toLowerCase();
+    final message = (error is ApiException ? error.message : '$error')
+        .toLowerCase();
     return message.contains('temporary capacity unavailable') ||
         message.contains('timed out waiting for callback admission');
   }
@@ -128,10 +133,12 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
   }
 
   Future<void> _enterPassword() async {
-    final value = await promptText(context,
-        title: S.of(context).password,
-        label: S.of(context).password,
-        obscure: true);
+    final value = await promptText(
+      context,
+      title: S.of(context).password,
+      label: S.of(context).password,
+      obscure: true,
+    );
     if (value == null || !mounted) return;
     setState(() {
       _archivePassword = value;
@@ -143,8 +150,9 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
   }
 
   Future<void> _openDirectory(String name) async {
-    final parent =
-        _innerPath == '/' ? '' : _innerPath.replaceAll(RegExp(r'/+$'), '');
+    final parent = _innerPath == '/'
+        ? ''
+        : _innerPath.replaceAll(RegExp(r'/+$'), '');
     _parents = [..._parents, _innerPath];
     _innerPath = '$parent/$name/';
     await _load();
@@ -171,12 +179,16 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
       return;
     }
     final path = '${_innerPath == '/' ? '' : _innerPath}${item.name}';
-    final url = OpenListSession.instance.archive
-        .entryUrl(_meta!, path, archivePassword: _archivePassword);
+    final url = OpenListSession.instance.archive.entryUrl(
+      _meta!,
+      path,
+      archivePassword: _archivePassword,
+    );
     await DownloadManager.downloadFileWithProgress(
-        url: url,
-        filename: item.name,
-        headers: OpenListSession.instance.archive.headersFor(url));
+      url: url,
+      filename: item.name,
+      headers: OpenListSession.instance.archive.headersFor(url),
+    );
   }
 
   static Future<void> _saveLocalZipEntry(
@@ -255,41 +267,48 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null && !_requiresPassword) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: _load);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: _load,
+      );
     }
     if (_requiresPassword) {
       return StateMessage(
-          icon: Icons.lock_outline,
-          text: S.of(context).password,
-          action: S.of(context).password,
-          onAction: _enterPassword);
+        icon: Icons.lock_outline,
+        text: S.of(context).password,
+        action: S.of(context).password,
+        onAction: _enterPassword,
+      );
     }
     if (_localArchive != null) {
       if (_localEntries.isEmpty) {
         return StateMessage(
-            icon: Icons.folder_open, text: S.of(context).noFilesHere);
+          icon: Icons.folder_open,
+          text: S.of(context).noFilesHere,
+        );
       }
       return ListView.builder(
         itemCount: _localEntries.length,
         itemBuilder: (context, index) {
           final entry = _localEntries[index];
           return ListTile(
-            leading: Icon(entry.isDirectory
-                ? Icons.folder
-                : Icons.insert_drive_file_outlined),
-            title:
-                Text(entry.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            leading: Icon(
+              entry.isDirectory
+                  ? Icons.folder
+                  : Icons.insert_drive_file_outlined,
+            ),
+            title: Text(
+              entry.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             subtitle: entry.isDirectory ? null : Text(formatBytes(entry.size)),
             onTap: entry.isDirectory
                 ? () => _openDirectory(entry.name)
-                : () => _download(FsObject(
-                      name: entry.name,
-                      size: entry.size,
-                      isDir: false,
-                    )),
+                : () => _download(
+                    FsObject(name: entry.name, size: entry.size, isDir: false),
+                  ),
             trailing: entry.isDirectory
                 ? const Icon(Icons.chevron_right)
                 : const Icon(Icons.download),
@@ -300,7 +319,9 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
     final content = _result?.content ?? const <FsObject>[];
     if (content.isEmpty) {
       return StateMessage(
-          icon: Icons.folder_open, text: S.of(context).noFilesHere);
+        icon: Icons.folder_open,
+        text: S.of(context).noFilesHere,
+      );
     }
     return ListView.builder(
       itemCount: content.length,
@@ -308,7 +329,8 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
         final item = content[index];
         return ListTile(
           leading: Icon(
-              item.isDir ? Icons.folder : Icons.insert_drive_file_outlined),
+            item.isDir ? Icons.folder : Icons.insert_drive_file_outlined,
+          ),
           title: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
           subtitle: item.isDir ? null : Text(formatBytes(item.size)),
           onTap: item.isDir

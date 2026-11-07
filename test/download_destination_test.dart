@@ -20,8 +20,7 @@ class _FilePicker extends FilePickerPlatform {
     WindowsOptions windowsOptions = const WindowsOptions(),
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
-  }) async =>
-      directory;
+  }) async => directory;
 }
 
 void main() {
@@ -68,13 +67,16 @@ void main() {
   );
 
   test('clearing downloads removes untracked files too', () async {
-    final directory =
-        await Directory.systemTemp.createTemp('openlist-download-clear-');
+    final directory = await Directory.systemTemp.createTemp(
+      'openlist-download-clear-',
+    );
     final unrelated = File('${directory.path}/unrelated.txt');
     try {
       await unrelated.writeAsString('remove');
       expect(
-          await DownloadManager.setDownloadDirectory(directory.path), isTrue);
+        await DownloadManager.setDownloadDirectory(directory.path),
+        isTrue,
+      );
 
       expect(await DownloadManager.clearDownloadDirectory(), isTrue);
       expect(await unrelated.exists(), isFalse);
@@ -85,13 +87,16 @@ void main() {
   });
 
   test('keeps previously configured directories discoverable', () async {
-    final directory =
-        await Directory.systemTemp.createTemp('openlist-download-history-');
+    final directory = await Directory.systemTemp.createTemp(
+      'openlist-download-history-',
+    );
     final file = File('${directory.path}${Platform.pathSeparator}old.bin');
     try {
       await file.writeAsBytes(const [1, 2, 3]);
       expect(
-          await DownloadManager.setDownloadDirectory(directory.path), isTrue);
+        await DownloadManager.setDownloadDirectory(directory.path),
+        isTrue,
+      );
       await DownloadManager.resetDownloadDirectory();
 
       final files = await DownloadManager.getDownloadedFiles();
@@ -103,13 +108,16 @@ void main() {
   });
 
   test('lists and deletes untracked file metadata', () async {
-    final directory =
-        await Directory.systemTemp.createTemp('openlist-download-metadata-');
+    final directory = await Directory.systemTemp.createTemp(
+      'openlist-download-metadata-',
+    );
     final file = File('${directory.path}${Platform.pathSeparator}photo.jpg');
     try {
       await file.writeAsBytes(const [1, 2, 3, 4]);
       expect(
-          await DownloadManager.setDownloadDirectory(directory.path), isTrue);
+        await DownloadManager.setDownloadDirectory(directory.path),
+        isTrue,
+      );
 
       final files = await DownloadManager.getDownloadedFileMetadata();
       final metadata = files.singleWhere((entry) => entry.name == 'photo.jpg');

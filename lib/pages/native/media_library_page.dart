@@ -116,8 +116,10 @@ class _MediaLibraryPageState extends State<MediaLibraryPage> {
   Future<void> _toggleFavorite(MediaItem item) async {
     if (OpenListSession.instance.user?.isGuest ?? true) return;
     try {
-      await OpenListSession.instance.media
-          .setFavorite(item.id, !widget.favorites);
+      await OpenListSession.instance.media.setFavorite(
+        item.id,
+        !widget.favorites,
+      );
       if (widget.favorites) {
         setState(() => _items.remove(item));
       } else {
@@ -210,114 +212,110 @@ class _MediaLibraryPageState extends State<MediaLibraryPage> {
   @override
   Widget build(BuildContext context) {
     final type = widget.mediaType;
-    final unavailable = _status != null &&
+    final unavailable =
+        _status != null &&
         (!_status!.enabled || (type != null && !_status!.types.contains(type)));
     return Scaffold(
       appBar: AppBar(title: Text(_title)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : unavailable
-              ? StateMessage(
-                  icon: Icons.photo_library_outlined,
-                  text: S.current.mediaLibraryUnavailable,
-                )
-              : _error != null && _items.isEmpty
-                  ? StateMessage(
-                      icon: Icons.error_outline,
-                      text: errorText(_error!),
-                      action: S.current.retry,
-                      onAction: () => _load(reset: true),
-                    )
-                  : _items.isEmpty
-                      ? StateMessage(
-                          icon: Icons.photo_library_outlined,
-                          text: S.current.noMediaItems,
-                        )
-                      : RefreshIndicator(
-                          onRefresh: () => _load(reset: true),
-                          child: GridView.builder(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.all(12),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 0.78,
-                            ),
-                            itemCount: _items.length +
-                                (_loadingMore ||
-                                        (_error != null && _items.isNotEmpty)
-                                    ? 1
-                                    : 0),
-                            itemBuilder: (context, index) {
-                              if (index >= _items.length) {
-                                if (_error != null) {
-                                  return Center(
-                                    child: TextButton.icon(
-                                      onPressed: _loadMore,
-                                      icon: const Icon(Icons.refresh),
-                                      label: Text(S.current.retry),
-                                    ),
-                                  );
-                                }
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
-                              final item = _items[index];
-                              final cover = _coverUrl(item);
-                              return Card(
-                                clipBehavior: Clip.antiAlias,
-                                child: InkWell(
-                                  onTap: () => _openMedia(item),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Expanded(
-                                        child: cover.isEmpty
-                                            ? const Center(
-                                                child: Icon(
-                                                  Icons.perm_media_outlined,
-                                                  size: 56,
-                                                ),
-                                              )
-                                            : _coverImage(cover),
-                                      ),
-                                      ListTile(
-                                        dense: true,
-                                        title: Text(
-                                          item.displayName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        subtitle: item.isFolder
-                                            ? null
-                                            : Text(formatBytes(item.fileSize)),
-                                        trailing: (OpenListSession
-                                                    .instance.user?.isGuest ??
-                                                true)
-                                            ? null
-                                            : IconButton(
-                                                tooltip: widget.favorites
-                                                    ? S.current
-                                                        .removeMediaFavorite
-                                                    : S.current
-                                                        .addMediaFavorite,
-                                                onPressed: () =>
-                                                    _toggleFavorite(item),
-                                                icon: Icon(widget.favorites
-                                                    ? Icons.star
-                                                    : Icons.star_border),
-                                              ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+          ? StateMessage(
+              icon: Icons.photo_library_outlined,
+              text: S.current.mediaLibraryUnavailable,
+            )
+          : _error != null && _items.isEmpty
+          ? StateMessage(
+              icon: Icons.error_outline,
+              text: errorText(_error!),
+              action: S.current.retry,
+              onAction: () => _load(reset: true),
+            )
+          : _items.isEmpty
+          ? StateMessage(
+              icon: Icons.photo_library_outlined,
+              text: S.current.noMediaItems,
+            )
+          : RefreshIndicator(
+              onRefresh: () => _load(reset: true),
+              child: GridView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(12),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.78,
+                ),
+                itemCount:
+                    _items.length +
+                    (_loadingMore || (_error != null && _items.isNotEmpty)
+                        ? 1
+                        : 0),
+                itemBuilder: (context, index) {
+                  if (index >= _items.length) {
+                    if (_error != null) {
+                      return Center(
+                        child: TextButton.icon(
+                          onPressed: _loadMore,
+                          icon: const Icon(Icons.refresh),
+                          label: Text(S.current.retry),
                         ),
+                      );
+                    }
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final item = _items[index];
+                  final cover = _coverUrl(item);
+                  return Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => _openMedia(item),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: cover.isEmpty
+                                ? const Center(
+                                    child: Icon(
+                                      Icons.perm_media_outlined,
+                                      size: 56,
+                                    ),
+                                  )
+                                : _coverImage(cover),
+                          ),
+                          ListTile(
+                            dense: true,
+                            title: Text(
+                              item.displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: item.isFolder
+                                ? null
+                                : Text(formatBytes(item.fileSize)),
+                            trailing:
+                                (OpenListSession.instance.user?.isGuest ?? true)
+                                ? null
+                                : IconButton(
+                                    tooltip: widget.favorites
+                                        ? S.current.removeMediaFavorite
+                                        : S.current.addMediaFavorite,
+                                    onPressed: () => _toggleFavorite(item),
+                                    icon: Icon(
+                                      widget.favorites
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

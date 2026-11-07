@@ -13,12 +13,19 @@ class _FakeAdapter implements HttpClientAdapter {
   final List<RequestOptions> requests = [];
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options,
-      Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
     requests.add(options);
-    return ResponseBody.fromString(jsonEncode(respond(options)), 200, headers: {
-      Headers.contentTypeHeader: [Headers.jsonContentType]
-    });
+    return ResponseBody.fromString(
+      jsonEncode(respond(options)),
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
   }
 
   @override
@@ -27,24 +34,26 @@ class _FakeAdapter implements HttpClientAdapter {
 
 void main() {
   test('lists media and preserves the server query', () async {
-    final adapter = _FakeAdapter((_) => {
-          'code': 200,
-          'message': 'success',
-          'data': {
-            'content': [
-              {
-                'id': 7,
-                'media_type': 'video',
-                'file_name': 'film.mp4',
-                'folder_path': '/media',
-                'is_folder': true,
-                'file_size': 1024,
-                'episodes': '[{"file_name":"part1.mp4","title":"Part 1"}]',
-              }
-            ],
-            'total': 1,
-          },
-        });
+    final adapter = _FakeAdapter(
+      (_) => {
+        'code': 200,
+        'message': 'success',
+        'data': {
+          'content': [
+            {
+              'id': 7,
+              'media_type': 'video',
+              'file_name': 'film.mp4',
+              'folder_path': '/media',
+              'is_folder': true,
+              'file_size': 1024,
+              'episodes': '[{"file_name":"part1.mp4","title":"Part 1"}]',
+            },
+          ],
+          'total': 1,
+        },
+      },
+    );
     final client = OpenListClient(
       baseUrl: 'https://example.test',
       dio: Dio()..httpClientAdapter = adapter,
@@ -64,11 +73,13 @@ void main() {
   });
 
   test('sets an item-level favorite', () async {
-    final adapter = _FakeAdapter((_) => {
-          'code': 200,
-          'message': 'success',
-          'data': {'favorite': true},
-        });
+    final adapter = _FakeAdapter(
+      (_) => {
+        'code': 200,
+        'message': 'success',
+        'data': {'favorite': true},
+      },
+    );
     final client = OpenListClient(
       baseUrl: 'https://example.test',
       dio: Dio()..httpClientAdapter = adapter,
@@ -77,10 +88,6 @@ void main() {
     await MediaApi(client).setFavorite(23, true);
     final request = adapter.requests.single;
     expect(request.path, '/api/fs/media/favorite');
-    expect(request.data, {
-      'item_id': 23,
-      'episode_index': 0,
-      'favorite': true,
-    });
+    expect(request.data, {'item_id': 23, 'episode_index': 0, 'favorite': true});
   });
 }

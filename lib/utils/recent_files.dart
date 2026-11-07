@@ -20,21 +20,22 @@ class RecentFile {
   final DateTime openedAt;
 
   factory RecentFile.fromJson(Map<String, dynamic> json) => RecentFile(
-        path: json['path'] as String? ?? '',
-        name: json['name'] as String? ?? '',
-        size: json['size'] is num ? (json['size'] as num).toInt() : 0,
-        type: json['type'] is num ? (json['type'] as num).toInt() : 0,
-        openedAt: DateTime.tryParse(json['opened_at'] as String? ?? '') ??
-            DateTime.fromMillisecondsSinceEpoch(0),
-      );
+    path: json['path'] as String? ?? '',
+    name: json['name'] as String? ?? '',
+    size: json['size'] is num ? (json['size'] as num).toInt() : 0,
+    type: json['type'] is num ? (json['type'] as num).toInt() : 0,
+    openedAt:
+        DateTime.tryParse(json['opened_at'] as String? ?? '') ??
+        DateTime.fromMillisecondsSinceEpoch(0),
+  );
 
   Map<String, dynamic> toJson() => {
-        'path': path,
-        'name': name,
-        'size': size,
-        'type': type,
-        'opened_at': openedAt.toIso8601String(),
-      };
+    'path': path,
+    'name': name,
+    'size': size,
+    'type': type,
+    'opened_at': openedAt.toIso8601String(),
+  };
 }
 
 class RecentFiles {
@@ -48,12 +49,17 @@ class RecentFiles {
   }
 
   static Future<void> record(
-      String path, String name, int size, int type) async {
+    String path,
+    String name,
+    int size,
+    int type,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final records = _decode(prefs.getString(_key));
     final serverKey = _serverKey;
     records.removeWhere(
-        (entry) => entry['server'] == serverKey && entry['path'] == path);
+      (entry) => entry['server'] == serverKey && entry['path'] == path,
+    );
     records.insert(0, {
       'server': serverKey,
       ...RecentFile(

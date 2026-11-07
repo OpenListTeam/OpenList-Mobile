@@ -77,7 +77,9 @@ class _TransfersScreenState extends State<TransfersScreen>
                 case 'pause_all':
                   // Pause is handled per-item
                   Get.snackbar(
-                      S.current.info, S.current.pauseIndividualTransfers);
+                    S.current.info,
+                    S.current.pauseIndividualTransfers,
+                  );
                   break;
                 case 'resume_all':
                   // Resume all failed/canceled uploads
@@ -103,18 +105,23 @@ class _TransfersScreenState extends State<TransfersScreen>
             },
             itemBuilder: (context) => [
               PopupMenuItem(
-                  value: 'resume_all', child: Text(S.current.retryFailed)),
+                value: 'resume_all',
+                child: Text(S.current.retryFailed),
+              ),
               PopupMenuItem(
-                  value: 'clear_completed',
-                  child: Text(S.current.clearRecords)),
+                value: 'clear_completed',
+                child: Text(S.current.clearRecords),
+              ),
               if (_tabController.index == 1) ...[
                 PopupMenuItem(
-                    value: 'open_download_directory',
-                    child: Text(S.current.openDirectory)),
+                  value: 'open_download_directory',
+                  child: Text(S.current.openDirectory),
+                ),
                 if (DownloadManager.activeTasks.isEmpty)
                   PopupMenuItem(
-                      value: 'clear_download_files',
-                      child: Text(S.current.clearAll)),
+                    value: 'clear_download_files',
+                    child: Text(S.current.clearAll),
+                  ),
               ],
             ],
           ),
@@ -259,9 +266,7 @@ class _DownloadsTabState extends State<_DownloadsTab> {
       final version = DownloadManager.filesVersion;
       if (mounted) setState(() => _loadingFiles = true);
       final files = await DownloadManager.getDownloadedFileMetadata();
-      final byReference = {
-        for (final file in files) file.reference: file,
-      };
+      final byReference = {for (final file in files) file.reference: file};
       final taskFiles = <String, DownloadFile>{};
       for (final task in DownloadManager.completedTasks) {
         final reference = task.fileReference ?? task.filePath;
@@ -288,11 +293,13 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   Widget build(BuildContext context) {
     final tasks = DownloadManager.allTasks;
     final active = tasks
-        .where((task) =>
-            task.status == DownloadStatus.pending ||
-            task.status == DownloadStatus.downloading ||
-            task.status == DownloadStatus.paused ||
-            task.status == DownloadStatus.cancelling)
+        .where(
+          (task) =>
+              task.status == DownloadStatus.pending ||
+              task.status == DownloadStatus.downloading ||
+              task.status == DownloadStatus.paused ||
+              task.status == DownloadStatus.cancelling,
+        )
         .toList();
     final completed = tasks.where((task) => !active.contains(task)).toList();
     final trackedReferences = <String>{
@@ -334,10 +341,7 @@ class _DownloadsTabState extends State<_DownloadsTab> {
             ),
             for (final task in completed) _downloadTaskCard(task),
             for (final file in untrackedFiles)
-              _DownloadedFileTile(
-                file: file,
-                onChanged: _refreshFiles,
-              ),
+              _DownloadedFileTile(file: file, onChanged: _refreshFiles),
           ],
           if (tasks.isEmpty && untrackedFiles.isEmpty)
             const SizedBox(height: 420),
@@ -357,11 +361,13 @@ class _DownloadsTabState extends State<_DownloadsTab> {
       DownloadStatus.failed => UploadState.failed,
       DownloadStatus.cancelled => UploadState.canceled,
     };
-    final activeTask = task.status == DownloadStatus.pending ||
+    final activeTask =
+        task.status == DownloadStatus.pending ||
         task.status == DownloadStatus.downloading ||
         task.status == DownloadStatus.paused ||
         task.status == DownloadStatus.cancelling;
-    final canRetry = !activeTask &&
+    final canRetry =
+        !activeTask &&
         (task.status == DownloadStatus.failed ||
             task.status == DownloadStatus.cancelled) &&
         task.url.isNotEmpty;
@@ -374,14 +380,20 @@ class _DownloadsTabState extends State<_DownloadsTab> {
             PopupMenuItem(value: 'open', child: Text(S.current.openFile)),
           if (file != null && task.status == DownloadStatus.completed)
             PopupMenuItem(
-                value: 'location', child: Text(S.current.showInFileManager)),
+              value: 'location',
+              child: Text(S.current.showInFileManager),
+            ),
           if (file != null && task.status == DownloadStatus.completed)
             PopupMenuItem(value: 'info', child: Text(S.current.fileInfo)),
           if (file != null && task.status == DownloadStatus.completed)
             PopupMenuItem(
-                value: 'delete_file', child: Text(S.current.deleteFile)),
+              value: 'delete_file',
+              child: Text(S.current.deleteFile),
+            ),
           PopupMenuItem(
-              value: 'delete_record', child: Text(S.current.deleteRecord)),
+            value: 'delete_record',
+            child: Text(S.current.deleteRecord),
+          ),
         ],
       );
     }
@@ -425,7 +437,10 @@ class _DownloadsTabState extends State<_DownloadsTab> {
   }
 
   Future<void> _handleTaskAction(
-      DownloadTask task, DownloadFile? file, String action) async {
+    DownloadTask task,
+    DownloadFile? file,
+    String action,
+  ) async {
     if (file == null && action != 'delete_record') return;
     switch (action) {
       case 'open':
@@ -435,14 +450,18 @@ class _DownloadsTabState extends State<_DownloadsTab> {
       case 'info':
         await _showFileInfo(file!);
       case 'delete_file':
-        if (await _confirm(S.current.confirmDelete,
-            S.current.confirmDeleteFile(task.filename))) {
+        if (await _confirm(
+          S.current.confirmDelete,
+          S.current.confirmDeleteFile(task.filename),
+        )) {
           await DownloadManager.deleteDownloadedFile(file!);
           await _refreshFiles();
         }
       case 'delete_record':
-        if (await _confirm(S.current.confirmDelete,
-            S.current.confirmDeleteRecord(task.filename))) {
+        if (await _confirm(
+          S.current.confirmDelete,
+          S.current.confirmDeleteRecord(task.filename),
+        )) {
           DownloadManager.removeTask(task.id);
         }
     }
@@ -456,11 +475,13 @@ class _DownloadsTabState extends State<_DownloadsTab> {
             content: Text(message),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(S.current.cancel)),
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(S.current.cancel),
+              ),
               FilledButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text(S.current.confirm)),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(S.current.confirm),
+              ),
             ],
           ),
         ) ??
@@ -485,8 +506,9 @@ class _DownloadsTabState extends State<_DownloadsTab> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(S.current.ok)),
+            onPressed: () => Navigator.pop(context),
+            child: Text(S.current.ok),
+          ),
         ],
       ),
     );
@@ -513,8 +535,10 @@ class _DownloadsTabState extends State<_DownloadsTab> {
       return;
     }
     if (target == null || !mounted) return;
-    if (!await _confirm(S.current.confirmClear,
-        '${S.current.confirmClearAllFiles}\n\n${target.name}')) {
+    if (!await _confirm(
+      S.current.confirmClear,
+      '${S.current.confirmClearAllFiles}\n\n${target.name}',
+    )) {
       return;
     }
     final cleared = await DownloadManager.clearDownloadDirectory();
@@ -528,8 +552,9 @@ class _DownloadsTabState extends State<_DownloadsTab> {
 }
 
 IconData _downloadFileIcon(String filename) {
-  final extension =
-      filename.contains('.') ? filename.split('.').last.toLowerCase() : '';
+  final extension = filename.contains('.')
+      ? filename.split('.').last.toLowerCase()
+      : '';
   return switch (extension) {
     'pdf' => Icons.picture_as_pdf,
     'jpg' || 'jpeg' || 'png' || 'gif' => Icons.image,
@@ -550,16 +575,13 @@ class _DownloadSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-      );
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+    child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+  );
 }
 
 class _DownloadedFileTile extends StatelessWidget {
-  const _DownloadedFileTile({
-    required this.file,
-    required this.onChanged,
-  });
+  const _DownloadedFileTile({required this.file, required this.onChanged});
 
   final DownloadFile file;
   final Future<void> Function() onChanged;
@@ -573,7 +595,8 @@ class _DownloadedFileTile extends StatelessWidget {
         leading: Icon(_downloadFileIcon(filename)),
         title: Text(filename, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Text(
-            '${_formatFileSize(file.size)} · ${_formatDateTime(DateTime.fromMillisecondsSinceEpoch(file.modifiedAt))}'),
+          '${_formatFileSize(file.size)} · ${_formatDateTime(DateTime.fromMillisecondsSinceEpoch(file.modifiedAt))}',
+        ),
         onTap: () => DownloadManager.openDownloadedFile(file),
         trailing: PopupMenuButton<String>(
           onSelected: (action) async {
@@ -595,24 +618,28 @@ class _DownloadedFileTile extends StatelessWidget {
                     ),
                     actions: [
                       TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(S.current.ok)),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(S.current.ok),
+                      ),
                     ],
                   ),
                 );
               case 'delete':
-                final confirmed = await showDialog<bool>(
+                final confirmed =
+                    await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
                         title: Text(S.current.confirmDelete),
                         content: Text(S.current.confirmDeleteFile(filename)),
                         actions: [
                           TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: Text(S.current.cancel)),
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(S.current.cancel),
+                          ),
                           FilledButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: Text(S.current.delete)),
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(S.current.delete),
+                          ),
                         ],
                       ),
                     ) ??
@@ -626,7 +653,9 @@ class _DownloadedFileTile extends StatelessWidget {
           itemBuilder: (context) => [
             PopupMenuItem(value: 'open', child: Text(S.current.openFile)),
             PopupMenuItem(
-                value: 'location', child: Text(S.current.showInFileManager)),
+              value: 'location',
+              child: Text(S.current.showInFileManager),
+            ),
             PopupMenuItem(value: 'info', child: Text(S.current.fileInfo)),
             PopupMenuItem(value: 'delete', child: Text(S.current.deleteFile)),
           ],
@@ -670,14 +699,11 @@ class _EmptyView extends StatelessWidget {
             Icon(
               icon,
               size: 64,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(context).colorScheme.primary
+                  .withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppDesign.space24),
-            Text(
-              message,
-              style: AppDesign.headline3,
-            ),
+            Text(message, style: AppDesign.headline3),
             const SizedBox(height: AppDesign.space12),
             Text(
               description,
@@ -754,8 +780,8 @@ class _TransferCard extends StatelessWidget {
                   color: isCompleted
                       ? AppDesign.successGreen
                       : (isFailed || isCanceled)
-                          ? AppDesign.errorRed
-                          : AppDesign.primaryBlue,
+                      ? AppDesign.errorRed
+                      : AppDesign.primaryBlue,
                   size: 20,
                 ),
                 const SizedBox(width: AppDesign.space12),
@@ -845,14 +871,15 @@ class _TransferCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 6,
-                backgroundColor:
-                    isDark ? AppDesign.borderDark : AppDesign.borderLight,
+                backgroundColor: isDark
+                    ? AppDesign.borderDark
+                    : AppDesign.borderLight,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   isCompleted
                       ? AppDesign.successGreen
                       : (isFailed || isCanceled)
-                          ? AppDesign.errorRed
-                          : AppDesign.primaryBlue,
+                      ? AppDesign.errorRed
+                      : AppDesign.primaryBlue,
                 ),
               ),
             ),

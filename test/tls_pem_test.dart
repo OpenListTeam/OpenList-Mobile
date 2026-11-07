@@ -3,7 +3,8 @@ import 'package:openlist_mobile/pages/native/tls_page.dart';
 
 void main() {
   const cert = '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----\n';
-  const ecKey = '-----BEGIN EC PRIVATE KEY-----\nMHc\n-----END EC PRIVATE KEY-----\n';
+  const ecKey =
+      '-----BEGIN EC PRIVATE KEY-----\nMHc\n-----END EC PRIVATE KEY-----\n';
   const pkcs8 = '-----BEGIN PRIVATE KEY-----\nMIG\n-----END PRIVATE KEY-----\n';
 
   test('accepts matching PEM blocks', () {

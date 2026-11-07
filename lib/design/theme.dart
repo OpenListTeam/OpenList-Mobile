@@ -124,7 +124,10 @@ class AppDesign {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: space24, vertical: space16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: space24,
+            vertical: space16,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusButton),
           ),
@@ -133,7 +136,10 @@ class AppDesign {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: space24, vertical: space16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: space24,
+            vertical: space16,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusButton),
           ),
@@ -142,7 +148,10 @@ class AppDesign {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: space16, vertical: space12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: space16,
+            vertical: space12,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusButton),
           ),
@@ -210,7 +219,10 @@ class AppDesign {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: space24, vertical: space16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: space24,
+            vertical: space16,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusButton),
           ),
@@ -219,7 +231,10 @@ class AppDesign {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: space24, vertical: space16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: space24,
+            vertical: space16,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusButton),
           ),
@@ -228,7 +243,10 @@ class AppDesign {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: space16, vertical: space12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: space16,
+            vertical: space12,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusButton),
           ),

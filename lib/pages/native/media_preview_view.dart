@@ -66,9 +66,11 @@ class _MediaPreviewViewState extends State<MediaPreviewView> {
   }
 
   Future<void> _openFullscreen() async {
-    await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => _FullscreenMedia(controller: _controller),
-    ));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => _FullscreenMedia(controller: _controller),
+      ),
+    );
   }
 
   String _time(Duration value) {
@@ -101,34 +103,38 @@ class _MediaPreviewViewState extends State<MediaPreviewView> {
           const Icon(Icons.audio_file_outlined, size: 88),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(children: [
-            IconButton(
-              tooltip: value.isPlaying ? S.current.pause : S.current.play,
-              onPressed: _togglePlayback,
-              icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow),
-            ),
-            Text(_time(value.position)),
-            Expanded(
-              child: Slider(
-                min: 0,
-                max: durationMs > 0 ? durationMs.toDouble() : 1,
-                value: positionMs
-                    .toDouble()
-                    .clamp(0, durationMs > 0 ? durationMs.toDouble() : 1),
-                onChanged: durationMs <= 0
-                    ? null
-                    : (v) =>
-                        _controller.seekTo(Duration(milliseconds: v.round())),
-              ),
-            ),
-            Text(_time(value.duration)),
-            if (widget.isVideo)
+          child: Row(
+            children: [
               IconButton(
-                tooltip: S.current.fullscreen,
-                onPressed: _openFullscreen,
-                icon: const Icon(Icons.fullscreen),
+                tooltip: value.isPlaying ? S.current.pause : S.current.play,
+                onPressed: _togglePlayback,
+                icon: Icon(value.isPlaying ? Icons.pause : Icons.play_arrow),
               ),
-          ]),
+              Text(_time(value.position)),
+              Expanded(
+                child: Slider(
+                  min: 0,
+                  max: durationMs > 0 ? durationMs.toDouble() : 1,
+                  value: positionMs.toDouble().clamp(
+                    0,
+                    durationMs > 0 ? durationMs.toDouble() : 1,
+                  ),
+                  onChanged: durationMs <= 0
+                      ? null
+                      : (v) => _controller.seekTo(
+                          Duration(milliseconds: v.round()),
+                        ),
+                ),
+              ),
+              Text(_time(value.duration)),
+              if (widget.isVideo)
+                IconButton(
+                  tooltip: S.current.fullscreen,
+                  onPressed: _openFullscreen,
+                  icon: const Icon(Icons.fullscreen),
+                ),
+            ],
+          ),
         ),
         if (value.isBuffering) const LinearProgressIndicator(),
         if (_controller.value.hasError)

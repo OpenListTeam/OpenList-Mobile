@@ -27,20 +27,20 @@ class MediaApi {
         'order_dir': 'desc',
       });
 
-  Future<MediaPage> favorites(String mediaType,
-          {int page = 1, int pageSize = 20}) =>
-      _page('/api/fs/media/favorites', {
-        'media_type': mediaType,
-        'page': page,
-        'page_size': pageSize,
-      });
+  Future<MediaPage> favorites(
+    String mediaType, {
+    int page = 1,
+    int pageSize = 20,
+  }) => _page('/api/fs/media/favorites', {
+    'media_type': mediaType,
+    'page': page,
+    'page_size': pageSize,
+  });
 
-  Future<void> setFavorite(int itemId, bool favorite) =>
-      client.post('/api/fs/media/favorite', body: {
-        'item_id': itemId,
-        'episode_index': 0,
-        'favorite': favorite,
-      });
+  Future<void> setFavorite(int itemId, bool favorite) => client.post(
+    '/api/fs/media/favorite',
+    body: {'item_id': itemId, 'episode_index': 0, 'favorite': favorite},
+  );
 
   Future<MediaPage> _page(String path, Map<String, dynamic> query) async {
     final data = await client.get(path, query: query);

@@ -9,15 +9,15 @@ import '../../generated/l10n.dart';
 import 'common.dart';
 
 String taskGroupLabel(String group) => switch (group) {
-      TaskGroup.upload => S.current.taskGroupUpload,
-      TaskGroup.copy => S.current.taskGroupCopy,
-      TaskGroup.move => S.current.taskGroupMove,
-      TaskGroup.offlineDownload => S.current.taskGroupOfflineDownload,
-      TaskGroup.offlineDownloadTransfer => S.current.taskGroupTransfer,
-      TaskGroup.decompress => S.current.taskGroupDecompress,
-      TaskGroup.decompressUpload => S.current.taskGroupDecompressUpload,
-      _ => group,
-    };
+  TaskGroup.upload => S.current.taskGroupUpload,
+  TaskGroup.copy => S.current.taskGroupCopy,
+  TaskGroup.move => S.current.taskGroupMove,
+  TaskGroup.offlineDownload => S.current.taskGroupOfflineDownload,
+  TaskGroup.offlineDownloadTransfer => S.current.taskGroupTransfer,
+  TaskGroup.decompress => S.current.taskGroupDecompress,
+  TaskGroup.decompressUpload => S.current.taskGroupDecompressUpload,
+  _ => group,
+};
 
 /// Server-side tasks grouped by type.
 class TasksPage extends StatelessWidget {
@@ -85,7 +85,10 @@ class _TaskGroupViewState extends State<_TaskGroupView>
   Future<void> _load({bool quiet = false}) async {
     if (!quiet) setState(() => _loading = true);
     try {
-      final r = await Future.wait([_api.undone(widget.group), _api.done(widget.group)]);
+      final r = await Future.wait([
+        _api.undone(widget.group),
+        _api.done(widget.group),
+      ]);
       _undone = r[0];
       _done = r[1];
       _error = null;
@@ -113,37 +116,51 @@ class _TaskGroupViewState extends State<_TaskGroupView>
     ].where((e) => e.isNotEmpty).join(' · ');
     return ListTile(
       title: Text(t.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (sub.isNotEmpty) Text(sub),
-        if (t.isActive)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: LinearProgressIndicator(
-                value: t.progress > 0 ? (t.progress / 100).clamp(0.0, 1.0) : null),
-          ),
-        if (t.error.isNotEmpty)
-          Text(t.error,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (sub.isNotEmpty) Text(sub),
+          if (t.isActive)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: LinearProgressIndicator(
+                value: t.progress > 0
+                    ? (t.progress / 100).clamp(0.0, 1.0)
+                    : null,
+              ),
+            ),
+          if (t.error.isNotEmpty)
+            Text(
+              t.error,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
-      ]),
-      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (t.isActive)
-          IconButton(
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+        ],
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (t.isActive)
+            IconButton(
               tooltip: S.current.cancel,
               icon: const Icon(Icons.close),
-              onPressed: () => _act(() => _api.cancel(g, t.id))),
-        if (t.canRetry)
-          IconButton(
+              onPressed: () => _act(() => _api.cancel(g, t.id)),
+            ),
+          if (t.canRetry)
+            IconButton(
               tooltip: S.current.retry,
               icon: const Icon(Icons.replay),
-              onPressed: () => _act(() => _api.retry(g, t.id))),
-        if (!t.isActive)
-          IconButton(
+              onPressed: () => _act(() => _api.retry(g, t.id)),
+            ),
+          if (!t.isActive)
+            IconButton(
               tooltip: S.current.delete,
               icon: const Icon(Icons.delete_outline),
-              onPressed: () => _act(() => _api.delete(g, t.id))),
-      ]),
+              onPressed: () => _act(() => _api.delete(g, t.id)),
+            ),
+        ],
+      ),
     );
   }
 
@@ -155,44 +172,52 @@ class _TaskGroupViewState extends State<_TaskGroupView>
     }
     if (_error != null) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: _load);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: _load,
+      );
     }
     final g = widget.group;
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView(children: [
-        if (_undone.isEmpty && _done.isEmpty) ...[
-          const SizedBox(height: 120),
-          StateMessage(icon: Icons.task_alt, text: S.of(context).noTasks),
-        ],
-        if (_undone.isNotEmpty) ...[
-          ListTile(dense: true, title: Text(S.of(context).taskUndone)),
-          for (final t in _undone) _tile(t),
-        ],
-        if (_done.isNotEmpty) ...[
-          ListTile(
-            dense: true,
-            title: Text(S.of(context).taskDone),
-            trailing: PopupMenuButton<int>(
-              icon: const Icon(Icons.cleaning_services_outlined),
-              onSelected: (v) => _act(() => v == 0
-                  ? _api.clearSucceeded(g)
-                  : v == 1
+      child: ListView(
+        children: [
+          if (_undone.isEmpty && _done.isEmpty) ...[
+            const SizedBox(height: 120),
+            StateMessage(icon: Icons.task_alt, text: S.of(context).noTasks),
+          ],
+          if (_undone.isNotEmpty) ...[
+            ListTile(dense: true, title: Text(S.of(context).taskUndone)),
+            for (final t in _undone) _tile(t),
+          ],
+          if (_done.isNotEmpty) ...[
+            ListTile(
+              dense: true,
+              title: Text(S.of(context).taskDone),
+              trailing: PopupMenuButton<int>(
+                icon: const Icon(Icons.cleaning_services_outlined),
+                onSelected: (v) => _act(
+                  () => v == 0
+                      ? _api.clearSucceeded(g)
+                      : v == 1
                       ? _api.clearDone(g)
-                      : _api.retryFailed(g)),
-              itemBuilder: (_) => [
-                PopupMenuItem(value: 0, child: Text(S.current.clearSucceeded)),
-                PopupMenuItem(value: 1, child: Text(S.current.clearFinished)),
-                PopupMenuItem(value: 2, child: Text(S.current.retry)),
-              ],
+                      : _api.retryFailed(g),
+                ),
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 0,
+                    child: Text(S.current.clearSucceeded),
+                  ),
+                  PopupMenuItem(value: 1, child: Text(S.current.clearFinished)),
+                  PopupMenuItem(value: 2, child: Text(S.current.retry)),
+                ],
+              ),
             ),
-          ),
-          for (final t in _done) _tile(t),
+            for (final t in _done) _tile(t),
+          ],
         ],
-      ]),
+      ),
     );
   }
 }

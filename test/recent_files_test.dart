@@ -43,7 +43,8 @@ void main() {
     final persisted = jsonDecode(prefs.getString('recent_files.v1')!) as List;
     expect(
       persisted.where(
-          (entry) => entry['server'] == 'remote:https://other.example:1'),
+        (entry) => entry['server'] == 'remote:https://other.example:1',
+      ),
       hasLength(50),
     );
     expect(await RecentFiles.list(), hasLength(50));

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:developer';
 import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,8 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:open_file_manager/open_file_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'notification_manager.dart';
 import 'download_destination.dart';
+
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/generated/l10n.dart';
@@ -72,19 +75,18 @@ class DownloadTask {
   }) : startTime = startTime ?? DateTime.now();
 
   Map<String, Object?> toHistory() => {
-        'id': id,
-        'filename': filename,
-        'status': status.name,
-        'progress': progress,
-        'receivedBytes': receivedBytes,
-        'totalBytes': totalBytes,
-        'startTime': startTime.millisecondsSinceEpoch,
-        'endTime': endTime?.millisecondsSinceEpoch,
-        'errorMessage': errorMessage == null ? null : 'Download failed',
-        if (directoryReference != null)
-          'directoryReference': directoryReference,
-        if (fileReference != null) 'fileReference': fileReference,
-      };
+    'id': id,
+    'filename': filename,
+    'status': status.name,
+    'progress': progress,
+    'receivedBytes': receivedBytes,
+    'totalBytes': totalBytes,
+    'startTime': startTime.millisecondsSinceEpoch,
+    'endTime': endTime?.millisecondsSinceEpoch,
+    'errorMessage': errorMessage == null ? null : 'Download failed',
+    if (directoryReference != null) 'directoryReference': directoryReference,
+    if (fileReference != null) 'fileReference': fileReference,
+  };
 
   static DownloadTask? fromHistory(Map<String, dynamic> data) {
     try {
@@ -114,8 +116,9 @@ class DownloadTask {
         receivedBytes: data['receivedBytes'] as int? ?? 0,
         totalBytes: data['totalBytes'] as int? ?? 0,
         errorMessage: data['errorMessage'] as String?,
-        startTime:
-            DateTime.fromMillisecondsSinceEpoch(data['startTime'] as int),
+        startTime: DateTime.fromMillisecondsSinceEpoch(
+          data['startTime'] as int,
+        ),
         endTime: (data['endTime'] as int?) == null
             ? null
             : DateTime.fromMillisecondsSinceEpoch(data['endTime'] as int),
@@ -245,7 +248,9 @@ class DownloadManager {
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(
-            _directoryReferencesKey, jsonEncode(_directoryReferences));
+          _directoryReferencesKey,
+          jsonEncode(_directoryReferences),
+        );
       } catch (error) {
         log('Failed to save download directory reference: $error');
       }
@@ -270,8 +275,9 @@ class DownloadManager {
           ? null
           : _directoryReferences[directoryReference];
       if (directory == null || directoryReference == null) continue;
-      task.filePath =
-          File('$directory${Platform.pathSeparator}${task.filename}').path;
+      task.filePath = File(
+        '$directory${Platform.pathSeparator}${task.filename}',
+      ).path;
       task.destination = PathDownloadDestination(
         directoryReference: directoryReference,
         filename: task.filename,
@@ -293,10 +299,12 @@ class DownloadManager {
       final records = jsonDecode(raw) as List<dynamic>;
       _completedTasks
         ..clear()
-        ..addAll(records
-            .whereType<Map<String, dynamic>>()
-            .map(DownloadTask.fromHistory)
-            .whereType<DownloadTask>());
+        ..addAll(
+          records
+              .whereType<Map<String, dynamic>>()
+              .map(DownloadTask.fromHistory)
+              .whereType<DownloadTask>(),
+        );
       _resolveHistoricalFilePaths();
       _changes.emit();
     } catch (e) {
@@ -330,8 +338,10 @@ class DownloadManager {
       List.unmodifiable(_activeTasks.values);
   static List<DownloadTask> get completedTasks =>
       List.unmodifiable(_completedTasks);
-  static List<DownloadTask> get allTasks =>
-      [..._activeTasks.values, ..._completedTasks];
+  static List<DownloadTask> get allTasks => [
+    ..._activeTasks.values,
+    ..._completedTasks,
+  ];
 
   static Future<bool> getAskForDownloadDirectory() async {
     final prefs = await SharedPreferences.getInstance();
@@ -353,8 +363,8 @@ class DownloadManager {
 
   static Future<DownloadDirectoryTarget?> getDownloadDirectoryTarget() async {
     if (_usesNativeDownloadStorage) {
-      final directory =
-          await NativeBridge.downloadStorage.getDefaultDirectory();
+      final directory = await NativeBridge.downloadStorage
+          .getDefaultDirectory();
       return DownloadDirectoryTarget.native(directory);
     }
     try {
@@ -381,7 +391,9 @@ class DownloadManager {
         if (directory == null) return null;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(
-            _downloadDirectoryReferenceKey, directory.reference);
+          _downloadDirectoryReferenceKey,
+          directory.reference,
+        );
         await prefs.setString(_downloadDirectoryNameKey, directory.name);
         await prefs.remove(_downloadDirectoryKey);
         _notifyChanged(filesChanged: true);
@@ -393,10 +405,12 @@ class DownloadManager {
       if (path == null || path.trim().isEmpty) return null;
       final directory = await _prepareDownloadDirectory(path);
       if (directory == null) {
-        _showSnackbar(getx.GetSnackBar(
-          message: S.current.downloadDirectoryNotWritable,
-          duration: const Duration(seconds: 4),
-        ));
+        _showSnackbar(
+          getx.GetSnackBar(
+            message: S.current.downloadDirectoryNotWritable,
+            duration: const Duration(seconds: 4),
+          ),
+        );
         return null;
       }
       return DownloadDirectoryTarget.path(
@@ -417,13 +431,17 @@ class DownloadManager {
   }
 
   static Future<DownloadDestination> _reserveDestination(
-      DownloadDirectoryTarget target, String filename, String taskId) async {
+    DownloadDirectoryTarget target,
+    String filename,
+    String taskId,
+  ) async {
     if (target.isNative) {
       return NativeDownloadDestination.reserve(target.reference, filename);
     }
     final directory = target.directory!;
     final filePath = _getUniqueFilePath(
-        '${directory.path}${Platform.pathSeparator}$filename');
+      '${directory.path}${Platform.pathSeparator}$filename',
+    );
     _reservedFilePaths.add(filePath);
     return PathDownloadDestination(
       directoryReference: target.reference,
@@ -448,10 +466,12 @@ class DownloadManager {
         final appDirectory = await getExternalStorageDirectory();
         final privatePath = appDirectory?.absolute.path;
         final selectedPath = dir.absolute.path;
-        final isAppPrivate = privatePath != null &&
+        final isAppPrivate =
+            privatePath != null &&
             (selectedPath == privatePath ||
-                selectedPath
-                    .startsWith('$privatePath${Platform.pathSeparator}'));
+                selectedPath.startsWith(
+                  '$privatePath${Platform.pathSeparator}',
+                ));
         if (!isAppPrivate) {
           final sdk = await NativeBridge.common.getDeviceSdkInt();
           var storageGranted = sdk <= 32 && await Permission.storage.isGranted;
@@ -470,7 +490,8 @@ class DownloadManager {
         }
       }
       final probe = File(
-          '${dir.path}${Platform.pathSeparator}.openlist-${DateTime.now().microsecondsSinceEpoch}.tmp');
+        '${dir.path}${Platform.pathSeparator}.openlist-${DateTime.now().microsecondsSinceEpoch}.tmp',
+      );
       await probe.writeAsBytes(const [], flush: true);
       await probe.delete();
       return dir;
@@ -517,26 +538,34 @@ class DownloadManager {
       target = await _getDownloadTargetForTask();
     } catch (error) {
       log('Failed to get download directory: $error');
-      _showSnackbar(getx.GetSnackBar(
-        message: '${S.current.error}: $error',
-        duration: const Duration(seconds: 4),
-      ));
+      _showSnackbar(
+        getx.GetSnackBar(
+          message: '${S.current.error}: $error',
+          duration: const Duration(seconds: 4),
+        ),
+      );
       return false;
     }
     if (target == null) return false;
-    final requestedFilename =
-        _safeFilename(filename ?? _getFilenameFromUrl(url));
+    final requestedFilename = _safeFilename(
+      filename ?? _getFilenameFromUrl(url),
+    );
 
     late final DownloadDestination destination;
     try {
-      destination =
-          await _reserveDestination(target, requestedFilename, taskId);
+      destination = await _reserveDestination(
+        target,
+        requestedFilename,
+        taskId,
+      );
     } catch (error) {
       log('Failed to reserve download file: $error');
-      _showSnackbar(getx.GetSnackBar(
-        message: S.current.downloadDirectoryNotWritable,
-        duration: const Duration(seconds: 4),
-      ));
+      _showSnackbar(
+        getx.GetSnackBar(
+          message: S.current.downloadDirectoryNotWritable,
+          duration: const Duration(seconds: 4),
+        ),
+      );
       return false;
     }
     final task = DownloadTask(
@@ -552,11 +581,13 @@ class DownloadManager {
     _activeTasks[taskId] = task;
     _notifyChanged();
 
-    _showSnackbar(getx.GetSnackBar(
-      message: S.current.startDownloadFile(task.filename),
-      duration: const Duration(seconds: 2),
-      backgroundColor: Colors.green,
-    ));
+    _showSnackbar(
+      getx.GetSnackBar(
+        message: S.current.startDownloadFile(task.filename),
+        duration: const Duration(seconds: 2),
+        backgroundColor: Colors.green,
+      ),
+    );
 
     try {
       task.status = DownloadStatus.downloading;
@@ -599,7 +630,8 @@ class DownloadManager {
       );
       return true;
     } catch (error) {
-      final cancelled = task.status == DownloadStatus.cancelling ||
+      final cancelled =
+          task.status == DownloadStatus.cancelling ||
           _cancelledTaskIds.contains(taskId);
       task
         ..status = cancelled ? DownloadStatus.cancelled : DownloadStatus.failed
@@ -608,11 +640,13 @@ class DownloadManager {
         task.errorMessage = error is DioException
             ? 'Download failed (${error.type.name})'
             : 'Download failed (${error.runtimeType})';
-        _showSnackbar(getx.GetSnackBar(
-          message: S.current.downloadFailedFile(task.filename),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ));
+        _showSnackbar(
+          getx.GetSnackBar(
+            message: S.current.downloadFailedFile(task.filename),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
       await _discardDestination(destination);
       _activeTasks.remove(taskId);
@@ -637,7 +671,10 @@ class DownloadManager {
   }
 
   static Future<void> _runHttpDownload(
-      DownloadTask task, Map<String, String> headers, Dio client) async {
+    DownloadTask task,
+    Map<String, String> headers,
+    Dio client,
+  ) async {
     while (true) {
       await _waitForResume(task);
       final token = CancelToken();
@@ -647,7 +684,8 @@ class DownloadManager {
         await _waitForResume(task);
         return;
       } on DioException catch (error) {
-        final pausedByUser = error.type == DioExceptionType.cancel &&
+        final pausedByUser =
+            error.type == DioExceptionType.cancel &&
             token.isCancelled &&
             task.pauseRequested &&
             !_cancelledTaskIds.contains(task.id);
@@ -658,20 +696,30 @@ class DownloadManager {
     }
   }
 
-  static Future<void> _downloadHttpAttempt(DownloadTask task,
-      Map<String, String> headers, CancelToken token, Dio client) async {
+  static Future<void> _downloadHttpAttempt(
+    DownloadTask task,
+    Map<String, String> headers,
+    CancelToken token,
+    Dio client,
+  ) async {
     final destination = task.destination!;
     var restarted = false;
     while (true) {
       await _waitForResume(task);
       final length = await destination.length();
-      final strongEtag =
-          task.etag != null && !task.etag!.startsWith('W/') ? task.etag : null;
+      final strongEtag = task.etag != null && !task.etag!.startsWith('W/')
+          ? task.etag
+          : null;
       final validator = strongEtag ?? task.lastModified;
       final offset = validator == null ? 0 : length;
       final requestHeaders = Map<String, String>.from(headers)
-        ..removeWhere((key, _) => const {'range', 'if-range', 'accept-encoding'}
-            .contains(key.toLowerCase()))
+        ..removeWhere(
+          (key, _) => const {
+            'range',
+            'if-range',
+            'accept-encoding',
+          }.contains(key.toLowerCase()),
+        )
         ..['Accept-Encoding'] = 'identity';
       if (offset > 0) {
         requestHeaders['Range'] = 'bytes=$offset-';
@@ -692,19 +740,21 @@ class DownloadManager {
       final input = StreamIterator(response.data!.stream);
       try {
         final status = response.statusCode!;
-        final encoding =
-            response.headers.value('content-encoding')?.toLowerCase();
+        final encoding = response.headers
+            .value('content-encoding')
+            ?.toLowerCase();
         final encoded = encoding != null && encoding != 'identity';
         if (encoded && encoding != 'gzip') {
           throw const FormatException(
-              'Unsupported compressed download response');
+            'Unsupported compressed download response',
+          );
         }
         final responseEtag = response.headers.value('etag');
         final responseLastModified = response.headers.value('last-modified');
         final validatorChanged = strongEtag != null
             ? responseEtag != strongEtag
             : task.lastModified != null &&
-                responseLastModified != task.lastModified;
+                  responseLastModified != task.lastModified;
         if (offset > 0 &&
             (status == 416 ||
                 (status == 206 && (validatorChanged || encoded)))) {
@@ -744,7 +794,8 @@ class DownloadManager {
         }
         if (!encoded) {
           total ??= int.tryParse(
-              response.headers.value(Headers.contentLengthHeader) ?? '');
+            response.headers.value(Headers.contentLengthHeader) ?? '',
+          );
         }
         if (writeOffset == 0) await destination.truncate();
         task
@@ -759,8 +810,10 @@ class DownloadManager {
           writeOffset += chunk.length;
           task.receivedBytes = writeOffset;
           if (task.totalBytes > 0) {
-            task.progress =
-                (task.receivedBytes / task.totalBytes).clamp(0.0, 1.0);
+            task.progress = (task.receivedBytes / task.totalBytes).clamp(
+              0.0,
+              1.0,
+            );
           }
           _notifyDownloadProgress(task);
         }
@@ -815,7 +868,8 @@ class DownloadManager {
   }
 
   static Future<void> _discardDestination(
-      DownloadDestination destination) async {
+    DownloadDestination destination,
+  ) async {
     try {
       await destination.discard();
     } catch (error) {
@@ -827,10 +881,7 @@ class DownloadManager {
     required String url,
     String? filename,
   }) async {
-    return await downloadFileWithProgress(
-      url: url,
-      filename: filename,
-    );
+    return await downloadFileWithProgress(url: url, filename: filename);
   }
 
   static Future<bool> saveFileInBackground({
@@ -848,25 +899,33 @@ class DownloadManager {
       target = await _getDownloadTargetForTask();
     } catch (error) {
       log('Failed to get download directory: $error');
-      _showSnackbar(getx.GetSnackBar(
-        message: '${S.current.error}: $error',
-        duration: const Duration(seconds: 4),
-      ));
+      _showSnackbar(
+        getx.GetSnackBar(
+          message: '${S.current.error}: $error',
+          duration: const Duration(seconds: 4),
+        ),
+      );
       return false;
     }
     if (target == null) return false;
-    final requestedFilename =
-        _safeFilename(filename ?? _getFilenameFromUrl(source));
+    final requestedFilename = _safeFilename(
+      filename ?? _getFilenameFromUrl(source),
+    );
     late final DownloadDestination destination;
     try {
-      destination =
-          await _reserveDestination(target, requestedFilename, taskId);
+      destination = await _reserveDestination(
+        target,
+        requestedFilename,
+        taskId,
+      );
     } catch (error) {
       log('Failed to reserve Blob download file: $error');
-      _showSnackbar(getx.GetSnackBar(
-        message: S.current.downloadDirectoryNotWritable,
-        duration: const Duration(seconds: 4),
-      ));
+      _showSnackbar(
+        getx.GetSnackBar(
+          message: S.current.downloadDirectoryNotWritable,
+          duration: const Duration(seconds: 4),
+        ),
+      );
       return false;
     }
     final task = DownloadTask(
@@ -883,11 +942,13 @@ class DownloadManager {
     _activeTasks[taskId] = task;
     _notifyChanged();
 
-    _showSnackbar(getx.GetSnackBar(
-      message: S.current.startDownloadFile(task.filename),
-      duration: const Duration(seconds: 2),
-      backgroundColor: Colors.green,
-    ));
+    _showSnackbar(
+      getx.GetSnackBar(
+        message: S.current.startDownloadFile(task.filename),
+        duration: const Duration(seconds: 2),
+        backgroundColor: Colors.green,
+      ),
+    );
 
     try {
       task.status = DownloadStatus.downloading;
@@ -953,8 +1014,9 @@ class DownloadManager {
       return true;
     } catch (error) {
       final cancelled = _cancelledTaskIds.contains(taskId);
-      task.status =
-          cancelled ? DownloadStatus.cancelled : DownloadStatus.failed;
+      task.status = cancelled
+          ? DownloadStatus.cancelled
+          : DownloadStatus.failed;
       if (!cancelled) {
         task.errorMessage = error is DioException
             ? 'Download failed (${error.type.name})'
@@ -973,11 +1035,13 @@ class DownloadManager {
 
       if (task.status == DownloadStatus.failed) {
         log('下载失败: $error');
-        _showSnackbar(getx.GetSnackBar(
-          message: S.current.downloadFailedFile(task.filename),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ));
+        _showSnackbar(
+          getx.GetSnackBar(
+            message: S.current.downloadFailedFile(task.filename),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
 
       if (_activeTasks.isEmpty) {
@@ -1170,17 +1234,19 @@ class DownloadManager {
     final directory = file.parent.path;
     final filename = _basename(file.path);
     final extensionIndex = filename.lastIndexOf('.');
-    final name =
-        extensionIndex > 0 ? filename.substring(0, extensionIndex) : filename;
-    final extension =
-        extensionIndex > 0 ? filename.substring(extensionIndex) : '';
+    final name = extensionIndex > 0
+        ? filename.substring(0, extensionIndex)
+        : filename;
+    final extension = extensionIndex > 0
+        ? filename.substring(extensionIndex)
+        : '';
     var counter = 1;
     String newPath;
     do {
       newPath =
           '$directory${Platform.pathSeparator}${name}_${counter++}$extension';
-    } while (
-        File(newPath).existsSync() || _reservedFilePaths.contains(newPath));
+    } while (File(newPath).existsSync() ||
+        _reservedFilePaths.contains(newPath));
     return newPath;
   }
 
@@ -1199,8 +1265,8 @@ class DownloadManager {
 
       if (!hasPermission) {
         // 请求安装权限
-        PermissionStatus status =
-            await Permission.requestInstallPackages.request();
+        PermissionStatus status = await Permission.requestInstallPackages
+            .request();
 
         if (status.isGranted) {
           return true;
@@ -1227,10 +1293,12 @@ class DownloadManager {
           );
           return false;
         } else {
-          _showSnackbar(getx.GetSnackBar(
-            message: S.current.needInstallPermissionToInstallApk,
-            duration: const Duration(seconds: 3),
-          ));
+          _showSnackbar(
+            getx.GetSnackBar(
+              message: S.current.needInstallPermissionToInstallApk,
+              duration: const Duration(seconds: 3),
+            ),
+          );
           return false;
         }
       }
@@ -1305,10 +1373,12 @@ class DownloadManager {
           }
           break;
         case ResultType.fileNotFound:
-          _showSnackbar(getx.GetSnackBar(
-            message: S.current.fileNotFound,
-            duration: const Duration(seconds: 3),
-          ));
+          _showSnackbar(
+            getx.GetSnackBar(
+              message: S.current.fileNotFound,
+              duration: const Duration(seconds: 3),
+            ),
+          );
           break;
         case ResultType.permissionDenied:
           if (_isApkFile(filePath)) {
@@ -1325,10 +1395,12 @@ class DownloadManager {
               ),
             );
           } else {
-            _showSnackbar(getx.GetSnackBar(
-              message: S.current.noPermissionToOpenFile,
-              duration: const Duration(seconds: 3),
-            ));
+            _showSnackbar(
+              getx.GetSnackBar(
+                message: S.current.noPermissionToOpenFile,
+                duration: const Duration(seconds: 3),
+              ),
+            );
           }
           break;
         case ResultType.error:
@@ -1374,10 +1446,7 @@ class DownloadManager {
           children: [
             Text(S.current.fileSavedTo),
             const SizedBox(height: 8),
-            SelectableText(
-              filePath,
-              style: const TextStyle(fontSize: 12),
-            ),
+            SelectableText(filePath, style: const TextStyle(fontSize: 12)),
             const SizedBox(height: 16),
             Text(
               S.current.fileLocationTip,
@@ -1413,7 +1482,10 @@ class DownloadManager {
   }
 
   static Future<DownloadFile?> _statPathFile(
-      String path, String directoryReference, String filename) async {
+    String path,
+    String directoryReference,
+    String filename,
+  ) async {
     final file = File(path);
     if (!await file.exists()) return null;
     final stat = await file.stat();
@@ -1449,8 +1521,9 @@ class DownloadManager {
     if (_usesNativeDownloadStorage) {
       for (final reference in directoryReferences) {
         try {
-          for (final file
-              in await NativeBridge.downloadStorage.listFiles(reference)) {
+          for (final file in await NativeBridge.downloadStorage.listFiles(
+            reference,
+          )) {
             if (seen.add(file.reference)) files.add(file);
           }
         } catch (error) {
@@ -1497,8 +1570,9 @@ class DownloadManager {
 
   static Future<bool> openDownloadedFileLocation(DownloadFile file) async {
     if (_usesNativeDownloadStorage) {
-      return NativeBridge.downloadStorage
-          .openDirectory(file.directoryReference);
+      return NativeBridge.downloadStorage.openDirectory(
+        file.directoryReference,
+      );
     }
     final directory = File(file.reference).parent.path;
     await openFileManager(
@@ -1556,9 +1630,7 @@ class DownloadManager {
     final files = <FileSystemEntity>[];
     try {
       await _loadDirectoryReferences();
-      final paths = <String>{
-        ..._directoryReferences.values,
-      };
+      final paths = <String>{..._directoryReferences.values};
       final currentDirectory = await _getOpenListDownloadDirectory();
       if (currentDirectory != null) paths.add(currentDirectory.path);
       for (final path in paths) {
@@ -1592,8 +1664,9 @@ class DownloadManager {
           }
         }
       }
-      _completedTasks
-          .removeWhere((task) => task.directoryReference == target.reference);
+      _completedTasks.removeWhere(
+        (task) => task.directoryReference == target.reference,
+      );
       _notifyChanged(persistHistory: true, filesChanged: true);
       return true;
     } catch (error) {

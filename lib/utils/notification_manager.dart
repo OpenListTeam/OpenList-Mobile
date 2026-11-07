@@ -1,9 +1,13 @@
 import 'dart:io';
 import 'dart:developer';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart' as getx;
+
 import 'download_manager.dart';
+
 import 'package:openlist_mobile/screens/transfers_screen.dart';
+
 import '../generated/l10n.dart';
 
 class NotificationManager {
@@ -24,16 +28,16 @@ class NotificationManager {
       // iOS 初始化设置
       const DarwinInitializationSettings initializationSettingsIOS =
           DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-      );
+            requestAlertPermission: true,
+            requestBadgePermission: true,
+            requestSoundPermission: true,
+          );
 
       const InitializationSettings initializationSettings =
           InitializationSettings(
-        android: initializationSettingsAndroid,
-        iOS: initializationSettingsIOS,
-      );
+            android: initializationSettingsAndroid,
+            iOS: initializationSettingsIOS,
+          );
 
       await _notifications.initialize(
         settings: initializationSettings,
@@ -44,17 +48,15 @@ class NotificationManager {
       if (Platform.isAndroid) {
         await _notifications
             .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
+              AndroidFlutterLocalNotificationsPlugin
+            >()
             ?.requestNotificationsPermission();
       } else if (Platform.isIOS) {
         await _notifications
             .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(
-              alert: true,
-              badge: true,
-              sound: true,
-            );
+              IOSFlutterLocalNotificationsPlugin
+            >()
+            ?.requestPermissions(alert: true, badge: true, sound: true);
       }
 
       _isInitialized = true;
@@ -253,7 +255,8 @@ class NotificationManager {
 
   /// 显示单个文件下载完成通知
   static Future<void> showSingleFileCompleteNotification(
-      DownloadTask task) async {
+    DownloadTask task,
+  ) async {
     if (!_isInitialized) {
       await initialize();
     }

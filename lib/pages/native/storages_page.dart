@@ -33,9 +33,11 @@ class _StoragesPageState extends State<StoragesPage> {
     });
     try {
       final list = await OpenListSession.instance.admin.listStorages();
-      list.sort((a, b) => a.order != b.order
-          ? a.order.compareTo(b.order)
-          : a.mountPath.compareTo(b.mountPath));
+      list.sort(
+        (a, b) => a.order != b.order
+            ? a.order.compareTo(b.order)
+            : a.mountPath.compareTo(b.mountPath),
+      );
       _storages = list;
     } catch (e) {
       _error = e;
@@ -65,29 +67,40 @@ class _StoragesPageState extends State<StoragesPage> {
       showDragHandle: true,
       builder: (ctx) {
         Widget item(IconData icon, String label, VoidCallback fn) => ListTile(
-              leading: Icon(icon),
-              title: Text(label),
-              onTap: () {
-                Navigator.pop(ctx);
-                fn();
-              },
-            );
+          leading: Icon(icon),
+          title: Text(label),
+          onTap: () {
+            Navigator.pop(ctx);
+            fn();
+          },
+        );
         return SafeArea(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ListTile(title: Text(s.mountPath), subtitle: Text(s.driver)),
-            item(Icons.edit_outlined, S.current.edit, () => _edit(s)),
-            s.disabled
-                ? item(Icons.play_arrow, S.current.enable,
-                    () => _act(() => admin.enableStorage(s.id)))
-                : item(Icons.pause, S.current.disable,
-                    () => _act(() => admin.disableStorage(s.id))),
-            item(Icons.delete_outline, S.current.delete, () async {
-              if (await confirmDialog(
-                  context, S.current.confirmDeleteStorage(s.mountPath))) {
-                await _act(() => admin.deleteStorage(s.id));
-              }
-            }),
-          ]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(title: Text(s.mountPath), subtitle: Text(s.driver)),
+              item(Icons.edit_outlined, S.current.edit, () => _edit(s)),
+              s.disabled
+                  ? item(
+                      Icons.play_arrow,
+                      S.current.enable,
+                      () => _act(() => admin.enableStorage(s.id)),
+                    )
+                  : item(
+                      Icons.pause,
+                      S.current.disable,
+                      () => _act(() => admin.disableStorage(s.id)),
+                    ),
+              item(Icons.delete_outline, S.current.delete, () async {
+                if (await confirmDialog(
+                  context,
+                  S.current.confirmDeleteStorage(s.mountPath),
+                )) {
+                  await _act(() => admin.deleteStorage(s.id));
+                }
+              }),
+            ],
+          ),
         );
       },
     );
@@ -96,14 +109,17 @@ class _StoragesPageState extends State<StoragesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(S.of(context).storages), actions: [
-        IconButton(
-          tooltip: S.of(context).reloadAll,
-          icon: const Icon(Icons.sync),
-          onPressed: () =>
-              _act(OpenListSession.instance.admin.reloadAllStorages),
-        ),
-      ]),
+      appBar: AppBar(
+        title: Text(S.of(context).storages),
+        actions: [
+          IconButton(
+            tooltip: S.of(context).reloadAll,
+            icon: const Icon(Icons.sync),
+            onPressed: () =>
+                _act(OpenListSession.instance.admin.reloadAllStorages),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         tooltip: S.of(context).addStorage,
         onPressed: () => _edit(),
@@ -119,10 +135,11 @@ class _StoragesPageState extends State<StoragesPage> {
     }
     if (_error != null) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: _load);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: _load,
+      );
     }
     return RefreshIndicator(
       onRefresh: _load,
@@ -133,10 +150,12 @@ class _StoragesPageState extends State<StoragesPage> {
           final scheme = Theme.of(context).colorScheme;
           final status = s.disabled ? S.of(context).storageDisabled : s.status;
           return ListTile(
-            leading: Icon(Icons.storage,
-                color: s.disabled
-                    ? Theme.of(context).disabledColor
-                    : (s.isWorking ? scheme.primary : scheme.error)),
+            leading: Icon(
+              Icons.storage,
+              color: s.disabled
+                  ? Theme.of(context).disabledColor
+                  : (s.isWorking ? scheme.primary : scheme.error),
+            ),
             title: Text(s.mountPath),
             subtitle: Text(
               [s.driver, status, if (s.remark.isNotEmpty) s.remark].join(' · '),
@@ -146,8 +165,9 @@ class _StoragesPageState extends State<StoragesPage> {
             onTap: () => _edit(s),
             onLongPress: () => _showActions(s),
             trailing: IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () => _showActions(s)),
+              icon: const Icon(Icons.more_vert),
+              onPressed: () => _showActions(s),
+            ),
           );
         },
       ),

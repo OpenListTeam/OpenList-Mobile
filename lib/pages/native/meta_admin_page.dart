@@ -60,9 +60,11 @@ class _MetaAdminPageState extends State<MetaAdminPage> {
       for (final key in ['path', 'password', 'hide', 'readme', 'header'])
         key: TextEditingController(text: '${values[key]}'),
       'read_users': TextEditingController(
-          text: (values['read_users'] as List<int>).join(',')),
+        text: (values['read_users'] as List<int>).join(','),
+      ),
       'write_users': TextEditingController(
-          text: (values['write_users'] as List<int>).join(',')),
+        text: (values['write_users'] as List<int>).join(','),
+      ),
     };
     try {
       final result = await showDialog<Map<String, dynamic>>(
@@ -73,57 +75,64 @@ class _MetaAdminPageState extends State<MetaAdminPage> {
             content: SizedBox(
               width: 520,
               child: SingleChildScrollView(
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  for (final key in [
-                    'path',
-                    'password',
-                    'read_users',
-                    'write_users',
-                    'hide',
-                    'readme',
-                    'header',
-                  ])
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: TextField(
-                        controller: controllers[key],
-                        minLines:
-                            ['hide', 'readme', 'header'].contains(key) ? 2 : 1,
-                        maxLines:
-                            ['hide', 'readme', 'header'].contains(key) ? 5 : 1,
-                        decoration: InputDecoration(
-                          labelText: switch (key) {
-                            'path' => S.current.adminMetaPath,
-                            'password' => S.current.adminMetaPassword,
-                            'hide' => S.current.adminMetaHide,
-                            'readme' => S.current.adminMetaReadme,
-                            'header' => S.current.adminMetaHeader,
-                            _ =>
-                              '$key (${S.current.adminUserIdsCommaSeparated})',
-                          },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final key in [
+                      'path',
+                      'password',
+                      'read_users',
+                      'write_users',
+                      'hide',
+                      'readme',
+                      'header',
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: TextField(
+                          controller: controllers[key],
+                          minLines: ['hide', 'readme', 'header'].contains(key)
+                              ? 2
+                              : 1,
+                          maxLines: ['hide', 'readme', 'header'].contains(key)
+                              ? 5
+                              : 1,
+                          decoration: InputDecoration(
+                            labelText: switch (key) {
+                              'path' => S.current.adminMetaPath,
+                              'password' => S.current.adminMetaPassword,
+                              'hide' => S.current.adminMetaHide,
+                              'readme' => S.current.adminMetaReadme,
+                              'header' => S.current.adminMetaHeader,
+                              _ =>
+                                '$key (${S.current.adminUserIdsCommaSeparated})',
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  for (final entry in const {
-                    'write': 'write',
-                    'p_sub': 'p_sub',
-                    'read_users_sub': 'read_users_sub',
-                    'write_users_sub': 'write_users_sub',
-                    'w_sub': 'w_sub',
-                    'h_sub': 'h_sub',
-                    'r_sub': 'r_sub',
-                    'header_sub': 'header_sub',
-                  }.entries)
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(entry.key == 'write'
-                          ? S.current.adminWriteAccess
-                          : entry.value),
-                      value: values[entry.key] == true,
-                      onChanged: (value) =>
-                          setDialogState(() => values[entry.key] = value),
-                    ),
-                ]),
+                    for (final entry in const {
+                      'write': 'write',
+                      'p_sub': 'p_sub',
+                      'read_users_sub': 'read_users_sub',
+                      'write_users_sub': 'write_users_sub',
+                      'w_sub': 'w_sub',
+                      'h_sub': 'h_sub',
+                      'r_sub': 'r_sub',
+                      'header_sub': 'header_sub',
+                    }.entries)
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          entry.key == 'write'
+                              ? S.current.adminWriteAccess
+                              : entry.value,
+                        ),
+                        value: values[entry.key] == true,
+                        onChanged: (value) =>
+                            setDialogState(() => values[entry.key] = value),
+                      ),
+                  ],
+                ),
               ),
             ),
             actions: [
@@ -134,8 +143,9 @@ class _MetaAdminPageState extends State<MetaAdminPage> {
               FilledButton(
                 onPressed: () {
                   final readUsers = _parseIds(controllers['read_users']!.text);
-                  final writeUsers =
-                      _parseIds(controllers['write_users']!.text);
+                  final writeUsers = _parseIds(
+                    controllers['write_users']!.text,
+                  );
                   if (controllers['path']!.text.trim().isEmpty ||
                       readUsers == null ||
                       writeUsers == null) {
@@ -161,8 +171,10 @@ class _MetaAdminPageState extends State<MetaAdminPage> {
       if (result == null || !mounted) return;
       setState(() => _saving = true);
       try {
-        await OpenListSession.instance.admin
-            .saveMeta(result, create: source == null);
+        await OpenListSession.instance.admin.saveMeta(
+          result,
+          create: source == null,
+        );
         showMessage(S.current.operationDone);
         await _load();
       } catch (e) {
@@ -189,8 +201,11 @@ class _MetaAdminPageState extends State<MetaAdminPage> {
   }
 
   Future<void> _delete(Map<String, dynamic> item) async {
-    if (!await confirmDialog(context, S.current.adminDeleteMetaConfirm,
-        title: S.current.delete)) {
+    if (!await confirmDialog(
+      context,
+      S.current.adminDeleteMetaConfirm,
+      title: S.current.delete,
+    )) {
       return;
     }
     try {
@@ -209,59 +224,60 @@ class _MetaAdminPageState extends State<MetaAdminPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Text(S.of(context).metaManagement),
-          actions: [
-            IconButton(
-                onPressed: _loading ? null : _load,
-                icon: const Icon(Icons.refresh)),
-            IconButton(
-                onPressed: _saving ? null : () => _edit(),
-                icon: const Icon(Icons.add)),
-          ],
+    appBar: AppBar(
+      title: Text(S.of(context).metaManagement),
+      actions: [
+        IconButton(
+          onPressed: _loading ? null : _load,
+          icon: const Icon(Icons.refresh),
         ),
-        body: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-                ? StateMessage(
-                    icon: Icons.error_outline,
-                    text: errorText(_error!),
-                    action: S.of(context).retry,
-                    onAction: _load,
-                  )
-                : _items.isEmpty
-                    ? StateMessage(
-                        icon: Icons.rule_folder_outlined,
-                        text: S.of(context).adminEmpty,
-                        action: S.of(context).create,
-                        onAction: () => _edit(),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _load,
-                        child: ListView.builder(
-                          itemCount: _items.length,
-                          itemBuilder: (context, index) {
-                            final item = _items[index];
-                            return ListTile(
-                              title: Text('${item['path'] ?? ''}'),
-                              subtitle: Text(
-                                  '${S.current.adminWriteAccess}: ${item['write'] == true}  ${S.current.adminMetaPassword}: ${item['password'] == '' ? '—' : '••••••'}'),
-                              trailing: PopupMenuButton<String>(
-                                onSelected: (action) => action == 'edit'
-                                    ? _edit(item)
-                                    : _delete(item),
-                                itemBuilder: (_) => [
-                                  PopupMenuItem(
-                                      value: 'edit',
-                                      child: Text(S.current.edit)),
-                                  PopupMenuItem(
-                                      value: 'delete',
-                                      child: Text(S.current.delete)),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+        IconButton(
+          onPressed: _saving ? null : () => _edit(),
+          icon: const Icon(Icons.add),
+        ),
+      ],
+    ),
+    body: _loading
+        ? const Center(child: CircularProgressIndicator())
+        : _error != null
+        ? StateMessage(
+            icon: Icons.error_outline,
+            text: errorText(_error!),
+            action: S.of(context).retry,
+            onAction: _load,
+          )
+        : _items.isEmpty
+        ? StateMessage(
+            icon: Icons.rule_folder_outlined,
+            text: S.of(context).adminEmpty,
+            action: S.of(context).create,
+            onAction: () => _edit(),
+          )
+        : RefreshIndicator(
+            onRefresh: _load,
+            child: ListView.builder(
+              itemCount: _items.length,
+              itemBuilder: (context, index) {
+                final item = _items[index];
+                return ListTile(
+                  title: Text('${item['path'] ?? ''}'),
+                  subtitle: Text(
+                    '${S.current.adminWriteAccess}: ${item['write'] == true}  ${S.current.adminMetaPassword}: ${item['password'] == '' ? '—' : '••••••'}',
+                  ),
+                  trailing: PopupMenuButton<String>(
+                    onSelected: (action) =>
+                        action == 'edit' ? _edit(item) : _delete(item),
+                    itemBuilder: (_) => [
+                      PopupMenuItem(value: 'edit', child: Text(S.current.edit)),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text(S.current.delete),
                       ),
-      );
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+  );
 }

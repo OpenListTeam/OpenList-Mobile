@@ -177,9 +177,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -208,9 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTapDetails: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const ServerDetailScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const ServerDetailScreen()),
                 );
               },
             ),
@@ -236,8 +233,9 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(
               height: 148,
               child: ListView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppDesign.space16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDesign.space16,
+                ),
                 scrollDirection: Axis.horizontal,
                 children: [
                   QuickAccessItem(
@@ -250,9 +248,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.star,
                     label: S.current.favorites,
                     subtitle: '',
-                    onTap: () => Get.to(
-                      () => const MediaLibraryPage(favorites: true),
-                    ),
+                    onTap: () =>
+                        Get.to(() => const MediaLibraryPage(favorites: true)),
                   ),
                   QuickAccessItem(
                     icon: Icons.image,
@@ -322,8 +319,9 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             else if (_storages.isEmpty)
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppDesign.space16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDesign.space16,
+                ),
                 child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(AppDesign.space32),
@@ -332,9 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           Icons.storage,
                           size: 48,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
+                          color: Theme.of(context).colorScheme.primary
                               .withOpacity(0.5),
                         ),
                         const SizedBox(height: AppDesign.space16),
@@ -368,24 +364,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               )
             else
-              ..._storages.take(3).map((storage) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppDesign.space12),
-                    child: StorageCard(
-                      name: storage.mountPath,
-                      type: storage.driver,
-                      status: storage.status,
-                      usedBytes: 0,
-                      totalBytes: 0,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const StoragesScreen(),
-                          ),
-                        );
-                      },
+              ..._storages
+                  .take(3)
+                  .map(
+                    (storage) => Padding(
+                      padding: const EdgeInsets.only(bottom: AppDesign.space12),
+                      child: StorageCard(
+                        name: storage.mountPath,
+                        type: storage.driver,
+                        status: storage.status,
+                        usedBytes: 0,
+                        totalBytes: 0,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const StoragesScreen(),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  )),
+                  ),
 
             const SizedBox(height: AppDesign.space16),
           ],

@@ -35,10 +35,10 @@ class NativeUploader {
     UploadApi? api,
     TargetPlatform? platform,
     OpenListClient? Function()? currentClient,
-  })  : _api = api ?? UploadApi(),
-        _platform = platform ?? defaultTargetPlatform,
-        _currentClient =
-            currentClient ?? (() => OpenListSession.instance.client);
+  }) : _api = api ?? UploadApi(),
+       _platform = platform ?? defaultTargetPlatform,
+       _currentClient =
+           currentClient ?? (() => OpenListSession.instance.client);
 
   static final NativeUploader instance = NativeUploader();
 
@@ -217,7 +217,9 @@ class NativeUploader {
           _forget(id);
           if (record == null) {
             throw ApiException(
-                -1, 'The original upload can no longer be retried');
+              -1,
+              'The original upload can no longer be retried',
+            );
           }
           await _retry(record, token, onProgress);
         },
@@ -247,20 +249,27 @@ class NativeUploader {
         run: (token, onProgress) => _retry(r, token, onProgress),
       );
       final initial = byId[r.id];
-      queue.adopt(job,
-          (token, onProgress) => _resume(r.id, initial, token, onProgress));
+      queue.adopt(
+        job,
+        (token, onProgress) => _resume(r.id, initial, token, onProgress),
+      );
     }
   }
 
   /// Follows a restored job until its result; [initial] is its state from
   /// [UploadApi.restore], null when the platform no longer knows it.
-  Future<void> _resume(String id, UploadEvent? initial, CancelToken token,
-      ProgressCallback onProgress) {
+  Future<void> _resume(
+    String id,
+    UploadEvent? initial,
+    CancelToken token,
+    ProgressCallback onProgress,
+  ) {
     final early = _early.remove(id);
     if (initial == null && early == null) {
       _forget(id);
       return Future.error(
-          ApiException(-1, 'upload no longer tracked by the system'));
+        ApiException(-1, 'upload no longer tracked by the system'),
+      );
     }
     final attempt = _track(id, onProgress, token);
     if (initial != null) _onEvent(initial);
@@ -271,11 +280,16 @@ class NativeUploader {
 
   /// Retries a restored job as a new upload of the recorded file.
   Future<void> _retry(
-      _Record r, CancelToken token, ProgressCallback onProgress) async {
+    _Record r,
+    CancelToken token,
+    ProgressCallback onProgress,
+  ) async {
     final client = _currentClient();
     if (client == null || client.baseUrl != r.baseUrl) {
       throw ApiException(
-          -1, 'not connected to ${r.baseUrl}; reconnect to it to retry');
+        -1,
+        'not connected to ${r.baseUrl}; reconnect to it to retry',
+      );
     }
 
     // Read the encrypted folder password for retry.
@@ -312,15 +326,20 @@ class NativeUploader {
   }
 
   _Attempt _track(
-      String id, ProgressCallback? onProgress, CancelToken? cancelToken) {
+    String id,
+    ProgressCallback? onProgress,
+    CancelToken? cancelToken,
+  ) {
     final attempt = _Attempt(onProgress);
     _attempts[id] = attempt;
     if (cancelToken != null) {
-      unawaited(cancelToken.whenCancel.then((e) {
-        if (attempt.done) return;
-        unawaited(_api.cancel(id).catchError((Object _) {}));
-        _finish(id, error: e);
-      }));
+      unawaited(
+        cancelToken.whenCancel.then((e) {
+          if (attempt.done) return;
+          unawaited(_api.cancel(id).catchError((Object _) {}));
+          _finish(id, error: e);
+        }),
+      );
       attempt.cancelToken = cancelToken;
     }
     return attempt;
@@ -358,9 +377,13 @@ class NativeUploader {
         if (token != null) {
           token.cancel();
         } else {
-          _finish(e.id,
-              error: DioException.requestCancelled(
-                  requestOptions: RequestOptions(), reason: 'canceled'));
+          _finish(
+            e.id,
+            error: DioException.requestCancelled(
+              requestOptions: RequestOptions(),
+              reason: 'canceled',
+            ),
+          );
         }
     }
   }
@@ -384,8 +407,9 @@ class NativeUploader {
     }
   }
 
-  void _save(_Record r) => _writeRecords((prefs) =>
-      prefs.setString('$recordPrefix${r.id}', jsonEncode(r.toJson())));
+  void _save(_Record r) => _writeRecords(
+    (prefs) => prefs.setString('$recordPrefix${r.id}', jsonEncode(r.toJson())),
+  );
 
   void _forget(String id, {bool clearResult = true}) {
     _recordCache.remove(id);
@@ -538,14 +562,14 @@ class _Record {
   final String baseUrl;
 
   Map<String, Object> toJson() => {
-        'id': id,
-        'name': name,
-        'dir': dir,
-        'dstPath': dstPath,
-        'filePath': filePath,
-        'size': size,
-        'baseUrl': baseUrl,
-      };
+    'id': id,
+    'name': name,
+    'dir': dir,
+    'dstPath': dstPath,
+    'filePath': filePath,
+    'size': size,
+    'baseUrl': baseUrl,
+  };
 
   static _Record? tryParse(String? text) {
     if (text == null) return null;

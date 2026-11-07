@@ -30,24 +30,29 @@ class _Job {
 }
 
 void main() {
-  test('runs at most `concurrency` jobs and starts the next on finish',
-      () async {
-    final q = UploadQueue(concurrency: 2);
-    final jobs = [_Job('a'), _Job('b'), _Job('c')];
-    q.addAll(jobs.map((j) => j.job));
-    await Future<void>.delayed(Duration.zero);
+  test(
+    'runs at most `concurrency` jobs and starts the next on finish',
+    () async {
+      final q = UploadQueue(concurrency: 2);
+      final jobs = [_Job('a'), _Job('b'), _Job('c')];
+      q.addAll(jobs.map((j) => j.job));
+      await Future<void>.delayed(Duration.zero);
 
-    expect(jobs.map((j) => j.job.state),
-        [UploadState.running, UploadState.running, UploadState.queued]);
-    expect(jobs[0].job.sent, 5);
+      expect(jobs.map((j) => j.job.state), [
+        UploadState.running,
+        UploadState.running,
+        UploadState.queued,
+      ]);
+      expect(jobs[0].job.sent, 5);
 
-    jobs[0].attempt!.complete();
-    await Future<void>.delayed(Duration.zero);
-    expect(jobs[0].job.state, UploadState.succeeded);
-    expect(jobs[0].job.sent, 10);
-    expect(jobs[2].job.state, UploadState.running);
-    expect(q.activeCount, 2);
-  });
+      jobs[0].attempt!.complete();
+      await Future<void>.delayed(Duration.zero);
+      expect(jobs[0].job.state, UploadState.succeeded);
+      expect(jobs[0].job.sent, 10);
+      expect(jobs[2].job.state, UploadState.running);
+      expect(q.activeCount, 2);
+    },
+  );
 
   test('cancel stops queued and running jobs; retry runs them again', () async {
     final q = UploadQueue(concurrency: 1);
@@ -71,51 +76,55 @@ void main() {
     expect(a.attempts, 2);
   });
 
-  test('running cancellation is visible immediately and starts the next job',
-      () async {
-    final q = UploadQueue(concurrency: 1);
-    final a = _Job('a'), b = _Job('b');
-    q.addAll([a.job, b.job]);
-    await Future<void>.delayed(Duration.zero);
+  test(
+    'running cancellation is visible immediately and starts the next job',
+    () async {
+      final q = UploadQueue(concurrency: 1);
+      final a = _Job('a'), b = _Job('b');
+      q.addAll([a.job, b.job]);
+      await Future<void>.delayed(Duration.zero);
 
-    q.cancel(a.job);
-    expect(a.job.state, UploadState.cancelling);
+      q.cancel(a.job);
+      expect(a.job.state, UploadState.cancelling);
 
-    await Future<void>.delayed(Duration.zero);
-    expect(a.job.state, UploadState.canceled);
-    expect(b.job.state, UploadState.running);
-  });
+      await Future<void>.delayed(Duration.zero);
+      expect(a.job.state, UploadState.canceled);
+      expect(b.job.state, UploadState.running);
+    },
+  );
 
-  test('restores terminal history without running it and removes it cleanly',
-      () async {
-    final q = UploadQueue();
-    var ran = false;
-    var removed = false;
-    var notifications = 0;
-    q.addListener(() => notifications++);
-    final job = UploadJob(
-      name: 'restored.bin',
-      dir: '/d',
-      size: 10,
-      historyId: 'native-1',
-      onRemove: () => removed = true,
-      run: (token, onProgress) async {
-        ran = true;
-      },
-    )..state = UploadState.failed;
+  test(
+    'restores terminal history without running it and removes it cleanly',
+    () async {
+      final q = UploadQueue();
+      var ran = false;
+      var removed = false;
+      var notifications = 0;
+      q.addListener(() => notifications++);
+      final job = UploadJob(
+        name: 'restored.bin',
+        dir: '/d',
+        size: 10,
+        historyId: 'native-1',
+        onRemove: () => removed = true,
+        run: (token, onProgress) async {
+          ran = true;
+        },
+      )..state = UploadState.failed;
 
-    q.addHistory(job);
-    await Future<void>.delayed(Duration.zero);
-    expect(q.jobs, [job]);
-    expect(job.state, UploadState.failed);
-    expect(ran, isFalse);
-    expect(notifications, 1);
+      q.addHistory(job);
+      await Future<void>.delayed(Duration.zero);
+      expect(q.jobs, [job]);
+      expect(job.state, UploadState.failed);
+      expect(ran, isFalse);
+      expect(notifications, 1);
 
-    q.remove(job);
-    expect(q.jobs, isEmpty);
-    expect(removed, isTrue);
-    expect(notifications, 2);
-  });
+      q.remove(job);
+      expect(q.jobs, isEmpty);
+      expect(removed, isTrue);
+      expect(notifications, 2);
+    },
+  );
 
   test('normal completion wins over a late cancellation', () async {
     final q = UploadQueue(concurrency: 1);
@@ -135,22 +144,24 @@ void main() {
     expect(job.sent, 10);
   });
 
-  test('remove waits for a cancelling job to finish before removing it',
-      () async {
-    final q = UploadQueue(concurrency: 1);
-    final a = _Job('a'), b = _Job('b');
-    q.addAll([a.job, b.job]);
-    await Future<void>.delayed(Duration.zero);
+  test(
+    'remove waits for a cancelling job to finish before removing it',
+    () async {
+      final q = UploadQueue(concurrency: 1);
+      final a = _Job('a'), b = _Job('b');
+      q.addAll([a.job, b.job]);
+      await Future<void>.delayed(Duration.zero);
 
-    q.remove(a.job);
-    expect(a.job.state, UploadState.cancelling);
-    expect(q.jobs, contains(a.job));
+      q.remove(a.job);
+      expect(a.job.state, UploadState.cancelling);
+      expect(q.jobs, contains(a.job));
 
-    await Future<void>.delayed(Duration.zero);
-    expect(q.jobs, isNot(contains(a.job)));
-    expect(q.jobs, contains(b.job));
-    expect(b.job.state, UploadState.running);
-  });
+      await Future<void>.delayed(Duration.zero);
+      expect(q.jobs, isNot(contains(a.job)));
+      expect(q.jobs, contains(b.job));
+      expect(b.job.state, UploadState.running);
+    },
+  );
 
   test('errors mark the job failed and keep the error', () async {
     final q = UploadQueue();

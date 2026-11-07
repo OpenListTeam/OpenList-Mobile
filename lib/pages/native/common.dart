@@ -9,15 +9,20 @@ String errorText(Object e) => e is ApiException ? e.message : '$e';
 
 void showMessage(String message, {String? title, int seconds = 2}) {
   Get.closeCurrentSnackbar();
-  Get.showSnackbar(GetSnackBar(
-    title: title,
-    message: message,
-    duration: Duration(seconds: seconds),
-  ));
+  Get.showSnackbar(
+    GetSnackBar(
+      title: title,
+      message: message,
+      duration: Duration(seconds: seconds),
+    ),
+  );
 }
 
-void showError(Object e, {String? title}) =>
-    showMessage(errorText(e), title: title ?? S.current.operationFailed, seconds: 3);
+void showError(Object e, {String? title}) => showMessage(
+  errorText(e),
+  title: title ?? S.current.operationFailed,
+  seconds: 3,
+);
 
 String formatBytes(int bytes) {
   if (bytes <= 0) return '0 B';
@@ -48,8 +53,13 @@ String formatDuration(int seconds) {
 }
 
 /// Single text field dialog; returns null when cancelled or empty.
-Future<String?> promptText(BuildContext context,
-    {required String title, String label = '', String initial = '', bool obscure = false}) {
+Future<String?> promptText(
+  BuildContext context, {
+  required String title,
+  String label = '',
+  String initial = '',
+  bool obscure = false,
+}) {
   final ctrl = TextEditingController(text: initial);
   return showDialog<String>(
     context: context,
@@ -60,10 +70,14 @@ Future<String?> promptText(BuildContext context,
         autofocus: true,
         obscureText: obscure,
         decoration: InputDecoration(labelText: label),
-        onSubmitted: (v) => Navigator.pop(ctx, v.trim().isEmpty ? null : v.trim()),
+        onSubmitted: (v) =>
+            Navigator.pop(ctx, v.trim().isEmpty ? null : v.trim()),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.current.cancel)),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(S.current.cancel),
+        ),
         FilledButton(
           onPressed: () {
             final v = ctrl.text.trim();
@@ -76,15 +90,25 @@ Future<String?> promptText(BuildContext context,
   );
 }
 
-Future<bool> confirmDialog(BuildContext context, String message, {String? title}) async {
+Future<bool> confirmDialog(
+  BuildContext context,
+  String message, {
+  String? title,
+}) async {
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
       title: title == null ? null : Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(S.current.cancel)),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(S.current.confirm)),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(S.current.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: Text(S.current.confirm),
+        ),
       ],
     ),
   );
@@ -93,7 +117,13 @@ Future<bool> confirmDialog(BuildContext context, String message, {String? title}
 
 /// Centered message with an optional action, used for empty and error states.
 class StateMessage extends StatelessWidget {
-  const StateMessage({super.key, required this.icon, required this.text, this.action, this.onAction});
+  const StateMessage({
+    super.key,
+    required this.icon,
+    required this.text,
+    this.action,
+    this.onAction,
+  });
 
   final IconData icon;
   final String text;
@@ -105,15 +135,18 @@ class StateMessage extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 48, color: Theme.of(context).hintColor),
-          const SizedBox(height: 12),
-          Text(text, textAlign: TextAlign.center),
-          if (action != null) ...[
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 48, color: Theme.of(context).hintColor),
             const SizedBox(height: 12),
-            FilledButton.tonal(onPressed: onAction, child: Text(action!)),
+            Text(text, textAlign: TextAlign.center),
+            if (action != null) ...[
+              const SizedBox(height: 12),
+              FilledButton.tonal(onPressed: onAction, child: Text(action!)),
+            ],
           ],
-        ]),
+        ),
       ),
     );
   }

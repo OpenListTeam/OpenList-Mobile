@@ -9,11 +9,7 @@ import 'common.dart';
 
 /// Loads a remote PDF with the same authentication policy as the dispatcher.
 class PdfPreviewView extends StatefulWidget {
-  const PdfPreviewView({
-    super.key,
-    required this.url,
-    required this.headers,
-  });
+  const PdfPreviewView({super.key, required this.url, required this.headers});
 
   final String url;
   final Map<String, String> headers;

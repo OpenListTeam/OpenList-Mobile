@@ -19,8 +19,11 @@ class _ZipAdapter implements HttpClientAdapter {
   RequestOptions? request;
 
   @override
-  Future<ResponseBody> fetch(RequestOptions options,
-      Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
     request = options;
     return ResponseBody.fromBytes(bytes, 200);
   }
@@ -91,20 +94,22 @@ void main() {
     }
   });
 
-  test('omits unsafe paths and keeps similarly prefixed directories separate',
-      () async {
-    final archive = zip.Archive()
-      ..add(zip.ArchiveFile.string('safe/file.txt', 'safe'))
-      ..add(zip.ArchiveFile.string('safely/other.txt', 'other'))
-      ..add(zip.ArchiveFile.string('../outside.txt', 'outside'));
-    await archiveFile.writeAsBytes(zip.ZipEncoder().encode(archive));
+  test(
+    'omits unsafe paths and keeps similarly prefixed directories separate',
+    () async {
+      final archive = zip.Archive()
+        ..add(zip.ArchiveFile.string('safe/file.txt', 'safe'))
+        ..add(zip.ArchiveFile.string('safely/other.txt', 'other'))
+        ..add(zip.ArchiveFile.string('../outside.txt', 'outside'));
+      await archiveFile.writeAsBytes(zip.ZipEncoder().encode(archive));
 
-    final local = LocalZipArchive.fromFile(archiveFile);
-    try {
-      expect(local.list('/').map((entry) => entry.name), ['safe', 'safely']);
-      expect(local.list('/safe/').map((entry) => entry.name), ['file.txt']);
-    } finally {
-      await local.dispose();
-    }
-  });
+      final local = LocalZipArchive.fromFile(archiveFile);
+      try {
+        expect(local.list('/').map((entry) => entry.name), ['safe', 'safely']);
+        expect(local.list('/safe/').map((entry) => entry.name), ['file.txt']);
+      } finally {
+        await local.dispose();
+      }
+    },
+  );
 }

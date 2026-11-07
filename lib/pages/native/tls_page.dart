@@ -62,8 +62,11 @@ class _TlsPageState extends State<TlsPage> {
       _dataDir = await NativeBridge.appConfig.getDataDir();
       // The core creates config.json on its first start.
       final config = Map<String, dynamic>.from(
-          jsonDecode(await _configFile.readAsString()) as Map);
-      final scheme = Map<String, dynamic>.from((config['scheme'] as Map?) ?? const {});
+        jsonDecode(await _configFile.readAsString()) as Map,
+      );
+      final scheme = Map<String, dynamic>.from(
+        (config['scheme'] as Map?) ?? const {},
+      );
       _config = config;
       _port.text = '${scheme['https_port'] ?? -1}';
       _certFile = '${scheme['cert_file'] ?? ''}';
@@ -133,34 +136,41 @@ class _TlsPageState extends State<TlsPage> {
       return;
     }
     final restart = await confirmDialog(
-        context, S.current.configSavedRestartRequired,
-        title: S.current.saveAndRestart);
+      context,
+      S.current.configSavedRestartRequired,
+      title: S.current.saveAndRestart,
+    );
     if (!restart) return;
-    showMessage(await sm.restartService()
-        ? S.current.serviceRestartSuccess
-        : S.current.serviceRestartFailed);
+    showMessage(
+      await sm.restartService()
+          ? S.current.serviceRestartSuccess
+          : S.current.serviceRestartFailed,
+    );
   }
 
   Widget _fileTile(String title, String path, {required bool key}) => ListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(title),
-        subtitle: Text(path.isEmpty ? S.of(context).notConfigured : path),
-        trailing: TextButton(
-          onPressed: _saving ? null : () => _pick(key: key),
-          child: Text(S.of(context).chooseFile),
-        ),
-      );
+    contentPadding: EdgeInsets.zero,
+    title: Text(title),
+    subtitle: Text(path.isEmpty ? S.of(context).notConfigured : path),
+    trailing: TextButton(
+      onPressed: _saving ? null : () => _pick(key: key),
+      child: Text(S.of(context).chooseFile),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(S.of(context).tlsCertificate), actions: [
-        IconButton(
-          tooltip: S.of(context).save,
-          icon: const Icon(Icons.check),
-          onPressed: _saving || _config == null ? null : _save,
-        ),
-      ]),
+      appBar: AppBar(
+        title: Text(S.of(context).tlsCertificate),
+        actions: [
+          IconButton(
+            tooltip: S.of(context).save,
+            icon: const Icon(Icons.check),
+            onPressed: _saving || _config == null ? null : _save,
+          ),
+        ],
+      ),
       body: _body(context),
     );
   }
@@ -169,35 +179,39 @@ class _TlsPageState extends State<TlsPage> {
     if (_error != null) {
       return StateMessage(icon: Icons.error_outline, text: errorText(_error!));
     }
-    if (_config == null) return const Center(child: CircularProgressIndicator());
+    if (_config == null)
+      return const Center(child: CircularProgressIndicator());
     return AbsorbPointer(
       absorbing: _saving,
       child: Form(
         key: _formKey,
-        child: ListView(padding: const EdgeInsets.all(16), children: [
-          if (_saving) const LinearProgressIndicator(),
-          TextFormField(
-            controller: _port,
-            keyboardType: const TextInputType.numberWithOptions(signed: true),
-            decoration: InputDecoration(labelText: S.of(context).httpsPort),
-            validator: (v) {
-              final p = int.tryParse((v ?? '').trim());
-              if (p == null || (p != -1 && (p < 1 || p > 65535))) {
-                return S.current.invalidPort;
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 8),
-          _fileTile(S.of(context).certFile, _certFile, key: false),
-          _fileTile(S.of(context).keyFile, _keyFile, key: true),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(S.of(context).forceHttps),
-            value: _forceHttps,
-            onChanged: (v) => setState(() => _forceHttps = v),
-          ),
-        ]),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (_saving) const LinearProgressIndicator(),
+            TextFormField(
+              controller: _port,
+              keyboardType: const TextInputType.numberWithOptions(signed: true),
+              decoration: InputDecoration(labelText: S.of(context).httpsPort),
+              validator: (v) {
+                final p = int.tryParse((v ?? '').trim());
+                if (p == null || (p != -1 && (p < 1 || p > 65535))) {
+                  return S.current.invalidPort;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 8),
+            _fileTile(S.of(context).certFile, _certFile, key: false),
+            _fileTile(S.of(context).keyFile, _keyFile, key: true),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(S.of(context).forceHttps),
+              value: _forceHttps,
+              onChanged: (v) => setState(() => _forceHttps = v),
+            ),
+          ],
+        ),
       ),
     );
   }

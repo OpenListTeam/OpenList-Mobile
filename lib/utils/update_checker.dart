@@ -30,10 +30,13 @@ class UpdateChecker {
   }
 
   static Future<Map<String, dynamic>> _getLatestRelease(
-      String owner, String repo) async {
+    String owner,
+    String repo,
+  ) async {
     HttpClient client = HttpClient();
     final req = await client.getUrl(
-        Uri.parse('https://api.github.com/repos/$owner/$repo/releases/latest'));
+      Uri.parse('https://api.github.com/repos/$owner/$repo/releases/latest'),
+    );
     final response = await req.close();
 
     if (response.statusCode == HttpStatus.ok) {
@@ -41,7 +44,8 @@ class UpdateChecker {
       return json.decode(body);
     } else {
       throw Exception(
-          'Failed to get latest release, status code: ${response.statusCode}');
+        'Failed to get latest release, status code: ${response.statusCode}',
+      );
     }
   }
 

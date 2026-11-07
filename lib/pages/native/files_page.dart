@@ -69,12 +69,15 @@ class _FilesPageState extends State<FilesPage> {
   void _onUploadFinished(UploadJob j) {
     if (!mounted) return;
     if (j.state == UploadState.failed) {
-      showError(j.error ?? S.current.uploadFailed,
-          title: '${S.current.uploadFailed}: ${j.name}');
+      showError(
+        j.error ?? S.current.uploadFailed,
+        title: '${S.current.uploadFailed}: ${j.name}',
+      );
     }
     if (j.state != UploadState.succeeded ||
         j.dir != _path ||
-        !_session.isConnected) return;
+        !_session.isConnected)
+      return;
     // Batch refreshes when many small files finish close together.
     _refreshTimer?.cancel();
     _refreshTimer = Timer(const Duration(milliseconds: 500), () {
@@ -140,8 +143,11 @@ class _FilesPageState extends State<FilesPage> {
       _error = null;
     });
     try {
-      final res = await _session.fs
-          .list(path, password: _passwordFor(path), refresh: refresh);
+      final res = await _session.fs.list(
+        path,
+        password: _passwordFor(path),
+        refresh: refresh,
+      );
       if (!mounted || _path != path) return;
       setState(() => _result = res);
     } on ApiException catch (e) {
@@ -156,8 +162,12 @@ class _FilesPageState extends State<FilesPage> {
 
   /// Prompts for a folder password and retries; true when a retry started.
   Future<bool> _askPassword(String path) async {
-    final pwd = await promptText(context,
-        title: S.current.folderPassword, label: path, obscure: true);
+    final pwd = await promptText(
+      context,
+      title: S.current.folderPassword,
+      label: path,
+      obscure: true,
+    );
     if (pwd == null) return false;
     _passwords[path] = pwd;
     unawaited(_open(path));
@@ -183,26 +193,39 @@ class _FilesPageState extends State<FilesPage> {
   }
 
   Future<void> _mkdir() async {
-    final name = await promptText(context,
-        title: S.current.newFolder, label: S.current.folderName);
+    final name = await promptText(
+      context,
+      title: S.current.newFolder,
+      label: S.current.folderName,
+    );
     if (name == null) return;
     await _act(() => _session.fs.mkdir(_child(name)));
   }
 
   Future<void> _rename(FsObject o) async {
-    final name = await promptText(context,
-        title: S.current.rename, label: S.current.newName, initial: o.name);
+    final name = await promptText(
+      context,
+      title: S.current.rename,
+      label: S.current.newName,
+      initial: o.name,
+    );
     if (name == null || name == o.name) return;
     await _act(() => _session.fs.rename(_child(o.name), name));
   }
 
   Future<void> _transfer(FsObject o, {required bool copy}) async {
-    final dst = await Get.to<String>(() => FolderPickerPage(
-        title: copy ? S.current.copyTo : S.current.moveTo, initial: _path));
+    final dst = await Get.to<String>(
+      () => FolderPickerPage(
+        title: copy ? S.current.copyTo : S.current.moveTo,
+        initial: _path,
+      ),
+    );
     if (dst == null || dst == _path) return;
-    await _act(() => copy
-        ? _session.fs.copy(_path, dst, [o.name])
-        : _session.fs.move(_path, dst, [o.name]));
+    await _act(
+      () => copy
+          ? _session.fs.copy(_path, dst, [o.name])
+          : _session.fs.move(_path, dst, [o.name]),
+    );
   }
 
   Future<void> _delete(FsObject o) async {
@@ -223,7 +246,9 @@ class _FilesPageState extends State<FilesPage> {
   Future<void> _download(FsObject o) async {
     try {
       await DownloadManager.downloadFileWithProgress(
-          url: await _fileUrl(o), filename: o.name);
+        url: await _fileUrl(o),
+        filename: o.name,
+      );
     } catch (e) {
       showError(e);
     }
@@ -294,13 +319,13 @@ class _FilesPageState extends State<FilesPage> {
       showDragHandle: true,
       builder: (ctx) {
         Widget item(IconData icon, String label, VoidCallback fn) => ListTile(
-              leading: Icon(icon),
-              title: Text(label),
-              onTap: () {
-                Navigator.pop(ctx);
-                fn();
-              },
-            );
+          leading: Icon(icon),
+          title: Text(label),
+          onTap: () {
+            Navigator.pop(ctx);
+            fn();
+          },
+        );
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -371,7 +396,8 @@ class _FilesPageState extends State<FilesPage> {
 
   Future<void> _search() async {
     final dir = await Get.to<String>(
-        () => SearchPage(parent: _path, password: _passwordFor(_path)));
+      () => SearchPage(parent: _path, password: _passwordFor(_path)),
+    );
     if (dir != null && mounted) unawaited(_open(dir));
   }
 
@@ -417,12 +443,15 @@ class _FilesPageState extends State<FilesPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(connected ? _path : S.of(context).nativeFiles,
-              overflow: TextOverflow.ellipsis),
+          title: Text(
+            connected ? _path : S.of(context).nativeFiles,
+            overflow: TextOverflow.ellipsis,
+          ),
           leading: connected && _path != '/'
               ? IconButton(
                   icon: const Icon(Icons.arrow_upward),
-                  onPressed: () => _open(_parent))
+                  onPressed: () => _open(_parent),
+                )
               : null,
           actions: [
             if (connected)
@@ -451,18 +480,25 @@ class _FilesPageState extends State<FilesPage> {
                 PopupMenuItem(value: 'uploads', child: Text(S.current.uploads)),
                 if (canWrite && _canOffline)
                   PopupMenuItem(
-                      value: 'offline', child: Text(S.current.offlineDownload)),
+                    value: 'offline',
+                    child: Text(S.current.offlineDownload),
+                  ),
                 if (connected && (_session.user?.isAdmin ?? false))
                   PopupMenuItem(
-                      value: 'storages', child: Text(S.current.storages)),
+                    value: 'storages',
+                    child: Text(S.current.storages),
+                  ),
                 if (connected && (_session.user?.isAdmin ?? false))
                   PopupMenuItem(value: 'users', child: Text(S.current.users)),
                 if (connected && (_session.user?.isAdmin ?? false))
                   PopupMenuItem(
-                      value: 'site_settings',
-                      child: Text(S.current.siteSettings)),
+                    value: 'site_settings',
+                    child: Text(S.current.siteSettings),
+                  ),
                 PopupMenuItem(
-                    value: 'connection', child: Text(S.current.connection)),
+                  value: 'connection',
+                  child: Text(S.current.connection),
+                ),
               ],
             ),
           ],
@@ -474,24 +510,26 @@ class _FilesPageState extends State<FilesPage> {
                 child: const Icon(Icons.create_new_folder_outlined),
               )
             : null,
-        body: Column(children: [
-          ListenableBuilder(
-            listenable: UploadQueue.instance,
-            builder: (context, _) {
-              final n = UploadQueue.instance.activeCount;
-              if (n == 0) return const SizedBox.shrink();
-              return ListTile(
-                dense: true,
-                leading: const Icon(Icons.cloud_upload_outlined),
-                title: Text(S.of(context).uploadsActive(n)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Get.to(() => const UploadsPage()),
-              );
-            },
-          ),
-          if (_loading && _result != null) const LinearProgressIndicator(),
-          Expanded(child: _body(context)),
-        ]),
+        body: Column(
+          children: [
+            ListenableBuilder(
+              listenable: UploadQueue.instance,
+              builder: (context, _) {
+                final n = UploadQueue.instance.activeCount;
+                if (n == 0) return const SizedBox.shrink();
+                return ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.cloud_upload_outlined),
+                  title: Text(S.of(context).uploadsActive(n)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Get.to(() => const UploadsPage()),
+                );
+              },
+            ),
+            if (_loading && _result != null) const LinearProgressIndicator(),
+            Expanded(child: _body(context)),
+          ],
+        ),
       ),
     );
   }
@@ -505,8 +543,8 @@ class _FilesPageState extends State<FilesPage> {
         text: notRunning && _session.kind == ConnectionKind.local
             ? S.of(context).serverNotRunning
             : (_error == null
-                ? S.of(context).connectFailed
-                : errorText(_error!)),
+                  ? S.of(context).connectFailed
+                  : errorText(_error!)),
         action: notRunning ? S.of(context).startServer : S.of(context).retry,
         onAction: () async {
           if (notRunning) await ServiceManager.instance.startService();
@@ -519,18 +557,24 @@ class _FilesPageState extends State<FilesPage> {
       if (_error == null)
         return const Center(child: CircularProgressIndicator());
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: () => _open(_path));
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: () => _open(_path),
+      );
     }
     if (res.content.isEmpty) {
       return RefreshIndicator(
         onRefresh: () => _open(_path, refresh: true),
-        child: ListView(children: [
-          const SizedBox(height: 120),
-          StateMessage(icon: Icons.folder_off, text: S.of(context).emptyFolder),
-        ]),
+        child: ListView(
+          children: [
+            const SizedBox(height: 120),
+            StateMessage(
+              icon: Icons.folder_off,
+              text: S.of(context).emptyFolder,
+            ),
+          ],
+        ),
       );
     }
     return RefreshIndicator(
@@ -549,12 +593,17 @@ class _FilesPageState extends State<FilesPage> {
             subtitle: info.isEmpty ? null : Text(info),
             onTap: () => o.isDir
                 ? _open(_child(o.name))
-                : Get.to(() => FilePreviewPage(
-                    path: _child(o.name), password: _passwordFor(_path))),
+                : Get.to(
+                    () => FilePreviewPage(
+                      path: _child(o.name),
+                      password: _passwordFor(_path),
+                    ),
+                  ),
             onLongPress: () => _showActions(o),
             trailing: IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () => _showActions(o)),
+              icon: const Icon(Icons.more_vert),
+              onPressed: () => _showActions(o),
+            ),
           );
         },
       ),

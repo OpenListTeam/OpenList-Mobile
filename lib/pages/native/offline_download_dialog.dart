@@ -14,12 +14,12 @@ const _policies = [
 ];
 
 String _policyLabel(String p) => switch (p) {
-      'delete_on_upload_succeed' => S.current.policyDeleteOnUploadSucceed,
-      'delete_on_upload_failed' => S.current.policyDeleteOnUploadFailed,
-      'delete_never' => S.current.policyDeleteNever,
-      'delete_always' => S.current.policyDeleteAlways,
-      _ => S.current.policyUploadDownloadStream,
-    };
+  'delete_on_upload_succeed' => S.current.policyDeleteOnUploadSucceed,
+  'delete_on_upload_failed' => S.current.policyDeleteOnUploadFailed,
+  'delete_never' => S.current.policyDeleteNever,
+  'delete_always' => S.current.policyDeleteAlways,
+  _ => S.current.policyUploadDownloadStream,
+};
 
 /// Asks for URLs and a tool, then queues offline downloads into [dir].
 /// Returns true when tasks were added.
@@ -62,7 +62,9 @@ class _OfflineDownloadDialogState extends State<_OfflineDownloadDialog> {
 
   Future<void> _loadTools() async {
     try {
-      final tools = await OpenListSession.instance.fs.offlineTools(path: widget.dir);
+      final tools = await OpenListSession.instance.fs.offlineTools(
+        path: widget.dir,
+      );
       if (!mounted) return;
       setState(() {
         _tools = tools;
@@ -83,8 +85,12 @@ class _OfflineDownloadDialogState extends State<_OfflineDownloadDialog> {
     if (urls.isEmpty || tool == null) return;
     setState(() => _submitting = true);
     try {
-      await OpenListSession.instance.fs
-          .addOfflineDownload(urls, widget.dir, tool, deletePolicy: _policy);
+      await OpenListSession.instance.fs.addOfflineDownload(
+        urls,
+        widget.dir,
+        tool,
+        deletePolicy: _policy,
+      );
       if (mounted) Navigator.of(context).pop(true);
       showMessage(S.current.offlineAdded);
       return;
@@ -102,41 +108,51 @@ class _OfflineDownloadDialogState extends State<_OfflineDownloadDialog> {
       content = Text(errorText(_error!));
     } else if (tools == null) {
       content = const SizedBox(
-          height: 80, child: Center(child: CircularProgressIndicator()));
+        height: 80,
+        child: Center(child: CircularProgressIndicator()),
+      );
     } else if (tools.isEmpty) {
       content = Text(S.of(context).noOfflineTools);
     } else {
       content = SingleChildScrollView(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(widget.dir, style: Theme.of(context).textTheme.bodySmall),
-          TextField(
-            controller: _urls,
-            autofocus: true,
-            minLines: 3,
-            maxLines: 8,
-            keyboardType: TextInputType.url,
-            decoration: InputDecoration(labelText: S.of(context).offlineUrls),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            value: _tool,
-            isExpanded: true,
-            decoration: InputDecoration(labelText: S.of(context).offlineTool),
-            items: [for (final t in tools) DropdownMenuItem(value: t, child: Text(t))],
-            onChanged: (v) => setState(() => _tool = v),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            value: _policy,
-            isExpanded: true,
-            decoration: InputDecoration(labelText: S.of(context).deletePolicy),
-            items: [
-              for (final p in _policies)
-                DropdownMenuItem(value: p, child: Text(_policyLabel(p))),
-            ],
-            onChanged: (v) => setState(() => _policy = v ?? _policy),
-          ),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(widget.dir, style: Theme.of(context).textTheme.bodySmall),
+            TextField(
+              controller: _urls,
+              autofocus: true,
+              minLines: 3,
+              maxLines: 8,
+              keyboardType: TextInputType.url,
+              decoration: InputDecoration(labelText: S.of(context).offlineUrls),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _tool,
+              isExpanded: true,
+              decoration: InputDecoration(labelText: S.of(context).offlineTool),
+              items: [
+                for (final t in tools)
+                  DropdownMenuItem(value: t, child: Text(t)),
+              ],
+              onChanged: (v) => setState(() => _tool = v),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _policy,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: S.of(context).deletePolicy,
+              ),
+              items: [
+                for (final p in _policies)
+                  DropdownMenuItem(value: p, child: Text(_policyLabel(p))),
+              ],
+              onChanged: (v) => setState(() => _policy = v ?? _policy),
+            ),
+          ],
+        ),
       );
     }
     return AlertDialog(
@@ -144,12 +160,14 @@ class _OfflineDownloadDialogState extends State<_OfflineDownloadDialog> {
       content: content,
       actions: [
         TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(S.of(context).cancel)),
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(S.of(context).cancel),
+        ),
         if (tools != null && tools.isNotEmpty)
           FilledButton(
-              onPressed: _submitting ? null : _submit,
-              child: Text(S.of(context).confirm)),
+            onPressed: _submitting ? null : _submit,
+            child: Text(S.of(context).confirm),
+          ),
       ],
     );
   }

@@ -61,27 +61,38 @@ class _UsersPageState extends State<UsersPage> {
       showDragHandle: true,
       builder: (ctx) {
         Widget item(IconData icon, String label, VoidCallback fn) => ListTile(
-              leading: Icon(icon),
-              title: Text(label),
-              onTap: () {
-                Navigator.pop(ctx);
-                fn();
-              },
-            );
+          leading: Icon(icon),
+          title: Text(label),
+          onTap: () {
+            Navigator.pop(ctx);
+            fn();
+          },
+        );
         return SafeArea(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ListTile(title: Text(u.username), subtitle: Text(roleText(u.role))),
-            item(Icons.edit_outlined, S.current.edit, () => _edit(u)),
-            item(Icons.lock_reset, S.current.reset2fa,
-                () => _act(() => admin.cancelUser2fa(u.id))),
-            if (!u.isAdmin && !u.isGuest)
-              item(Icons.delete_outline, S.current.delete, () async {
-                if (await confirmDialog(
-                    context, S.current.confirmDeleteUser(u.username))) {
-                  await _act(() => admin.deleteUser(u.id));
-                }
-              }),
-          ]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(u.username),
+                subtitle: Text(roleText(u.role)),
+              ),
+              item(Icons.edit_outlined, S.current.edit, () => _edit(u)),
+              item(
+                Icons.lock_reset,
+                S.current.reset2fa,
+                () => _act(() => admin.cancelUser2fa(u.id)),
+              ),
+              if (!u.isAdmin && !u.isGuest)
+                item(Icons.delete_outline, S.current.delete, () async {
+                  if (await confirmDialog(
+                    context,
+                    S.current.confirmDeleteUser(u.username),
+                  )) {
+                    await _act(() => admin.deleteUser(u.id));
+                  }
+                }),
+            ],
+          ),
         );
       },
     );
@@ -106,27 +117,32 @@ class _UsersPageState extends State<UsersPage> {
     }
     if (_error != null) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: _load);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: _load,
+      );
     }
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView(children: [
-        for (final u in _users)
-          ListTile(
-            leading: Icon(u.isAdmin
-                ? Icons.admin_panel_settings_outlined
-                : u.isGuest
+      child: ListView(
+        children: [
+          for (final u in _users)
+            ListTile(
+              leading: Icon(
+                u.isAdmin
+                    ? Icons.admin_panel_settings_outlined
+                    : u.isGuest
                     ? Icons.person_outline
-                    : Icons.person),
-            title: Text(u.username),
-            subtitle: Text('${roleText(u.role)} · ${u.basePath}'),
-            trailing: u.disabled ? Text(S.of(context).userDisabled) : null,
-            onTap: () => _showActions(u),
-          ),
-      ]),
+                    : Icons.person,
+              ),
+              title: Text(u.username),
+              subtitle: Text('${roleText(u.role)} · ${u.basePath}'),
+              trailing: u.disabled ? Text(S.of(context).userDisabled) : null,
+              onTap: () => _showActions(u),
+            ),
+        ],
+      ),
     );
   }
 }

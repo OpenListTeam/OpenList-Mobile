@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../generated/l10n.dart';
 
 class TroubleshootingPage extends StatelessWidget {
@@ -7,9 +8,7 @@ class TroubleshootingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).troubleshooting),
-      ),
+      appBar: AppBar(title: Text(S.of(context).troubleshooting)),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -54,18 +53,14 @@ class TroubleshootingPage extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              description,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            Text(description, style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
       ),

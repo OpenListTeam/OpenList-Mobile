@@ -53,10 +53,7 @@ class _StoragesScreenState extends State<StoragesScreen> {
       appBar: AppBar(
         title: Text(S.current.storages),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadStorages,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadStorages),
         ],
       ),
       body: Obx(() {
@@ -65,10 +62,7 @@ class _StoragesScreenState extends State<StoragesScreen> {
         }
 
         if (_error.value.isNotEmpty) {
-          return _ErrorView(
-            message: _error.value,
-            onRetry: _loadStorages,
-          );
+          return _ErrorView(message: _error.value, onRetry: _loadStorages);
         }
 
         if (_storages.isEmpty) {
@@ -85,8 +79,9 @@ class _StoragesScreenState extends State<StoragesScreen> {
               return StorageCard(
                 name: storage.mountPath,
                 type: DriverLocalization.driverLabel(
-                    languageCode: Localizations.localeOf(context).languageCode,
-                    driver: storage.driver),
+                  languageCode: Localizations.localeOf(context).languageCode,
+                  driver: storage.driver,
+                ),
                 status: storage.status,
                 usedBytes: 0, // TODO: Get actual usage
                 totalBytes: 0, // TODO: Get actual total
@@ -106,9 +101,7 @@ class _StoragesScreenState extends State<StoragesScreen> {
   void _showAddStorageDialog() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const StorageEditPage(),
-      ),
+      MaterialPageRoute(builder: (_) => const StorageEditPage()),
     ).then((_) => _loadStorages());
   }
 
@@ -168,7 +161,9 @@ class _StoragesScreenState extends State<StoragesScreen> {
       Get.snackbar(S.current.success, S.current.storageDeleted);
     } catch (e) {
       Get.snackbar(
-          S.current.error, S.current.failedToDeleteStorage(e.toString()));
+        S.current.error,
+        S.current.failedToDeleteStorage(e.toString()),
+      );
     }
   }
 
@@ -184,7 +179,9 @@ class _StoragesScreenState extends State<StoragesScreen> {
       Get.snackbar(S.current.success, S.current.storageToggled(action));
     } catch (e) {
       Get.snackbar(
-          S.current.error, S.current.failedToToggleStorage(e.toString()));
+        S.current.error,
+        S.current.failedToToggleStorage(e.toString()),
+      );
     }
   }
 }
@@ -215,16 +212,9 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDesign.space12),
-            Text(
-              message,
-              style: AppDesign.body2,
-              textAlign: TextAlign.center,
-            ),
+            Text(message, style: AppDesign.body2, textAlign: TextAlign.center),
             const SizedBox(height: AppDesign.space24),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: Text(S.current.retry),
-            ),
+            ElevatedButton(onPressed: onRetry, child: Text(S.current.retry)),
           ],
         ),
       ),
@@ -248,8 +238,8 @@ class _EmptyView extends StatelessWidget {
             Icon(
               Icons.storage,
               size: 64,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(context).colorScheme.primary
+                  .withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppDesign.space24),
             Text(
@@ -364,8 +354,9 @@ class _StorageDetailsSheet extends StatelessWidget {
             title: Text(S.current.driver),
             trailing: Text(
               DriverLocalization.driverLabel(
-                  languageCode: Localizations.localeOf(context).languageCode,
-                  driver: storage.driver),
+                languageCode: Localizations.localeOf(context).languageCode,
+                driver: storage.driver,
+              ),
               style: AppDesign.body1.copyWith(fontWeight: FontWeight.w500),
             ),
           ),
@@ -383,7 +374,9 @@ class _StorageDetailsSheet extends StatelessWidget {
               Navigator.pop(context);
               // Navigate to files screen filtered by this storage
               Get.snackbar(
-                  S.current.info, S.current.browseFunctionalityComingSoon);
+                S.current.info,
+                S.current.browseFunctionalityComingSoon,
+              );
             },
           ),
           ListTile(
@@ -391,9 +384,11 @@ class _StorageDetailsSheet extends StatelessWidget {
               storage.disabled ? Icons.toggle_off : Icons.toggle_on,
               color: storage.disabled ? Colors.grey : AppDesign.successGreen,
             ),
-            title: Text(storage.disabled
-                ? S.current.enableStorage
-                : S.current.disableStorage),
+            title: Text(
+              storage.disabled
+                  ? S.current.enableStorage
+                  : S.current.disableStorage,
+            ),
             onTap: onToggle,
           ),
           ListTile(
@@ -402,8 +397,10 @@ class _StorageDetailsSheet extends StatelessWidget {
             onTap: onEdit,
           ),
           ListTile(
-            leading:
-                Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+            leading: Icon(
+              Icons.delete,
+              color: Theme.of(context).colorScheme.error,
+            ),
             title: Text(
               S.current.deleteStorage,
               style: TextStyle(color: Theme.of(context).colorScheme.error),

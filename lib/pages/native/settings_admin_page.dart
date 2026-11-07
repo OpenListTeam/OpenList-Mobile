@@ -34,12 +34,12 @@ final _offlineDownloadKeys = <String>{
 };
 
 SettingItem _offlinePlaceholder(String key) => SettingItem({
-      'key': key,
-      'value': '',
-      'type': key.endsWith('_seedtime') ? 'number' : 'string',
-      'group': _offlineDownloadGroup,
-      'flag': 1,
-    });
+  'key': key,
+  'value': '',
+  'type': key.endsWith('_seedtime') ? 'number' : 'string',
+  'group': _offlineDownloadGroup,
+  'flag': 1,
+});
 
 List<SettingItem> _completeOfflineSettings(List<SettingItem> loaded) {
   final byKey = {for (final item in loaded) item.key: item};
@@ -129,10 +129,9 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
       _formGeneration++;
     });
     try {
-      final loaded =
-          (await OpenListSession.instance.admin.listSettings([group]))
-              .where((e) => !e.deprecated)
-              .toList();
+      final loaded = (await OpenListSession.instance.admin.listSettings([
+        group,
+      ])).where((e) => !e.deprecated).toList();
       final items = group == _offlineDownloadGroup
           ? _completeOfflineSettings(loaded)
           : loaded;
@@ -149,8 +148,11 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   Future<void> _refresh() async {
     if (_loading || _saving) return;
     if (_hasChanges &&
-        !await confirmDialog(context, S.current.discardUnsavedSettings,
-            title: S.current.refresh)) {
+        !await confirmDialog(
+          context,
+          S.current.discardUnsavedSettings,
+          title: S.current.refresh,
+        )) {
       return;
     }
     if (mounted) await _load();
@@ -197,12 +199,15 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
         if (!changed.any((item) => config.fields.containsKey(item.key))) {
           continue;
         }
-        await OpenListSession.instance.admin
-            .configureOfflineDownload(config, values);
+        await OpenListSession.instance.admin.configureOfflineDownload(
+          config,
+          values,
+        );
         handled.addAll(config.fields.keys);
       }
-      final regular =
-          changed.where((item) => !handled.contains(item.key)).toList();
+      final regular = changed
+          .where((item) => !handled.contains(item.key))
+          .toList();
       if (regular.isNotEmpty) {
         await OpenListSession.instance.admin.saveSettings(regular);
       }
@@ -257,8 +262,11 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   Future<void> _loadDefaults() async {
     if (_loading || _saving) return;
     if (_hasChanges &&
-        !await confirmDialog(context, S.current.discardUnsavedSettings,
-            title: S.current.loadDefaultSettings)) {
+        !await confirmDialog(
+          context,
+          S.current.discardUnsavedSettings,
+          title: S.current.loadDefaultSettings,
+        )) {
       return;
     }
     if (!mounted || _loading || _saving) return;
@@ -293,8 +301,11 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   Future<void> _selectGroup(int group) async {
     if (group == _group || _saving || _loading) return;
     if (_hasChanges &&
-        !await confirmDialog(context, S.current.discardUnsavedSettings,
-            title: S.current.coreSettings)) {
+        !await confirmDialog(
+          context,
+          S.current.discardUnsavedSettings,
+          title: S.current.coreSettings,
+        )) {
       return;
     }
     if (!mounted || _saving || _loading) return;
@@ -304,8 +315,11 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
 
   Future<void> _deleteSetting(SettingItem item) async {
     if (_saving || _loading) return;
-    if (!await confirmDialog(context, S.current.deleteSettingConfirm(item.key),
-        title: S.current.deleteSetting)) {
+    if (!await confirmDialog(
+      context,
+      S.current.deleteSettingConfirm(item.key),
+      title: S.current.deleteSetting,
+    )) {
       return;
     }
     if (!mounted || _saving || _loading) return;
@@ -326,10 +340,12 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
     String generate(int size) =>
         base64Encode(List<int>.generate(size, (_) => random.nextInt(256)))
             .replaceAll('\n', '');
-    final access =
-        _items.where((item) => item.key == 's3_access_key_id').firstOrNull;
-    final secret =
-        _items.where((item) => item.key == 's3_secret_access_key').firstOrNull;
+    final access = _items
+        .where((item) => item.key == 's3_access_key_id')
+        .firstOrNull;
+    final secret = _items
+        .where((item) => item.key == 's3_secret_access_key')
+        .firstOrNull;
     if (access == null || secret == null) return;
     setState(() {
       access.value = generate(15);
@@ -339,12 +355,12 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   }
 
   String _fieldLabel(String key) => switch (key) {
-        'seed_site_url' => S.current.seedSiteUrl,
-        'seed_default_trackers' => S.current.seedDefaultTrackers,
-        's3_access_key_id' => S.current.s3AccessKeyId,
-        's3_secret_access_key' => S.current.s3SecretAccessKey,
-        _ => key,
-      };
+    'seed_site_url' => S.current.seedSiteUrl,
+    'seed_default_trackers' => S.current.seedDefaultTrackers,
+    's3_access_key_id' => S.current.s3AccessKeyId,
+    's3_secret_access_key' => S.current.s3SecretAccessKey,
+    _ => key,
+  };
 
   Widget _field(SettingItem item) {
     final help = item.help.isEmpty ? null : item.help;
@@ -369,12 +385,16 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
         value: options.contains(item.value) ? item.value : null,
         isExpanded: true,
         decoration: InputDecoration(
-            labelText: label, helperText: help, helperMaxLines: 3),
+          labelText: label,
+          helperText: help,
+          helperMaxLines: 3,
+        ),
         items: [
-          for (final o in options) DropdownMenuItem(value: o, child: Text(o))
+          for (final o in options) DropdownMenuItem(value: o, child: Text(o)),
         ],
-        onChanged:
-            item.readOnly ? null : (v) => setState(() => item.value = v ?? ''),
+        onChanged: item.readOnly
+            ? null
+            : (v) => setState(() => item.value = v ?? ''),
       );
     }
     final multiline = item.type == 'text';
@@ -386,7 +406,10 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
       maxLines: multiline ? 8 : 1,
       keyboardType: item.type == 'number' ? TextInputType.number : null,
       decoration: InputDecoration(
-          labelText: item.key, helperText: help, helperMaxLines: 3),
+        labelText: item.key,
+        helperText: help,
+        helperMaxLines: 3,
+      ),
       onChanged: (value) => setState(() => item.value = value),
     );
   }
@@ -419,113 +442,127 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
     final policies = _seedPolicies(values['seed_format_policies'] ?? '');
     final format =
         ['oss', 'torrent', 'cas'].contains(values['seed_default_format'])
-            ? values['seed_default_format']!
-            : 'oss';
-    final trackers =
-        _items.where((item) => item.key == 'seed_default_trackers').firstOrNull;
+        ? values['seed_default_format']!
+        : 'oss';
+    final trackers = _items
+        .where((item) => item.key == 'seed_default_trackers')
+        .firstOrNull;
     Widget section(String title, List<Widget> children) => Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            ...children,
+          ],
+        ),
+      ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final item in _items)
+          if (item.key == 'seed_site_url') ...[
+            _field(item),
+            const SizedBox(height: 12),
+          ],
+        if (trackers != null) _settingField(trackers),
+        section(S.current.seedDefaultMatrix, [
+          Text(S.current.seedDefaultMatrixHelp),
+          const SizedBox(height: 8),
+          for (final algorithm in ['md5', 'sha1', 'sha256'])
+            Column(
               children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                ...children,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    algorithm.toUpperCase(),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(S.current.seedWholeHash),
+                        value: matrix[algorithm]!['whole']!,
+                        onChanged: (value) {
+                          matrix[algorithm]!['whole'] = value ?? false;
+                          _setSeedJson('seed_default_matrix', matrix);
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(S.current.seedPiecesHash),
+                        value: matrix[algorithm]!['pieces']!,
+                        onChanged: (value) {
+                          matrix[algorithm]!['pieces'] = value ?? false;
+                          _setSeedJson('seed_default_matrix', matrix);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ),
-        );
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      for (final item in _items)
-        if (item.key == 'seed_site_url') ...[
-          _field(item),
-          const SizedBox(height: 12)
-        ],
-      if (trackers != null) _settingField(trackers),
-      section(S.current.seedDefaultMatrix, [
-        Text(S.current.seedDefaultMatrixHelp),
-        const SizedBox(height: 8),
-        for (final algorithm in ['md5', 'sha1', 'sha256'])
-          Column(children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(algorithm.toUpperCase(),
-                  style: Theme.of(context).textTheme.titleSmall),
+        ]),
+        section(S.current.seedFormatPolicies, [
+          Text(S.current.seedFormatPoliciesHelp),
+          for (final entry in policies.entries)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(_seedFormatLabel(entry.key)),
+              value: entry.value == 'on',
+              onChanged: (enabled) {
+                policies[entry.key] = enabled ? 'on' : 'off';
+                _setSeedJson('seed_format_policies', policies);
+              },
             ),
-            Row(children: [
-              Expanded(
-                child: CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(S.current.seedWholeHash),
-                  value: matrix[algorithm]!['whole']!,
-                  onChanged: (value) {
-                    matrix[algorithm]!['whole'] = value ?? false;
-                    _setSeedJson('seed_default_matrix', matrix);
-                  },
+          DropdownButtonFormField<String>(
+            value: format,
+            decoration: InputDecoration(labelText: S.current.seedDefaultFormat),
+            items: [
+              for (final item in ['oss', 'torrent', 'cas'])
+                DropdownMenuItem(
+                  value: item,
+                  child: Text(_seedFormatLabel(item)),
                 ),
-              ),
-              Expanded(
-                child: CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(S.current.seedPiecesHash),
-                  value: matrix[algorithm]!['pieces']!,
-                  onChanged: (value) {
-                    matrix[algorithm]!['pieces'] = value ?? false;
-                    _setSeedJson('seed_default_matrix', matrix);
-                  },
-                ),
-              ),
-            ]),
-          ]),
-      ]),
-      section(S.current.seedFormatPolicies, [
-        Text(S.current.seedFormatPoliciesHelp),
-        for (final entry in policies.entries)
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(_seedFormatLabel(entry.key)),
-            value: entry.value == 'on',
-            onChanged: (enabled) {
-              policies[entry.key] = enabled ? 'on' : 'off';
-              _setSeedJson('seed_format_policies', policies);
-            },
+            ],
+            onChanged: (value) =>
+                _setValue('seed_default_format', value ?? 'oss'),
           ),
-        DropdownButtonFormField<String>(
-          value: format,
-          decoration: InputDecoration(labelText: S.current.seedDefaultFormat),
-          items: [
-            for (final item in ['oss', 'torrent', 'cas'])
-              DropdownMenuItem(
-                  value: item, child: Text(_seedFormatLabel(item))),
-          ],
-          onChanged: (value) =>
-              _setValue('seed_default_format', value ?? 'oss'),
-        ),
-      ]),
-      for (final key in [
-        'seed_auto_generate_policy',
-        'seed_single_direct_preview',
-        'seed_cas_direct_access',
-      ])
-        if (_items.any((item) => item.key == key))
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(switch (key) {
-              'seed_auto_generate_policy' => S.current.seedAutoGenerate,
-              'seed_single_direct_preview' => S.current.seedSingleDirectPreview,
-              _ => S.current.seedCasDirectAccess,
-            }),
-            value: key == 'seed_auto_generate_policy'
-                ? values[key] == 'on'
-                : values[key] == 'true',
-            onChanged: (enabled) => _setValue(
+        ]),
+        for (final key in [
+          'seed_auto_generate_policy',
+          'seed_single_direct_preview',
+          'seed_cas_direct_access',
+        ])
+          if (_items.any((item) => item.key == key))
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(switch (key) {
+                'seed_auto_generate_policy' => S.current.seedAutoGenerate,
+                'seed_single_direct_preview' =>
+                  S.current.seedSingleDirectPreview,
+                _ => S.current.seedCasDirectAccess,
+              }),
+              value: key == 'seed_auto_generate_policy'
+                  ? values[key] == 'on'
+                  : values[key] == 'true',
+              onChanged: (enabled) => _setValue(
                 key,
                 key == 'seed_auto_generate_policy'
                     ? (enabled ? 'on' : 'off')
-                    : (enabled ? 'true' : 'false')),
-          ),
-    ]);
+                    : (enabled ? 'true' : 'false'),
+              ),
+            ),
+      ],
+    );
   }
 
   Map<String, Map<String, bool>> _seedMatrix(String value) {
@@ -541,8 +578,9 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
           if (entry is Map) {
             result[algorithm] = {
               'whole': entry['whole'] is bool ? entry['whole'] as bool : true,
-              'pieces':
-                  entry['pieces'] is bool ? entry['pieces'] as bool : false,
+              'pieces': entry['pieces'] is bool
+                  ? entry['pieces'] as bool
+                  : false,
             };
           }
         }
@@ -555,7 +593,7 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
 
   Map<String, String> _seedPolicies(String value) {
     final result = {
-      for (final format in ['oss', 'torrent', 'cas']) format: 'off'
+      for (final format in ['oss', 'torrent', 'cas']) format: 'off',
     };
     try {
       final decoded = jsonDecode(value);
@@ -571,10 +609,10 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   }
 
   String _seedFormatLabel(String format) => switch (format) {
-        'torrent' => S.current.seedFormatTorrent,
-        'cas' => S.current.seedFormatCas,
-        _ => S.current.seedFormatOss,
-      };
+    'torrent' => S.current.seedFormatTorrent,
+    'cas' => S.current.seedFormatCas,
+    _ => S.current.seedFormatOss,
+  };
 
   void _setValue(String key, String value) {
     final item = _items.where((item) => item.key == key).firstOrNull;
@@ -618,49 +656,57 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(S.current.s3Buckets,
-                style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              S.current.s3Buckets,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 4),
-            Text(S.current.s3RestartToApply,
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              S.current.s3RestartToApply,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 8),
             for (var i = 0; i < buckets.length; i++)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Column(children: [
-                    TextFormField(
-                      key: ValueKey('s3-bucket-$_formGeneration-$i-name'),
-                      initialValue: buckets[i]['name'],
-                      decoration:
-                          InputDecoration(labelText: S.current.s3BucketName),
-                      onChanged: (value) {
-                        buckets[i]['name'] = value;
-                        _setBuckets(buckets);
-                      },
-                    ),
-                    TextFormField(
-                      key: ValueKey('s3-bucket-$_formGeneration-$i-path'),
-                      initialValue: buckets[i]['path'],
-                      decoration:
-                          InputDecoration(labelText: S.current.s3BucketPath),
-                      onChanged: (value) {
-                        buckets[i]['path'] = value;
-                        _setBuckets(buckets);
-                      },
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        tooltip: S.current.delete,
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () {
-                          buckets.removeAt(i);
-                          _setBuckets(buckets, rebuild: true);
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        key: ValueKey('s3-bucket-$_formGeneration-$i-name'),
+                        initialValue: buckets[i]['name'],
+                        decoration: InputDecoration(
+                          labelText: S.current.s3BucketName,
+                        ),
+                        onChanged: (value) {
+                          buckets[i]['name'] = value;
+                          _setBuckets(buckets);
                         },
                       ),
-                    ),
-                  ]),
+                      TextFormField(
+                        key: ValueKey('s3-bucket-$_formGeneration-$i-path'),
+                        initialValue: buckets[i]['path'],
+                        decoration: InputDecoration(
+                          labelText: S.current.s3BucketPath,
+                        ),
+                        onChanged: (value) {
+                          buckets[i]['path'] = value;
+                          _setBuckets(buckets);
+                        },
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          tooltip: S.current.delete,
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () {
+                            buckets.removeAt(i);
+                            _setBuckets(buckets, rebuild: true);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             OutlinedButton.icon(
@@ -683,21 +729,21 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   }
 
   Widget _settingField(SettingItem item) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _field(item),
-          if (!item.readOnly)
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: _saving ? null : () => _deleteSetting(item),
-                icon: const Icon(Icons.delete_outline),
-                label: Text(S.current.deleteSetting),
-              ),
-            ),
-          const SizedBox(height: 12),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _field(item),
+      if (!item.readOnly)
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: _saving ? null : () => _deleteSetting(item),
+            icon: const Icon(Icons.delete_outline),
+            label: Text(S.current.deleteSetting),
+          ),
+        ),
+      const SizedBox(height: 12),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -707,52 +753,62 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
         if (didPop || _saving || !_hasChanges) return;
         final navigator = Navigator.of(context);
         final discard = await confirmDialog(
-            context, S.current.discardUnsavedSettings,
-            title: S.current.coreSettings);
+          context,
+          S.current.discardUnsavedSettings,
+          title: S.current.coreSettings,
+        );
         if (!discard || !mounted) return;
         setState(() => _allowExit = true);
         navigator.pop(result);
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(S.of(context).coreSettings), actions: [
-          IconButton(
-            tooltip: S.current.refresh,
-            icon: const Icon(Icons.refresh),
-            onPressed: _loading || _saving ? null : _refresh,
-          ),
-          IconButton(
-            tooltip: S.current.loadDefaultSettings,
-            icon: const Icon(Icons.restore),
-            onPressed: _loading || _saving ? null : _loadDefaults,
-          ),
-          IconButton(
-            tooltip: S.of(context).save,
-            icon: const Icon(Icons.check),
-            onPressed: _saving || _loading || _error != null ? null : _save,
-          ),
-        ]),
-        body: Column(children: [
-          SizedBox(
-            height: 52,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              children: [
-                for (final (id, label) in _groups)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(label()),
-                      selected: _group == id,
-                      onSelected: (_) => _selectGroup(id),
-                    ),
-                  ),
-              ],
+        appBar: AppBar(
+          title: Text(S.of(context).coreSettings),
+          actions: [
+            IconButton(
+              tooltip: S.current.refresh,
+              icon: const Icon(Icons.refresh),
+              onPressed: _loading || _saving ? null : _refresh,
             ),
-          ),
-          if (_loading || _saving) const LinearProgressIndicator(),
-          Expanded(child: _body(context)),
-        ]),
+            IconButton(
+              tooltip: S.current.loadDefaultSettings,
+              icon: const Icon(Icons.restore),
+              onPressed: _loading || _saving ? null : _loadDefaults,
+            ),
+            IconButton(
+              tooltip: S.of(context).save,
+              icon: const Icon(Icons.check),
+              onPressed: _saving || _loading || _error != null ? null : _save,
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            SizedBox(
+              height: 52,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                children: [
+                  for (final (id, label) in _groups)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(label()),
+                        selected: _group == id,
+                        onSelected: (_) => _selectGroup(id),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (_loading || _saving) const LinearProgressIndicator(),
+            Expanded(child: _body(context)),
+          ],
+        ),
       ),
     );
   }
@@ -760,10 +816,11 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
   Widget _body(BuildContext context) {
     if (_error != null) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: _refresh);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: _refresh,
+      );
     }
     if (_loading) return const SizedBox.shrink();
     final seedOnlyKeys = {
@@ -778,42 +835,49 @@ class _SettingsAdminPageState extends State<SettingsAdminPage> {
     };
     return AbsorbPointer(
       absorbing: _saving,
-      child: ListView(padding: const EdgeInsets.all(16), children: [
-        if (_group == _offlineDownloadGroup && _token != null) ...[
-          Text(S.current.apiToken,
-              style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          SelectableText(_token!),
-          const SizedBox(height: 8),
-          Row(children: [
-            OutlinedButton.icon(
-              onPressed: () async {
-                await Clipboard.setData(ClipboardData(text: _token!));
-                showMessage(S.current.copiedToClipboard);
-              },
-              icon: const Icon(Icons.copy),
-              label: Text(S.current.copy),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (_group == _offlineDownloadGroup && _token != null) ...[
+            Text(
+              S.current.apiToken,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              onPressed: _resettingToken ? null : _resetToken,
-              icon: const Icon(Icons.refresh),
-              label: Text(S.current.resetToken),
+            const SizedBox(height: 8),
+            SelectableText(_token!),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: _token!));
+                    showMessage(S.current.copiedToClipboard);
+                  },
+                  icon: const Icon(Icons.copy),
+                  label: Text(S.current.copy),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: _resettingToken ? null : _resetToken,
+                  icon: const Icon(Icons.refresh),
+                  label: Text(S.current.resetToken),
+                ),
+              ],
             ),
-          ]),
-          const Divider(height: 32),
+            const Divider(height: 32),
+          ],
+          if (_group == _offlineDownloadGroup)
+            _offlineBody(context)
+          else ...[
+            if (_group == 4) _seedFields(context),
+            if (_group == 9) _s3Buckets(context),
+            for (final item in _items)
+              if (!(_group == 4 && seedOnlyKeys.contains(item.key)) &&
+                  !(_group == 9 && item.key == 's3_buckets'))
+                _settingField(item),
+          ],
         ],
-        if (_group == _offlineDownloadGroup)
-          _offlineBody(context)
-        else ...[
-          if (_group == 4) _seedFields(context),
-          if (_group == 9) _s3Buckets(context),
-          for (final item in _items)
-            if (!(_group == 4 && seedOnlyKeys.contains(item.key)) &&
-                !(_group == 9 && item.key == 's3_buckets'))
-              _settingField(item),
-        ],
-      ]),
+      ),
     );
   }
 }

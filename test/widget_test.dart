@@ -19,14 +19,14 @@ void _mockServerApi(List<String> calls) {
       calls.add(name);
       final Object? reply = switch (name) {
         'getStatus' => ServerStatus(
-            running: false,
-            mode: 'local',
-            httpPort: 5244,
-            httpsPort: -1,
-            forceHttps: false,
-            addresses: const [],
-            manuallyStopped: true,
-          ),
+          running: false,
+          mode: 'local',
+          httpPort: 5244,
+          httpsPort: -1,
+          forceHttps: false,
+          addresses: const [],
+          manuallyStopped: true,
+        ),
         'getLocalToken' => '',
         _ => null,
       };
@@ -36,24 +36,25 @@ void _mockServerApi(List<String> calls) {
 }
 
 Widget _app() => GetMaterialApp(
-      localizationsDelegates: const [
-        S.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: S.delegate.supportedLocales,
-      locale: const Locale('en'),
-      home: const FilesScreen(),
-    );
+  localizationsDelegates: const [
+    S.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: S.delegate.supportedLocales,
+  locale: const Locale('en'),
+  home: const FilesScreen(),
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('files screen offers to start a stopped local core',
-      (tester) async {
+  testWidgets('files screen offers to start a stopped local core', (
+    tester,
+  ) async {
     final calls = <String>[];
     _mockServerApi(calls);
 

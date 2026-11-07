@@ -15,7 +15,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -143,7 +144,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppDesign.primaryBlue),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppDesign.primaryBlue,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),

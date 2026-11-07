@@ -71,15 +71,17 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
       _previewHeaders = session.archive.headersFor(_url);
       if (obj.type == ObjType.text && obj.size <= _maxTextBytes) {
         final headers = _previewHeaders;
-        final res = await Dio().get<String>(_url,
-            options:
-                Options(responseType: ResponseType.plain, headers: headers));
+        final res = await Dio().get<String>(
+          _url,
+          options: Options(responseType: ResponseType.plain, headers: headers),
+        );
         _text = res.data ?? '';
       } else if (obj.type == ObjType.unknown) {
         try {
           final extensions = await session.archive.extensions();
-          _isArchive = extensions
-              .any((extension) => _name.toLowerCase().endsWith('.$extension'));
+          _isArchive = extensions.any(
+            (extension) => _name.toLowerCase().endsWith('.$extension'),
+          );
         } catch (_) {
           _isArchive = false;
         }
@@ -93,7 +95,10 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
   Future<void> _download() async {
     final url = _url;
     await DownloadManager.downloadFileWithProgress(
-        url: url, filename: _name, headers: _previewHeaders);
+      url: url,
+      filename: _name,
+      headers: _previewHeaders,
+    );
   }
 
   @override
@@ -127,10 +132,11 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
       return StateMessage(
-          icon: Icons.error_outline,
-          text: errorText(_error!),
-          action: S.of(context).retry,
-          onAction: _load);
+        icon: Icons.error_outline,
+        text: errorText(_error!),
+        action: S.of(context).retry,
+        onAction: _load,
+      );
     }
     final obj = _obj!;
     if (_isArchive) {
@@ -150,10 +156,12 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
       return InteractiveViewer(
         maxScale: 8,
         child: Center(
-          child: Image.network(_url,
-              headers: _previewHeaders,
-              errorBuilder: (_, e, __) =>
-                  StateMessage(icon: Icons.broken_image, text: '$e')),
+          child: Image.network(
+            _url,
+            headers: _previewHeaders,
+            errorBuilder: (_, e, __) =>
+                StateMessage(icon: Icons.broken_image, text: '$e'),
+          ),
         ),
       );
     }
@@ -170,8 +178,10 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
         padding: const EdgeInsets.all(12),
         child: _isMarkdown
             ? SmoothMarkdown(data: text)
-            : SelectableText(text,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 13)),
+            : SelectableText(
+                text,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+              ),
       );
     }
     return StateMessage(

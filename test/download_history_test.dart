@@ -40,8 +40,9 @@ void main() {
     DownloadManager.removeListener(listener);
 
     expect(notifications, 1);
-    expect(
-        DownloadManager.allTasks.map((task) => task.filename), ['report.pdf']);
+    expect(DownloadManager.allTasks.map((task) => task.filename), [
+      'report.pdf',
+    ]);
     expect(DownloadManager.completedTasks.single.status, DownloadStatus.failed);
     expect(DownloadManager.completedTasks.single.url, isEmpty);
     expect(DownloadManager.completedTasks.single.filePath, isEmpty);

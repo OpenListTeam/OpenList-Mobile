@@ -64,12 +64,16 @@ class _FilesScreenState extends State<FilesScreen> {
               }
             },
           ),
-          Obx(() => IconButton(
-                icon: Icon(_controller.viewMode.value == _ViewMode.list
+          Obx(
+            () => IconButton(
+              icon: Icon(
+                _controller.viewMode.value == _ViewMode.list
                     ? Icons.grid_view
-                    : Icons.view_list),
-                onPressed: _controller.toggleViewMode,
-              )),
+                    : Icons.view_list,
+              ),
+              onPressed: _controller.toggleViewMode,
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () async {
@@ -111,10 +115,14 @@ class _FilesScreenState extends State<FilesScreen> {
               PopupMenuItem(value: 'sort', child: Text(S.current.sort)),
               PopupMenuItem(value: 'refresh', child: Text(S.current.refresh)),
               PopupMenuItem(
-                  value: 'newfolder', child: Text(S.current.newFolder)),
+                value: 'newfolder',
+                child: Text(S.current.newFolder),
+              ),
               if (_controller.canOffline)
                 PopupMenuItem(
-                    value: 'offline', child: Text(S.current.offlineDownload)),
+                  value: 'offline',
+                  child: Text(S.current.offlineDownload),
+                ),
             ],
           ),
         ],
@@ -133,9 +141,7 @@ class _FilesScreenState extends State<FilesScreen> {
         }
 
         if (_controller.files.isEmpty) {
-          return _EmptyView(
-            onCreateFolder: _showCreateFolderDialog,
-          );
+          return _EmptyView(onCreateFolder: _showCreateFolderDialog);
         }
 
         return RefreshIndicator(
@@ -239,8 +245,10 @@ class _FilesScreenState extends State<FilesScreen> {
                   await _controller.loadFiles();
                   Get.snackbar(S.current.success, S.current.operationDone);
                 } catch (e) {
-                  Get.snackbar(S.current.error,
-                      'Failed to create file: ${e.toString()}');
+                  Get.snackbar(
+                    S.current.error,
+                    'Failed to create file: ${e.toString()}',
+                  );
                   debugPrint('Create file failed: $e');
                 }
               }
@@ -320,10 +328,7 @@ class _Breadcrumb extends StatelessWidget {
       return Text(S.current.files);
     }
 
-    return Text(
-      parts.last,
-      style: AppDesign.headline3.copyWith(fontSize: 18),
-    );
+    return Text(parts.last, style: AppDesign.headline3.copyWith(fontSize: 18));
   }
 }
 
@@ -417,7 +422,8 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isConnectionError = message.contains('not connected') ||
+    final isConnectionError =
+        message.contains('not connected') ||
         message.contains('not running') ||
         message.contains('Connection refused');
 
@@ -441,11 +447,7 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDesign.space12),
-            Text(
-              message,
-              style: AppDesign.body2,
-              textAlign: TextAlign.center,
-            ),
+            Text(message, style: AppDesign.body2, textAlign: TextAlign.center),
             const SizedBox(height: AppDesign.space24),
             if (isConnectionError) ...[
               ElevatedButton.icon(
@@ -455,10 +457,7 @@ class _ErrorView extends StatelessWidget {
               ),
               const SizedBox(height: AppDesign.space12),
             ],
-            OutlinedButton(
-              onPressed: onRetry,
-              child: Text(S.current.retry),
-            ),
+            OutlinedButton(onPressed: onRetry, child: Text(S.current.retry)),
           ],
         ),
       ),
@@ -482,14 +481,11 @@ class _EmptyView extends StatelessWidget {
             Icon(
               Icons.folder_open,
               size: 64,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(context).colorScheme.primary
+                  .withValues(alpha: 0.5),
             ),
             const SizedBox(height: AppDesign.space24),
-            Text(
-              S.current.noFilesHere,
-              style: AppDesign.headline3,
-            ),
+            Text(S.current.noFilesHere, style: AppDesign.headline3),
             const SizedBox(height: AppDesign.space12),
             Text(
               S.current.uploadFilesOrCreateFolder,
@@ -717,8 +713,9 @@ class _FilesController extends GetxController {
   }
 
   void toggleViewMode() {
-    viewMode.value =
-        viewMode.value == _ViewMode.list ? _ViewMode.grid : _ViewMode.list;
+    viewMode.value = viewMode.value == _ViewMode.list
+        ? _ViewMode.grid
+        : _ViewMode.list;
   }
 
   void setSortBy(String sort) {
@@ -764,10 +761,12 @@ class _FilesController extends GetxController {
       final filePath = currentPath.value == '/'
           ? '/${file.name}'
           : '${currentPath.value}/${file.name}';
-      Get.to(() => FilePreviewPage(
-            path: filePath,
-            password: passwordFor(currentPath.value),
-          ));
+      Get.to(
+        () => FilePreviewPage(
+          path: filePath,
+          password: passwordFor(currentPath.value),
+        ),
+      );
     }
   }
 
@@ -784,8 +783,9 @@ class _FilesController extends GetxController {
 
     final parts = currentPath.value.split('/');
     parts.removeLast();
-    currentPath.value =
-        parts.isEmpty || parts.length == 1 ? '/' : parts.join('/');
+    currentPath.value = parts.isEmpty || parts.length == 1
+        ? '/'
+        : parts.join('/');
     loadFiles();
   }
 
@@ -803,13 +803,16 @@ class _FilesController extends GetxController {
 
   Future<void> createFolder(String name) async {
     try {
-      final path =
-          currentPath.value == '/' ? '/$name' : '${currentPath.value}/$name';
+      final path = currentPath.value == '/'
+          ? '/$name'
+          : '${currentPath.value}/$name';
       await _session.fs.mkdir(path);
       await loadFiles();
     } catch (e) {
       Get.snackbar(
-          S.current.error, S.current.failedToCreateFolder(e.toString()));
+        S.current.error,
+        S.current.failedToCreateFolder(e.toString()),
+      );
     }
   }
 
@@ -912,16 +915,13 @@ class _FilesController extends GetxController {
     final selected = selectedFiles.toList();
     if (selected.isEmpty) return;
 
-    final objects =
-        files.where((f) => selected.contains(f.name)).toList(growable: false);
+    final objects = files
+        .where((f) => selected.contains(f.name))
+        .toList(growable: false);
     if (objects.isEmpty) return;
 
     final dir = currentPath.value;
-    final ok = await showBatchRenameDialog(
-      context,
-      dir: dir,
-      objects: objects,
-    );
+    final ok = await showBatchRenameDialog(context, dir: dir, objects: objects);
     if (!ok) return;
 
     clearSelection();
@@ -933,10 +933,7 @@ class _FilesController extends GetxController {
     try {
       // Show folder picker for destination
       final dstDir = await Get.to<String>(
-        () => FolderPickerPage(
-          title: S.current.moveTo,
-          initial: srcDir,
-        ),
+        () => FolderPickerPage(title: S.current.moveTo, initial: srcDir),
       );
 
       if (dstDir == null || dstDir == srcDir) {
@@ -965,10 +962,7 @@ class _FilesController extends GetxController {
     try {
       // Show folder picker for destination
       final dstDir = await Get.to<String>(
-        () => FolderPickerPage(
-          title: S.current.copyTo,
-          initial: srcDir,
-        ),
+        () => FolderPickerPage(title: S.current.copyTo, initial: srcDir),
       );
 
       if (dstDir == null) {
@@ -1066,8 +1060,11 @@ class _FilesController extends GetxController {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title:
-                  Text(file.name, maxLines: 2, overflow: TextOverflow.ellipsis),
+              title: Text(
+                file.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
               dense: true,
             ),
             const Divider(),
@@ -1118,9 +1115,7 @@ class _FilesController extends GetxController {
         title: Text(S.current.rename),
         content: TextField(
           controller: nameController,
-          decoration: InputDecoration(
-            labelText: S.current.newName,
-          ),
+          decoration: InputDecoration(labelText: S.current.newName),
           autofocus: true,
         ),
         actions: [

@@ -3,12 +3,12 @@ import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/pages/native/batch_rename_dialog.dart';
 
 FsObject _obj(String name, {DateTime? created, DateTime? modified}) => FsObject(
-      name: name,
-      size: 0,
-      isDir: false,
-      created: created,
-      modified: modified,
-    );
+  name: name,
+  size: 0,
+  isDir: false,
+  created: created,
+  modified: modified,
+);
 
 void main() {
   group('validateRenameName', () {
@@ -80,8 +80,7 @@ void main() {
         pattern: '^x',
         replacement: '{created_year}/{created_month}/{created_date}',
       );
-      final expected =
-          '${local.year}/${two(local.month)}/${two(local.day)}';
+      final expected = '${local.year}/${two(local.month)}/${two(local.day)}';
       expect(pairs.single.newName, '$expected.txt');
     });
   });

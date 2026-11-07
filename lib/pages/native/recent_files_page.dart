@@ -44,35 +44,30 @@ class _RecentFilesPageState extends State<RecentFilesPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? StateMessage(
-                  icon: Icons.error_outline,
-                  text: errorText(_error!),
-                  action: S.current.retry,
-                  onAction: _load,
-                )
-              : _files.isEmpty
-                  ? StateMessage(
-                      icon: Icons.history,
-                      text: S.current.noRecentFiles,
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _load,
-                      child: ListView.separated(
-                        itemCount: _files.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final file = _files[index];
-                          return FileListItem(
-                            name: file.name,
-                            isDirectory: false,
-                            size: file.size,
-                            onTap: () => Get.to(
-                              () => FilePreviewPage(path: file.path),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+          ? StateMessage(
+              icon: Icons.error_outline,
+              text: errorText(_error!),
+              action: S.current.retry,
+              onAction: _load,
+            )
+          : _files.isEmpty
+          ? StateMessage(icon: Icons.history, text: S.current.noRecentFiles)
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView.separated(
+                itemCount: _files.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final file = _files[index];
+                  return FileListItem(
+                    name: file.name,
+                    isDirectory: false,
+                    size: file.size,
+                    onTap: () => Get.to(() => FilePreviewPage(path: file.path)),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

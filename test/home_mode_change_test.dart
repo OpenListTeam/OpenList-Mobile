@@ -23,14 +23,14 @@ void _mockHomeApi(
   const codec = ServerApi.pigeonChannelCodec;
   final handlers = <String, Object? Function(List<Object?>)>{
     'getStatus': (_) => ServerStatus(
-          running: running,
-          mode: 'local',
-          httpPort: 5244,
-          httpsPort: -1,
-          forceHttps: false,
-          addresses: const ['127.0.0.1'],
-          manuallyStopped: false,
-        ),
+      running: running,
+      mode: 'local',
+      httpPort: 5244,
+      httpsPort: -1,
+      forceHttps: false,
+      addresses: const ['127.0.0.1'],
+      manuallyStopped: false,
+    ),
     'getMode': (_) => 'local',
     'getSecurityReport': (_) => jsonEncode({'blocked': publicBlocked}),
     'setMode': (args) {
@@ -54,24 +54,25 @@ void _mockHomeApi(
 }
 
 Widget _app() => GetMaterialApp(
-      localizationsDelegates: const [
-        S.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: S.delegate.supportedLocales,
-      locale: const Locale('en'),
-      home: const HomeScreen(),
-    );
+  localizationsDelegates: const [
+    S.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: S.delegate.supportedLocales,
+  locale: const Locale('en'),
+  home: const HomeScreen(),
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('blocks public mode when a required security check fails',
-      (tester) async {
+  testWidgets('blocks public mode when a required security check fails', (
+    tester,
+  ) async {
     final calls = <String>[];
     _mockHomeApi(calls, publicBlocked: true);
 
@@ -86,8 +87,9 @@ void main() {
     expect(calls, isEmpty);
   });
 
-  testWidgets('does not save mode when restart confirmation is cancelled',
-      (tester) async {
+  testWidgets('does not save mode when restart confirmation is cancelled', (
+    tester,
+  ) async {
     final calls = <String>[];
     _mockHomeApi(calls);
 
@@ -103,8 +105,9 @@ void main() {
     expect(calls, isEmpty);
   });
 
-  testWidgets('saves mode and restarts a running server after confirmation',
-      (tester) async {
+  testWidgets('saves mode and restarts a running server after confirmation', (
+    tester,
+  ) async {
     final calls = <String>[];
     _mockHomeApi(calls);
 
@@ -120,8 +123,9 @@ void main() {
     expect(calls, ['setMode:lan', 'restart']);
   });
 
-  testWidgets('changes a stopped server mode without restarting',
-      (tester) async {
+  testWidgets('changes a stopped server mode without restarting', (
+    tester,
+  ) async {
     final calls = <String>[];
     _mockHomeApi(calls, running: false);
 

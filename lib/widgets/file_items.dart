@@ -71,11 +71,7 @@ class FileListItem extends StatelessWidget {
                 ),
               ),
               if (selected)
-                Icon(
-                  Icons.check_circle,
-                  color: colorScheme.primary,
-                  size: 24,
-                )
+                Icon(Icons.check_circle, color: colorScheme.primary, size: 24)
               else
                 Icon(
                   Icons.chevron_right,
@@ -135,7 +131,8 @@ class FileListItem extends StatelessWidget {
     }
     if (['pdf'].contains(ext)) return Icons.picture_as_pdf;
     if (['doc', 'docx', 'txt', 'md'].contains(ext)) return Icons.description;
-    if (['zip', 'rar', '7z', 'tar', 'gz'].contains(ext)) return Icons.folder_zip;
+    if (['zip', 'rar', '7z', 'tar', 'gz'].contains(ext))
+      return Icons.folder_zip;
 
     return Icons.insert_drive_file;
   }
@@ -233,8 +230,9 @@ class FileGridItem extends StatelessWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black)
-                      .withOpacity(0.03),
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(
+                    0.03,
+                  ),
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(AppDesign.radiusCard),
                   ),
@@ -285,13 +283,9 @@ class FileGridItem extends StatelessWidget {
   }
 
   Widget _buildIconCenter() {
-    final icon = isDirectory
-        ? Icons.folder
-        : Icons.insert_drive_file;
+    final icon = isDirectory ? Icons.folder : Icons.insert_drive_file;
     final color = isDirectory ? AppDesign.primaryBlue : Colors.grey;
 
-    return Center(
-      child: Icon(icon, size: 48, color: color.withOpacity(0.5)),
-    );
+    return Center(child: Icon(icon, size: 48, color: color.withOpacity(0.5)));
   }
 }

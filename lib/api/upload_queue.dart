@@ -10,13 +10,15 @@ enum UploadState {
   cancelling,
   succeeded,
   failed,
-  canceled
+  canceled,
 }
 
 /// Performs one upload attempt; must open a fresh data stream on every call
 /// so failed or canceled jobs can be retried.
 typedef UploadRunner = Future<void> Function(
-    CancelToken cancelToken, ProgressCallback onProgress);
+  CancelToken cancelToken,
+  ProgressCallback onProgress,
+);
 
 class UploadJob {
   UploadJob({
@@ -105,13 +107,18 @@ class UploadQueue extends ChangeNotifier {
 
   /// Inserts a persisted terminal job without running its upload runner.
   void addHistory(UploadJob job) {
-    if (_jobs.any((existing) =>
-        job.historyId != null && existing.historyId == job.historyId)) {
+    if (_jobs.any(
+      (existing) =>
+          job.historyId != null && existing.historyId == job.historyId,
+    )) {
       return;
     }
     if (!job.isFinished) {
       throw ArgumentError.value(
-          job.state, 'job.state', 'History jobs must be finished');
+        job.state,
+        'job.state',
+        'History jobs must be finished',
+      );
     }
     _jobs.add(job);
     notifyListeners();
@@ -175,10 +182,12 @@ class UploadQueue extends ChangeNotifier {
 
   void _pump() {
     var running = _jobs
-        .where((j) =>
-            (j.state == UploadState.running ||
-                j.state == UploadState.cancelling) &&
-            !j._adopted)
+        .where(
+          (j) =>
+              (j.state == UploadState.running ||
+                  j.state == UploadState.cancelling) &&
+              !j._adopted,
+        )
         .length;
     for (final job in _jobs) {
       if (running >= concurrency) break;

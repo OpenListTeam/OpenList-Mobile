@@ -49,8 +49,10 @@ class LocalZipArchive {
         cancelToken: cancelToken,
       );
       if (response.statusCode != 200) {
-        throw HttpException('Unexpected ZIP download status',
-            uri: Uri.parse(url));
+        throw HttpException(
+          'Unexpected ZIP download status',
+          uri: Uri.parse(url),
+        );
       }
       final actualSize = await file.length();
       if (expectedSize > 0 && actualSize != expectedSize) {
@@ -82,9 +84,11 @@ class LocalZipArchive {
       if (decoder.directory.filePosition < 0) {
         throw const FormatException('Invalid ZIP archive');
       }
-      encrypted = decoder.directory.fileHeaders.any((header) =>
-          header.generalPurposeBitFlag & 1 != 0 ||
-          header.compressionMethod == 99);
+      encrypted = decoder.directory.fileHeaders.any(
+        (header) =>
+            header.generalPurposeBitFlag & 1 != 0 ||
+            header.compressionMethod == 99,
+      );
     } catch (_) {
       _input.closeSync();
       rethrow;
@@ -106,8 +110,9 @@ class LocalZipArchive {
     final entries = <String, LocalZipEntry>{};
 
     for (final file in _archive.files) {
-      var path =
-          file.name.replaceAll('\\', '/').replaceFirst(RegExp(r'^/+'), '');
+      var path = file.name
+          .replaceAll('\\', '/')
+          .replaceFirst(RegExp(r'^/+'), '');
       final isDirectory = file.isDirectory || path.endsWith('/');
       path = path.replaceAll(RegExp(r'/+$'), '');
       if (path.isEmpty || path.split('/').contains('..')) continue;
