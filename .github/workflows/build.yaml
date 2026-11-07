@@ -228,7 +228,7 @@ jobs:
 
       - name: Compile Instrumented Tests
         working-directory: android
-        run: ./gradlew :app:compileDebugAndroidTestKotlin -Ptarget-platform=android-x64
+        run: ./gradlew :app:compileDebugAndroidTestKotlin -Ptarget-platform=android-x64 -Psplit-per-abi=true
 
       - name: Enable KVM
         run: |
@@ -267,7 +267,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: cd android && ./gradlew :app:connectedDebugAndroidTest -Ptarget-platform=android-x64
+          script: cd android && ./gradlew :app:connectedDebugAndroidTest -Ptarget-platform=android-x64 -Psplit-per-abi=true
 
       - name: Upload Instrumented Test Reports
         if: failure()
