@@ -87,8 +87,14 @@ class _UserEditPageState extends State<UserEditPage> {
       ..['permission'] = _permission
       ..['disabled'] = _disabled;
     try {
-      final admin = OpenListSession.instance.admin;
+      final session = OpenListSession.instance;
+      final editingCurrentRemoteUser =
+          !_isNew &&
+          session.kind == ConnectionKind.remote &&
+          session.user?.id == widget.user?.id;
+      final admin = session.admin;
       _isNew ? await admin.createUser(body) : await admin.updateUser(body);
+      if (editingCurrentRemoteUser) await session.logout();
       if (mounted) Navigator.of(context).pop(true);
       showMessage(S.current.saved);
       return;

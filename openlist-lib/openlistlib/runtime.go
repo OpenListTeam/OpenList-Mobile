@@ -52,6 +52,52 @@ type securityReport struct {
 
 var startedAt atomic.Int64
 
+const (
+	startReadyTimeout = 2 * time.Second
+	startStableWindow = 100 * time.Millisecond
+)
+
+func endpointRunning(c *conf.Config) bool {
+	for _, endpoint := range []struct {
+		enabled bool
+		name    string
+	}{
+		{c.Scheme.HttpPort != -1, "http"},
+		{c.Scheme.HttpsPort != -1, "https"},
+		{c.Scheme.UnixFile != "", "unix"},
+		{c.Scheme.EnableH3 && c.Scheme.HttpsPort != -1, "quic"},
+		{c.S3.Enable && c.S3.Port != -1, "s3"},
+		{c.FTP.Enable && c.FTP.Listen != "", "ftp"},
+		{c.SFTP.Enable && c.SFTP.Listen != "", "sftp"},
+	} {
+		if endpoint.enabled && bootstrap.IsRunning(endpoint.name) {
+			return true
+		}
+	}
+	return false
+}
+
+func waitForEndpoint(c *conf.Config) bool {
+	if !endpointConfigured(c) {
+		return true
+	}
+	deadline := time.Now().Add(startReadyTimeout)
+	for time.Now().Before(deadline) {
+		if endpointRunning(c) {
+			time.Sleep(startStableWindow)
+			return endpointRunning(c)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	return endpointRunning(c)
+}
+
+func endpointConfigured(c *conf.Config) bool {
+	return c.Scheme.HttpPort != -1 || c.Scheme.HttpsPort != -1 ||
+		c.Scheme.UnixFile != "" || c.S3.Enable && c.S3.Port != -1 ||
+		c.FTP.Enable && c.FTP.Listen != "" || c.SFTP.Enable && c.SFTP.Listen != ""
+}
+
 func normalizeMode(mode string) string {
 	switch mode {
 	case ModeLan, ModePublic:
@@ -79,6 +125,10 @@ func StartWithOptions(optionsJSON string) error {
 		return fmt.Errorf("public access blocked by security checks: %s", blockedIDs(report))
 	}
 	Start()
+	if !waitForEndpoint(conf.Conf) {
+		Shutdown(5000)
+		return errors.New("no configured endpoint started")
+	}
 	return nil
 }
 

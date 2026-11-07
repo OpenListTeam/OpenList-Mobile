@@ -70,8 +70,10 @@ Future<String?> promptText(
         autofocus: true,
         obscureText: obscure,
         decoration: InputDecoration(labelText: label),
-        onSubmitted: (v) =>
-            Navigator.pop(ctx, v.trim().isEmpty ? null : v.trim()),
+        onSubmitted: (v) {
+          final value = obscure ? v : v.trim();
+          Navigator.pop(ctx, value.isEmpty ? null : value);
+        },
       ),
       actions: [
         TextButton(
@@ -80,8 +82,8 @@ Future<String?> promptText(
         ),
         FilledButton(
           onPressed: () {
-            final v = ctrl.text.trim();
-            Navigator.pop(ctx, v.isEmpty ? null : v);
+            final value = obscure ? ctrl.text : ctrl.text.trim();
+            Navigator.pop(ctx, value.isEmpty ? null : value);
           },
           child: Text(S.current.confirm),
         ),

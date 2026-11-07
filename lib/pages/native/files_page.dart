@@ -218,6 +218,7 @@ class _FilesPageState extends State<FilesPage> {
       () => FolderPickerPage(
         title: copy ? S.current.copyTo : S.current.moveTo,
         initial: _path,
+        password: _passwordFor(_path),
       ),
     );
     if (dst == null || dst == _path) return;

@@ -933,7 +933,11 @@ class _FilesController extends GetxController {
     try {
       // Show folder picker for destination
       final dstDir = await Get.to<String>(
-        () => FolderPickerPage(title: S.current.moveTo, initial: srcDir),
+        () => FolderPickerPage(
+          title: S.current.moveTo,
+          initial: srcDir,
+          password: passwordFor(srcDir),
+        ),
       );
 
       if (dstDir == null || dstDir == srcDir) {
@@ -962,7 +966,11 @@ class _FilesController extends GetxController {
     try {
       // Show folder picker for destination
       final dstDir = await Get.to<String>(
-        () => FolderPickerPage(title: S.current.copyTo, initial: srcDir),
+        () => FolderPickerPage(
+          title: S.current.copyTo,
+          initial: srcDir,
+          password: passwordFor(srcDir),
+        ),
       );
 
       if (dstDir == null) {

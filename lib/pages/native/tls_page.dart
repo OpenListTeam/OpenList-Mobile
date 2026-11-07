@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -39,6 +40,8 @@ class _TlsPageState extends State<TlsPage> {
   bool _forceHttps = false;
   Object? _error;
   bool _saving = false;
+  final _stagedFiles = <String>{};
+  final _committedFiles = <String>{};
 
   File get _configFile => File('$_dataDir/config.json');
 
@@ -54,6 +57,9 @@ class _TlsPageState extends State<TlsPage> {
   @override
   void dispose() {
     _port.dispose();
+    for (final path in _stagedFiles.difference(_committedFiles)) {
+      unawaited(File(path).delete().catchError((_) => File(path)));
+    }
     super.dispose();
   }
 
@@ -71,6 +77,7 @@ class _TlsPageState extends State<TlsPage> {
       _port.text = '${scheme['https_port'] ?? -1}';
       _certFile = '${scheme['cert_file'] ?? ''}';
       _keyFile = '${scheme['key_file'] ?? ''}';
+      _committedFiles.addAll({_certFile, _keyFile});
       _forceHttps = scheme['force_https'] == true;
     } catch (e) {
       _error = e;
@@ -91,8 +98,11 @@ class _TlsPageState extends State<TlsPage> {
       }
       final dir = Directory('$_dataDir/cert');
       await dir.create(recursive: true);
-      final dst = File('${dir.path}/${key ? 'key.pem' : 'cert.pem'}');
+      final dst = File(
+        '${dir.path}/${key ? 'key' : 'cert'}-${DateTime.now().microsecondsSinceEpoch}.pem',
+      );
       await dst.writeAsString(text, flush: true);
+      _stagedFiles.add(dst.path);
       setState(() => key ? _keyFile = dst.path : _certFile = dst.path);
     } catch (e) {
       showError(e);
@@ -120,6 +130,8 @@ class _TlsPageState extends State<TlsPage> {
       }
       await _configFile.writeAsString(text, flush: true);
       _config = config;
+      _committedFiles.addAll({_certFile, _keyFile});
+      _stagedFiles.removeWhere((path) => _committedFiles.contains(path));
       if (!mounted) return;
       setState(() => _saving = false);
       await _offerRestart();

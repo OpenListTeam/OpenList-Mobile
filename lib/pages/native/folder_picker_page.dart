@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:openlist_mobile/api/models.dart';
 import 'package:openlist_mobile/api/openlist_client.dart';
@@ -8,10 +10,16 @@ import 'common.dart';
 
 /// Picks a destination folder; pops with the selected path.
 class FolderPickerPage extends StatefulWidget {
-  const FolderPickerPage({super.key, required this.title, this.initial = '/'});
+  const FolderPickerPage({
+    super.key,
+    required this.title,
+    this.initial = '/',
+    this.password = '',
+  });
 
   final String title;
   final String initial;
+  final String password;
 
   @override
   State<FolderPickerPage> createState() => _FolderPickerPageState();
@@ -22,30 +30,74 @@ class _FolderPickerPageState extends State<FolderPickerPage> {
   List<FsObject> _dirs = const [];
   Object? _error;
   bool _loading = true;
+  final _passwords = <String, String>{};
+  int _request = 0;
 
   @override
   void initState() {
     super.initState();
+    _passwords[widget.initial] = widget.password;
     _load();
   }
 
   Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    final path = _path;
+    final request = ++_request;
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
-      final res = await OpenListSession.instance.fs.list(_path);
-      _dirs = res.content.where((e) => e.isDir).toList();
+      final res = await OpenListSession.instance.fs.list(
+        path,
+        password: _passwordFor(path),
+      );
+      if (!mounted || request != _request || _path != path) return;
+      setState(() => _dirs = res.content.where((e) => e.isDir).toList());
+    } on ApiException catch (e) {
+      if (!mounted || request != _request || _path != path) return;
+      if (e.isPasswordRequired) {
+        final password = await promptText(
+          context,
+          title: S.current.folderPassword,
+          label: path,
+          obscure: true,
+        );
+        if (password != null &&
+            mounted &&
+            request == _request &&
+            _path == path) {
+          _passwords[path] = password;
+          unawaited(_load());
+          return;
+        }
+      }
+      _error = e;
     } catch (e) {
+      if (!mounted || request != _request || _path != path) return;
       _error = e;
     }
-    if (mounted) setState(() => _loading = false);
+    if (mounted && request == _request && _path == path) {
+      setState(() => _loading = false);
+    }
   }
 
   void _open(String path) {
     _path = path;
     _load();
+  }
+
+  String _passwordFor(String path) {
+    var current = path;
+    while (true) {
+      final password = _passwords[current];
+      if (password != null) return password;
+      if (current == '/' || current.isEmpty) return '';
+      final separator = current.lastIndexOf('/');
+      current = separator <= 0 ? '/' : current.substring(0, separator);
+    }
   }
 
   String get _parent {

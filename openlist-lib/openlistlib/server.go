@@ -55,6 +55,12 @@ func Init(event Event, cb LogCallback) error {
 }
 
 func IsRunning(t string) bool {
+	if t == "" {
+		if conf.Conf == nil {
+			return false
+		}
+		return endpointRunning(conf.Conf)
+	}
 	return bootstrap.IsRunning(t)
 }
 

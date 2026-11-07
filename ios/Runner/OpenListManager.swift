@@ -58,7 +58,13 @@ class OpenListManager: NSObject {
         self.logCallback = logger
 
         let dataDirPath = try AppConfigBridge().getDataDir()
+        let hadConfigBeforeInitialization = FileManager.default.fileExists(
+            atPath: (dataDirPath as NSString).appendingPathComponent("config.json")
+        )
         self.dataDir = dataDirPath
+        if !hadConfigBeforeInitialization && UserDefaults.standard.string(forKey: Self.modeKey) == nil {
+            UserDefaults.standard.set(Self.modeLocal, forKey: Self.modeKey)
+        }
         OpenlistlibSetConfigData(dataDirPath)
         OpenlistlibSetConfigLogStd(true)
 

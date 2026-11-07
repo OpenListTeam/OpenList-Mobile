@@ -18,6 +18,7 @@ import androidx.work.WorkerParameters
 import com.openlist.mobile.MainActivity
 import com.openlist.mobile.OpenListService
 import com.openlist.mobile.R
+import com.openlist.mobile.upload.UploadCredentials
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -52,6 +53,7 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
 
         /** Flattened header pairs: name0, value0, name1, value1, ... */
         const val KEY_HEADERS = "headers"
+        const val KEY_CREDENTIAL_ID = "credential_id"
         const val KEY_SENT = "sent"
         const val KEY_TOTAL = "total"
         const val KEY_STATUS = "status"
@@ -78,22 +80,29 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
     private var inForeground = false
 
     override suspend fun doWork(): Result {
-        val url = inputData.getString(KEY_URL)
-        val path = inputData.getString(KEY_FILE)
-        if (url.isNullOrEmpty() || path.isNullOrEmpty()) return fail("invalid upload request")
-        val file = File(path)
-        if (!file.isFile) return fail("file not found")
-        val total = file.length()
-        setProgress(progressData(0, total))
-        createChannel()
-        enterForeground(0, total)
+        val credentialId = inputData.getString(KEY_CREDENTIAL_ID)
+        var keepCredentials = false
         return try {
+            val url = inputData.getString(KEY_URL)
+            val path = inputData.getString(KEY_FILE)
+            if (url.isNullOrEmpty() || path.isNullOrEmpty()) return fail("invalid upload request")
+            val file = File(path)
+            if (!file.isFile) return fail("file not found")
+            val total = file.length()
+            setProgress(progressData(0, total))
+            createChannel()
+            enterForeground(0, total)
             transfer(url, file, total)
         } catch (e: CancellationException) {
+            keepCredentials = true
             throw e
         } catch (e: IOException) {
-            // A stopped worker's result is ignored; WorkManager reports CANCELLED.
+            if (isStopped) keepCredentials = true
             fail(e.message ?: e.javaClass.simpleName)
+        } finally {
+            if (!keepCredentials) {
+                credentialId?.let { UploadCredentials.delete(applicationContext, it) }
+            }
         }
     }
 
@@ -150,7 +159,9 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         conn.connectTimeout = CONNECT_TIMEOUT_MS
         conn.readTimeout = READ_TIMEOUT_MS
         conn.setFixedLengthStreamingMode(total)
-        headers().forEach { (name, value) -> conn.setRequestProperty(name, value) }
+        val credentialId = inputData.getString(KEY_CREDENTIAL_ID)
+        val headers = headers() + credentialId?.let { UploadCredentials.read(applicationContext, it) }.orEmpty()
+        headers.forEach { (name, value) -> conn.setRequestProperty(name, value) }
 
         var sent = 0L
         var lastProgress = 0L
