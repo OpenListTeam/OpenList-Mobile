@@ -45,18 +45,12 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>OpenList uses the local network to connect to servers and to serve files to devices on your network when LAN mode is enabled.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to photo library to select files</string>
-	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to camera to take photos</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs access to microphone for recording</string>
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>This app needs access to documents folder to manage files</string>
-	<key>NSDownloadsFolderUsageDescription</key>
-	<string>This app needs access to downloads folder to manage files</string>
+	<string>OpenList uses the photo library only when you choose images or videos to upload.</string>
 	<key>MinimumOSVersion</key>
-	<string>12.0</string>
+	<string>16.0</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
@@ -85,10 +79,6 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-	</array>
 	<key>OpenListVersion</key>
 	<string>dev-ios-beta</string>
 	<key>WKAppBoundDomains</key>

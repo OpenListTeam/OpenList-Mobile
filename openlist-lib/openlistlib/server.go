@@ -35,6 +35,9 @@ func Init(event Event, cb LogCallback) error {
 		shutdownHookUuid = ""
 	}
 	bootstrap.Init()
+	if err := ensureAdmin(); err != nil {
+		return err
+	}
 	startFailedHookUuid = bootstrap.RegisterEndpointStartFailedHook(event.OnStartError)
 	shutdownHookUuid = bootstrap.RegisterEndpointShutdownHook(event.OnShutdown)
 	logFormatter = &internal.MyFormatter{
@@ -58,12 +61,14 @@ func IsRunning(t string) bool {
 // Start starts the server
 func Start() {
 	bootstrap.Start()
+	startedAt.Store(time.Now().Unix())
 }
 
 // Shutdown timeout 毫秒
 func Shutdown(timeout int64) (err error) {
 	timeoutDuration := time.Duration(timeout) * time.Millisecond
 	bootstrap.Shutdown(timeoutDuration)
+	startedAt.Store(0)
 
 	// Force database sync before shutdown
 	ForceDBSync()

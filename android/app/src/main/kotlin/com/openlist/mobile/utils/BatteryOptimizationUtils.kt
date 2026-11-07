@@ -1,6 +1,9 @@
 package com.openlist.mobile.utils
 
 import android.annotation.SuppressLint
+import android.app.ActivityManager
+import android.app.NotificationManager
+import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -9,6 +12,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.openlist.pigeon.GeneratedApi
 
 /**
  * 电池优化管理工具类
@@ -112,83 +116,106 @@ object BatteryOptimizationUtils {
     /**
      * 尝试打开自启动管理页面（针对不同厂商）
      */
-    fun openAutoStartSettings(context: Context): Boolean {
-        return try {
-            val autoStartIntents = listOf(
-                // 华为
-                Intent().setClassName(
-                    "com.huawei.systemmanager",
-                    "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"
-                ),
-                Intent().setClassName(
-                    "com.huawei.systemmanager",
-                    "com.huawei.systemmanager.optimize.process.ProtectActivity"
-                ),
-                // 小米
-                Intent().setClassName(
-                    "com.miui.securitycenter",
-                    "com.miui.permcenter.autostart.AutoStartManagementActivity"
-                ),
-                Intent().setClassName(
-                    "com.xiaomi.mipicks",
-                    "com.xiaomi.mipicks.ui.AppPicksTabActivity"
-                ),
-                // OPPO
-                Intent().setClassName(
-                    "com.coloros.safecenter",
-                    "com.coloros.safecenter.permission.startup.FakeActivity"
-                ),
-                Intent().setClassName(
-                    "com.oppo.safe",
-                    "com.oppo.safe.permission.startup.StartupAppListActivity"
-                ),
-                // Vivo
-                Intent().setClassName(
-                    "com.iqoo.secure",
-                    "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity"
-                ),
-                Intent().setClassName(
-                    "com.vivo.permissionmanager",
-                    "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"
-                ),
-                // 魅族
-                Intent().setClassName(
-                    "com.meizu.safe",
-                    "com.meizu.safe.security.SHOW_APPSEC"
-                ).apply {
-                    addCategory(Intent.CATEGORY_DEFAULT)
-                    putExtra("packageName", context.packageName)
-                },
-                // 三星
-                Intent().setClassName(
-                    "com.samsung.android.lool",
-                    "com.samsung.android.sm.ui.battery.BatteryActivity"
-                ),
-                // 一加
-                Intent().setClassName(
-                    "com.oneplus.security",
-                    "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity"
-                )
+    private fun autoStartIntents(context: Context) = listOf(
+            // 华为
+            Intent().setClassName(
+                "com.huawei.systemmanager",
+                "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"
+            ),
+            Intent().setClassName(
+                "com.huawei.systemmanager",
+                "com.huawei.systemmanager.optimize.process.ProtectActivity"
+            ),
+            // 小米
+            Intent().setClassName(
+                "com.miui.securitycenter",
+                "com.miui.permcenter.autostart.AutoStartManagementActivity"
+            ),
+            Intent().setClassName(
+                "com.xiaomi.mipicks",
+                "com.xiaomi.mipicks.ui.AppPicksTabActivity"
+            ),
+            // OPPO
+            Intent().setClassName(
+                "com.coloros.safecenter",
+                "com.coloros.safecenter.permission.startup.FakeActivity"
+            ),
+            Intent().setClassName(
+                "com.oppo.safe",
+                "com.oppo.safe.permission.startup.StartupAppListActivity"
+            ),
+            // Vivo
+            Intent().setClassName(
+                "com.iqoo.secure",
+                "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity"
+            ),
+            Intent().setClassName(
+                "com.vivo.permissionmanager",
+                "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"
+            ),
+            // 魅族
+            Intent().setClassName(
+                "com.meizu.safe",
+                "com.meizu.safe.security.SHOW_APPSEC"
+            ).apply {
+                addCategory(Intent.CATEGORY_DEFAULT)
+                putExtra("packageName", context.packageName)
+            },
+            // 三星
+            Intent().setClassName(
+                "com.samsung.android.lool",
+                "com.samsung.android.sm.ui.battery.BatteryActivity"
+            ),
+            // 一加
+            Intent().setClassName(
+                "com.oneplus.security",
+                "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity"
             )
+        )
 
-            for (intent in autoStartIntents) {
-                try {
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                        Log.d(TAG, "Auto start settings opened: ${intent.component}")
-                        return true
-                    }
-                } catch (e: Exception) {
-                    Log.d(TAG, "Failed to open auto start settings: ${intent.component}", e)
+    /** First vendor auto-start page that resolves on this device, if any. */
+    fun findAutoStartIntent(context: Context): Intent? = autoStartIntents(context).firstOrNull {
+        runCatching { it.resolveActivity(context.packageManager) != null }.getOrDefault(false)
+    }
+
+    fun openAutoStartSettings(context: Context): Boolean {
+        for (intent in autoStartIntents(context)) {
+            try {
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    Log.d(TAG, "Auto start settings opened: ${intent.component}")
+                    return true
                 }
+            } catch (e: Exception) {
+                Log.d(TAG, "Failed to open auto start settings: ${intent.component}", e)
             }
-
-            Log.w(TAG, "No auto start settings activity found")
-            false
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to open auto start settings", e)
-            false
         }
+        Log.w(TAG, "No auto start settings activity found")
+        return false
+    }
+
+    /** Snapshot of the system settings that affect background running. */
+    fun diagnostics(context: Context): GeneratedApi.BackgroundDiagnostics {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val restricted = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && am.isBackgroundRestricted
+        val bucket = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            (context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager).appStandbyBucket
+        } else {
+            0
+        }
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notifications = Build.VERSION.SDK_INT < Build.VERSION_CODES.N || nm.areNotificationsEnabled()
+        val ignoring = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || isIgnoringBatteryOptimizations(context)
+        return GeneratedApi.BackgroundDiagnostics.Builder()
+            .setManufacturer(Build.MANUFACTURER.orEmpty())
+            .setBrand(Build.BRAND.orEmpty())
+            .setSdkInt(Build.VERSION.SDK_INT.toLong())
+            .setIgnoringBatteryOptimizations(ignoring)
+            .setBackgroundRestricted(restricted)
+            .setStandbyBucket(bucket.toLong())
+            .setNotificationsEnabled(notifications)
+            .setAutoStartSettingsAvailable(findAutoStartIntent(context) != null)
+            .build()
     }
 
     /**

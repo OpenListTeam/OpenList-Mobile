@@ -1,487 +1,613 @@
 package com.openlist.mobile
 
-import openlistlib.Openlistlib
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
+import android.content.pm.ServiceInfo
+import android.net.wifi.WifiManager
 import android.os.Build
+import android.os.Bundle
+import android.os.Debug
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.os.Message
+import android.os.Messenger
 import android.os.PowerManager
+import android.os.Process
+import android.os.RemoteException
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.openlist.mobile.config.AppConfig
+import com.openlist.mobile.model.openlist.Logger
 import com.openlist.mobile.model.openlist.OpenList
-import com.openlist.mobile.utils.AndroidUtils.registerReceiverCompat
+import com.openlist.mobile.model.openlist.OpenListConfigManager
+import com.openlist.mobile.server.ServerSettings
 import com.openlist.mobile.utils.ClipboardUtils
+import com.openlist.mobile.utils.NetworkUtils
 import com.openlist.mobile.utils.ToastUtils.toast
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import splitties.systemservices.powerManager
+import org.json.JSONObject
+import java.util.ArrayDeque
+import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import com.openlist.mobile.server.ServerProtocol as P
 
 /**
- * OpenList后台服务 - 提供OpenList核心功能并实现保活机制
+ * Foreground service that hosts the OpenList core in the `:server` process.
+ *
+ * The core never runs in the UI process, so the server keeps working after the
+ * Flutter engine or the task is gone. The UI talks to it through a [Messenger]
+ * (see [P]); start/stop requests arrive as service intents. All core calls are
+ * serialized on a single thread to avoid concurrent init/start/shutdown.
  */
-class OpenListService : Service(), OpenList.Listener {
+class OpenListService : Service(), OpenList.Listener, Logger.Listener {
     companion object {
         const val TAG = "OpenListService"
+        const val ACTION_START = "com.openlist.mobile.server.action.START"
+        const val ACTION_STOP = "com.openlist.mobile.server.action.STOP"
+        const val ACTION_RESTART = "com.openlist.mobile.server.action.RESTART"
+        const val ACTION_COPY_ADDRESS = "com.openlist.mobile.server.action.COPY_ADDRESS"
+
+        // Legacy stop action, kept for intents created by older versions.
         const val ACTION_SHUTDOWN =
             "com.openlist.openlistandroid.service.OpenListService.ACTION_SHUTDOWN"
 
-        const val ACTION_COPY_ADDRESS =
-            "com.openlist.openlistandroid.service.OpenListService.ACTION_COPY_ADDRESS"
-
+        // Local broadcast inside the `:server` process (tile, shortcuts).
         const val ACTION_STATUS_CHANGED =
             "com.openlist.openlistandroid.service.OpenListService.ACTION_STATUS_CHANGED"
 
         const val NOTIFICATION_CHAN_ID = "openlist_server"
         const val FOREGROUND_ID = 5224
+        private const val MAX_LOGS = 300
+        private const val MAX_LOG_LENGTH = 1000
+        private const val DB_SYNC_INTERVAL_MIN = 5L
 
+        /** Core state; only meaningful inside the `:server` process. */
         @Volatile
-        var isRunning: Boolean = false
+        var isRunning = false
             private set
 
-        @Volatile
-        var serviceInstance: OpenListService? = null
-            private set
-    }
-
-    private val mScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val mNotificationReceiver = NotificationActionReceiver()
-    private val mReceiver = MyReceiver()
-    private var mWakeLock: PowerManager.WakeLock? = null
-    private var mLocalAddress: String = ""
-    private var mDbSyncJob: Job? = null
-
-    // Database sync interval in milliseconds (5 minutes)
-    private val DB_SYNC_INTERVAL = 5 * 60 * 1000L
-
-    override fun onBind(p0: Intent?): IBinder? = null
-
-    @Suppress("DEPRECATION")
-    private fun notifyStatusChanged() {
-        Log.d(TAG, "notifyStatusChanged: isRunning=$isRunning")
-        
-        LocalBroadcastManager.getInstance(this)
-            .sendBroadcast(Intent(ACTION_STATUS_CHANGED))
-
-        // Notify ServiceBridge of status change
-        try {
-            MainActivity.serviceBridge?.notifyServiceStatusChanged(isRunning)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to notify ServiceBridge", e)
-        }
-
-        if (!isRunning) {
-            // Stop foreground service and remove notification
-            stopForeground(true)
-            cancelNotification()
-            stopSelf()
-        } else {
-            // Update notification with current status
-            Log.d(TAG, "Updating notification after status change")
-            updateNotification()
+        /** Sends a control action. Callers handle FGS start restrictions. */
+        fun sendAction(context: Context, action: String) {
+            val intent = Intent(context, OpenListService::class.java).setAction(action)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         }
     }
 
-    @SuppressLint("WakelockTimeout")
+    private val main = Handler(Looper.getMainLooper())
+    private val core = Executors.newSingleThreadScheduledExecutor { Thread(it, "openlist-core") }
+    private val clients = mutableListOf<Messenger>()
+    private val logs = ArrayDeque<Bundle>()
+    private val starting = AtomicInteger(0)
+    private val messenger = Messenger(Handler(Looper.getMainLooper()) { handleMessage(it) })
+
+    @Volatile
+    private var lastError: String? = null
+
+    @Volatile
+    private var runningMode: String? = null
+
+    @Volatile
+    private var destroyed = false
+
+    private var inForeground = false
+    private var wakeLock: PowerManager.WakeLock? = null
+    private var wifiLock: WifiManager.WifiLock? = null
+    private var dbSyncTask: ScheduledFuture<*>? = null
+
+    override fun onBind(intent: Intent?): IBinder = messenger.binder
+
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "OpenListService created")
-
-        serviceInstance = this
-
-        // Android 8.0+ must start foreground notification immediately
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            initOrUpdateNotification()
-        }
-
-        // Register broadcast receivers
-        try {
-            LocalBroadcastManager.getInstance(this)
-                .registerReceiver(mReceiver, IntentFilter(ACTION_STATUS_CHANGED))
-            registerReceiverCompat(mNotificationReceiver, ACTION_SHUTDOWN, ACTION_COPY_ADDRESS)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to register receivers", e)
-        }
-
-        // Add OpenList listener
+        Log.d(TAG, "onCreate, pid=${Process.myPid()}")
+        createChannel()
         OpenList.addListener(this)
-
-        // Acquire wake lock if enabled
-        if (AppConfig.isWakeLockEnabled) {
-            try {
-                mWakeLock = powerManager.newWakeLock(
-                    PowerManager.PARTIAL_WAKE_LOCK,
-                    "openlist::service"
-                )
-                mWakeLock?.acquire()
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to acquire wake lock", e)
-            }
-        }
-
-        Log.d(TAG, "Service onCreate completed")
-    }
-
-    @Suppress("DEPRECATION")
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "OpenListService destroyed")
-
-        serviceInstance = null
-
-        // 取消所有协程作业
-        mScope.coroutineContext[Job]?.cancel()
-
-        // 释放唤醒锁
-        try {
-            mWakeLock?.release()
-            mWakeLock = null
-            Log.d(TAG, "Wake lock released")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to release wake lock", e)
-        }
-
-        // 停止前台服务并取消通知
-        stopForeground(true)
-        cancelNotification()
-
-        // 注销广播接收器
-        try {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver)
-            unregisterReceiver(mNotificationReceiver)
-            Log.d(TAG, "Broadcast receivers unregistered")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to unregister receivers", e)
-        }
-
-        // 移除OpenList监听器
-        OpenList.removeListener(this)
-        
-        // Stop database sync task
-        stopDatabaseSyncTask()
-    }
-
-    override fun onShutdown(type: String) {
-        Log.d(TAG, "OpenList shutdown: $type")
-        if (!OpenList.isRunning()) {
-            isRunning = false
-            // Stop database sync task when service shuts down
-            stopDatabaseSyncTask()
-            notifyStatusChanged()
-        }
-    }
-
-    /**
-     * Start periodic database synchronization task
-     */
-    private fun startDatabaseSyncTask() {
-        stopDatabaseSyncTask() // Stop any existing task first
-        
-        mDbSyncJob = mScope.launch(Dispatchers.IO) {
-            while (isActive && isRunning) {
-                try {
-                    delay(DB_SYNC_INTERVAL)
-                    if (isRunning && OpenList.isRunning()) {
-                        Log.d(TAG, "Performing periodic database sync")
-                        OpenList.forceDatabaseSync()
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error during periodic database sync", e)
-                }
-            }
-        }
-        Log.d(TAG, "Database sync task started")
-    }
-
-    /**
-     * Stop database synchronization task
-     */
-    private fun stopDatabaseSyncTask() {
-        mDbSyncJob?.cancel()
-        mDbSyncJob = null
-        Log.d(TAG, "Database sync task stopped")
-    }
-
-    /**
-     * Force immediate database synchronization
-     */
-    fun forceImmediateDbSync() {
-        mScope.launch(Dispatchers.IO) {
-            try {
-                if (isRunning && OpenList.isRunning()) {
-                    Log.d(TAG, "Performing immediate database sync")
-                    OpenList.forceDatabaseSync()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error during immediate database sync", e)
-            }
-        }
-    }
-
-    /**
-     * Public method: Stop OpenList service manually
-     */
-    fun stopOpenListService() {
-        if (isRunning) {
-            Log.d(TAG, "User manually stopping service")
-            // Set flag to indicate user manually stopped the service
-            AppConfig.isManuallyStoppedByUser = true
-            startOrShutdown()
-        }
-    }
-
-    /**
-     * Start or shutdown OpenList service
-     */
-    private fun startOrShutdown() {
-        if (isRunning) {
-            Log.d(TAG, "Shutting down OpenList")
-            mScope.launch(Dispatchers.IO) {
-                try {
-                    if (OpenList.isRunning()) {
-                        Log.d(TAG, "Forcing database sync before shutdown")
-                        OpenList.forceDatabaseSync()
-                    }
-                    
-                    OpenList.shutdown()
-                    isRunning = false
-                    launch(Dispatchers.Main) {
-                        notifyStatusChanged()
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Shutdown error", e)
-                    launch(Dispatchers.Main) {
-                        toast("关闭失败: ${e.message}")
-                    }
-                }
-            }
-        } else {
-            Log.d(TAG, "Starting OpenList from user action")
-            AppConfig.isManuallyStoppedByUser = false
-            toast(getString(R.string.starting))
-            startOpenListBackend()
-        }
+        Logger.addListener(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand called")
+        val action = intent?.action
+        Log.d(TAG, "onStartCommand: action=$action")
+        // startForegroundService() requires startForeground() within the deadline,
+        // even when the command turns out to be a stop.
+        enterForeground()
+        when {
+            // Null intent: sticky restart after the process was killed.
+            intent == null -> {
+                val s = ServerSettings.get()
+                if (s.wasRunning && !s.manuallyStopped) requestStart(false) else publishStatus()
+            }
 
-        // Check manual stop flag
-        if (AppConfig.isManuallyStoppedByUser) {
-            Log.d(TAG, "Service was manually stopped by user, not starting")
-            stopSelf()
-            return START_NOT_STICKY
+            action == ACTION_STOP || action == ACTION_SHUTDOWN -> requestStop(true)
+            action == ACTION_RESTART -> requestRestart()
+            action == ACTION_COPY_ADDRESS -> copyAddress()
+            else -> requestStart(true)
         }
-
-        // Start OpenList if not running
-        if (!isRunning) {
-            Log.d(TAG, "Starting OpenList backend")
-            startOpenListBackend()
-        }
-
         return START_STICKY
     }
 
-    /**
-     * Start OpenList backend service
-     */
-    private fun startOpenListBackend() {
-        if (isRunning) {
-            Log.d(TAG, "OpenList already running")
+    override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
+        destroyed = true
+        OpenList.removeListener(this)
+        Logger.removeListener(this)
+        // Keep wasRunning so a system kill restores the server on restart.
+        runCatching { core.execute { if (isRunning || OpenList.isRunning()) doStop() } }
+        core.shutdown()
+        main.removeCallbacksAndMessages(null)
+        clients.clear()
+        super.onDestroy()
+    }
+
+    // ---- Foreground state ----
+
+    private fun enterForeground() {
+        try {
+            val n = buildNotification(statusBundle())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(FOREGROUND_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                startForeground(FOREGROUND_ID, n)
+            }
+            inForeground = true
+        } catch (e: Exception) {
+            // e.g. ForegroundServiceStartNotAllowedException on a background sticky restart.
+            Log.e(TAG, "startForeground failed", e)
+            lastError = "foreground: ${e.message}"
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun leaveForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            stopForeground(true)
+        }
+        inForeground = false
+        // Drops the started state; a bound UI keeps the process alive.
+        stopSelf()
+    }
+
+    // ---- Lifecycle (core thread) ----
+
+    private fun runOnCore(block: () -> Unit) {
+        if (destroyed) return
+        try {
+            core.execute(block)
+        } catch (e: RejectedExecutionException) {
+            Log.w(TAG, "Core executor is shut down", e)
+        }
+    }
+
+    private fun requestStart(clearManualStop: Boolean) {
+        if (clearManualStop) ServerSettings.update { it.copy(manuallyStopped = false) }
+        starting.incrementAndGet()
+        lastError = null
+        publishStatus()
+        runOnCore {
+            try {
+                doStart()
+            } finally {
+                starting.decrementAndGet()
+                publishStatus()
+            }
+        }
+    }
+
+    private fun doStart() {
+        if (isRunning && OpenList.isRunning()) return
+        val mode = ServerSettings.get().mode
+        try {
+            OpenList.startup(mode)
+            if (!OpenList.isRunning()) error(lastError ?: "core did not start")
+            isRunning = true
+            runningMode = mode
+            ServerSettings.update { it.copy(wasRunning = true) }
+            applyLocks()
+            scheduleDbSync()
+            Log.i(TAG, "Core started, mode=$mode")
+        } catch (t: Throwable) {
+            Log.e(TAG, "Failed to start core", t)
+            lastError = t.message ?: t.toString()
+            OpenList.shutdown()
+            if (OpenList.isRunning()) {
+                isRunning = true
+                runningMode = mode
+                ServerSettings.update { it.copy(wasRunning = true) }
+                applyLocks()
+                scheduleDbSync()
+            } else {
+                markStopped()
+                ServerSettings.update { it.copy(wasRunning = false) }
+            }
+            toast(getString(R.string.server_start_failed, lastError))
+        }
+    }
+
+    private fun requestStop(manual: Boolean) {
+        runOnCore {
+            val stopped = if (isRunning || OpenList.isRunning()) {
+                doStop()
+            } else {
+                markStopped()
+                ServerSettings.update { it.copy(wasRunning = false) }
+                true
+            }
+            if (manual && stopped) {
+                ServerSettings.update { it.copy(manuallyStopped = true, wasRunning = false) }
+            }
+            publishStatus()
+        }
+    }
+
+    private fun doStop(): Boolean {
+        dbSyncTask?.cancel(false)
+        if (OpenList.isRunning()) OpenList.forceDatabaseSync()
+        OpenList.shutdown()
+        if (OpenList.isRunning()) {
+            lastError = getString(R.string.shutdown_failed)
+            isRunning = true
+            runningMode = runningMode ?: ServerSettings.get().mode
+            ServerSettings.update { it.copy(wasRunning = true) }
+            applyLocks()
+            scheduleDbSync()
+            return false
+        }
+        markStopped()
+        ServerSettings.update { it.copy(wasRunning = false) }
+        return true
+    }
+
+    private fun requestRestart() {
+        ServerSettings.update { it.copy(manuallyStopped = false) }
+        starting.incrementAndGet()
+        publishStatus()
+        runOnCore {
+            try {
+                if (isRunning || OpenList.isRunning()) {
+                    if (!doStop()) return@runOnCore
+                }
+                lastError = null
+                doStart()
+            } finally {
+                starting.decrementAndGet()
+                publishStatus()
+            }
+        }
+    }
+
+    private fun markStopped() {
+        isRunning = false
+        runningMode = null
+        dbSyncTask?.cancel(false)
+        dbSyncTask = null
+        releaseLocks()
+    }
+
+    // Go hooks may fire on any thread.
+    override fun onShutdown(type: String) {
+        runOnCore {
+            if (isRunning && !OpenList.isRunning()) {
+                Log.w(TAG, "Core stopped unexpectedly: $type")
+                markStopped()
+                ServerSettings.update { it.copy(wasRunning = false) }
+            }
+            publishStatus()
+        }
+    }
+
+    override fun onStartError(type: String, msg: String) {
+        lastError = "$type: $msg"
+        onShutdown(type)
+    }
+
+    // ---- Wake/Wi-Fi locks (core thread) ----
+
+    @SuppressLint("WakelockTimeout")
+    @Suppress("DEPRECATION")
+    private fun applyLocks() {
+        releaseLocks()
+        if (!isRunning || !ServerSettings.get().wakeLock) return
+        try {
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "openlist::server")
+                .apply { setReferenceCounted(false); acquire() }
+            // Keeps the Wi-Fi radio awake for LAN clients; HIGH_PERF is a no-op on 34+.
+            if (runningMode != ServerSettings.MODE_LOCAL &&
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+            ) {
+                val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "openlist::server")
+                    .apply { setReferenceCounted(false); acquire() }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to acquire locks", e)
+        }
+    }
+
+    private fun releaseLocks() {
+        runCatching { wakeLock?.takeIf { it.isHeld }?.release() }
+        runCatching { wifiLock?.takeIf { it.isHeld }?.release() }
+        wakeLock = null
+        wifiLock = null
+    }
+
+    private fun scheduleDbSync() {
+        dbSyncTask?.cancel(false)
+        dbSyncTask = core.scheduleWithFixedDelay({
+            if (isRunning && OpenList.isRunning()) OpenList.forceDatabaseSync()
+        }, DB_SYNC_INTERVAL_MIN, DB_SYNC_INTERVAL_MIN, TimeUnit.MINUTES)
+    }
+
+    // ---- Status ----
+
+    private fun statusBundle(): Bundle {
+        val settings = ServerSettings.get()
+        val mode = runningMode ?: settings.mode
+        val scheme = OpenListConfigManager.configOrNull()?.scheme
+        return Bundle().apply {
+            putBoolean(P.KEY_RUNNING, isRunning)
+            putBoolean(P.KEY_STARTING, starting.get() > 0)
+            putString(P.KEY_MODE, mode)
+            putInt(P.KEY_HTTP_PORT, scheme?.httpPort ?: 5244)
+            putInt(P.KEY_HTTPS_PORT, scheme?.httpsPort ?: -1)
+            putBoolean(P.KEY_FORCE_HTTPS, scheme?.forceHttps ?: false)
+            putStringArrayList(P.KEY_ADDRESSES, ArrayList(addresses(mode, scheme?.address)))
+            putBoolean(P.KEY_MANUALLY_STOPPED, settings.manuallyStopped)
+            lastError?.let { putString(P.KEY_LAST_ERROR, it) }
+        }
+    }
+
+    private fun addresses(mode: String, configured: String?): List<String> {
+        if (mode == ServerSettings.MODE_LOCAL) return listOf("127.0.0.1")
+        // A pinned interface address in config.json is the only reachable host.
+        val pinned = configured?.takeIf { it.isNotBlank() && it != "0.0.0.0" && it != "::" }
+        if (pinned != null) return listOf(pinned)
+        return NetworkUtils.localIPv4Addresses() + "127.0.0.1"
+    }
+
+    private fun primaryUrl(s: Bundle): String {
+        val host = s.getStringArrayList(P.KEY_ADDRESSES)?.firstOrNull() ?: "127.0.0.1"
+        val httpsPort = s.getInt(P.KEY_HTTPS_PORT)
+        val httpPort = s.getInt(P.KEY_HTTP_PORT)
+        return if (httpsPort > 0 && (s.getBoolean(P.KEY_FORCE_HTTPS) || httpPort <= 0)) {
+            "https://$host:$httpsPort"
+        } else {
+            "http://$host:$httpPort"
+        }
+    }
+
+    private fun publishStatus() {
+        if (destroyed) return
+        main.post {
+            if (destroyed) return@post
+            val s = statusBundle()
+            broadcast(P.MSG_STATUS, s)
+            LocalBroadcastManager.getInstance(this).sendBroadcast(Intent(ACTION_STATUS_CHANGED))
+            if (isRunning || starting.get() > 0) {
+                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if (inForeground) nm.notify(FOREGROUND_ID, buildNotification(s)) else enterForeground()
+            } else {
+                leaveForeground()
+            }
+        }
+    }
+
+    // ---- Notification ----
+
+    private fun servicePendingIntent(action: String, requestCode: Int): PendingIntent {
+        val intent = Intent(this, OpenListService::class.java).setAction(action)
+        return PendingIntent.getService(this, requestCode, intent, pendingIntentFlags())
+    }
+
+    private fun pendingIntentFlags(): Int {
+        val immutable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_IMMUTABLE
+        } else {
+            0
+        }
+        return immutable or PendingIntent.FLAG_UPDATE_CURRENT
+    }
+
+    @Suppress("DEPRECATION")
+    private fun buildNotification(s: Bundle): Notification {
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, NOTIFICATION_CHAN_ID)
+        } else {
+            Notification.Builder(this)
+        }
+        val running = s.getBoolean(P.KEY_RUNNING)
+        val title = if (running) {
+            getString(R.string.openlist_server_running)
+        } else {
+            getString(R.string.openlist_starting)
+        }
+        val mode = modeLabel(s.getString(P.KEY_MODE))
+        val text = if (running) "$mode · ${primaryUrl(s)}" else mode
+        val openApp = PendingIntent.getActivity(
+            this, 0, Intent(this, MainActivity::class.java), pendingIntentFlags()
+        )
+        builder
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) R.drawable.server
+                else R.mipmap.ic_launcher_round
+            )
+            .setContentIntent(openApp)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .addAction(0, getString(R.string.shutdown), servicePendingIntent(ACTION_STOP, 1))
+        if (running) {
+            builder.addAction(
+                0, getString(R.string.copy_address), servicePendingIntent(ACTION_COPY_ADDRESS, 2)
+            )
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        }
+        return builder.build()
+    }
+
+    private fun modeLabel(mode: String?) = getString(
+        when (mode) {
+            ServerSettings.MODE_LAN -> R.string.server_mode_lan
+            ServerSettings.MODE_PUBLIC -> R.string.server_mode_public
+            else -> R.string.server_mode_local
+        }
+    )
+
+    private fun createChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val chan = NotificationChannel(
+            NOTIFICATION_CHAN_ID,
+            getString(R.string.openlist_server),
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            setShowBadge(false)
+        }
+        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+            .createNotificationChannel(chan)
+    }
+
+    private fun copyAddress() {
+        val url = primaryUrl(statusBundle())
+        ClipboardUtils.copyText("OpenList", url)
+        toast(R.string.address_copied)
+        publishStatus()
+    }
+
+    // ---- Messenger IPC (main thread) ----
+
+    private fun handleMessage(msg: Message): Boolean {
+        val to = msg.replyTo
+        val id = msg.arg1
+        // Message is recycled after return; copy what async work needs.
+        val data = Bundle(msg.data)
+        when (msg.what) {
+            P.MSG_REGISTER -> to?.let {
+                if (it !in clients) clients.add(it)
+                send(it, Message.obtain(null, P.MSG_STATUS).apply { this.data = statusBundle() })
+            }
+
+            P.MSG_UNREGISTER -> to?.let { clients.remove(it) }
+            P.MSG_GET_STATUS -> reply(to, id, statusBundle())
+            P.MSG_GET_LOGS -> reply(to, id, logsBundle())
+
+            P.MSG_SET_ADMIN_PASSWORD -> onCore(to, id) {
+                val pwd = data.getString(P.KEY_PASSWORD).orEmpty()
+                require(pwd.isNotBlank()) { "password is empty" }
+                OpenList.setAdminPassword(pwd)
+                ""
+            }
+
+            P.MSG_GET_TOKEN -> onCore(to, id) {
+                check(isRunning) { "server is not running" }
+                OpenList.adminToken()
+            }
+
+            P.MSG_GET_RUNTIME -> onCore(to, id) { runtimeJson() }
+            P.MSG_GET_SECURITY -> onCore(to, id) {
+                OpenList.securityReport(ServerSettings.normalizeMode(data.getString(P.KEY_MODE)))
+            }
+
+            P.MSG_SYNC_DB -> runOnCore { if (isRunning) OpenList.forceDatabaseSync() }
+            P.MSG_REFRESH_SETTINGS -> runOnCore {
+                applyLocks()
+                publishStatus()
+            }
+
+            else -> return false
+        }
+        return true
+    }
+
+    /** Runs [block] on the core thread and replies with its result or error. */
+    private fun onCore(to: Messenger?, id: Int, block: () -> String) {
+        if (destroyed) {
+            reply(to, id, Bundle().apply { putString(P.KEY_ERROR, "service destroyed") })
             return
         }
-        
-        Log.d(TAG, "Initializing and starting OpenList")
-        isRunning = true
-        
-        mScope.launch(Dispatchers.IO) {
+        runOnCore {
+            val b = Bundle()
             try {
-                // Initialize OpenList
-                OpenList.init()
-                delay(100)
-                
-                // Start OpenList
-                OpenList.startup()
-                
-                // Clear cached address to force refresh
-                mLocalAddress = ""
-                
-                // Update UI on success
-                launch(Dispatchers.Main) {
-                    notifyStatusChanged()
-                    startDatabaseSyncTask()
-                }
-                
-                Log.d(TAG, "OpenList started successfully")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to start OpenList", e)
-                isRunning = false
-                launch(Dispatchers.Main) {
-                    toast("启动失败: ${e.message}")
-                    notifyStatusChanged()
-                }
+                b.putString(P.KEY_RESULT, block())
+            } catch (t: Throwable) {
+                Log.e(TAG, "Request failed", t)
+                b.putString(P.KEY_ERROR, t.message ?: t.toString())
             }
+            reply(to, id, b)
         }
     }
 
-    inner class MyReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent) {
-            when (intent.action) {
-                ACTION_STATUS_CHANGED -> {
-                    Log.d(TAG, "Status changed broadcast received")
-                }
-            }
-        }
+    private fun reply(to: Messenger?, id: Int, data: Bundle) {
+        to ?: return
+        send(to, Message.obtain(null, P.MSG_REPLY, id, 0).apply { this.data = data })
     }
 
-    /**
-     * Get local address safely
-     */
-    private fun localAddress(): String {
-        return try {
-            if (mLocalAddress.isEmpty()) {
-                Log.d(TAG, "Fetching local address...")
-                mLocalAddress = Openlistlib.getOutboundIPString()
-                Log.d(TAG, "Local address: $mLocalAddress")
-            }
-            mLocalAddress
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to get local address", e)
-            "Initializing..."
-        }
-    }
-
-    /**
-     * Initialize or update notification
-     */
-    @Suppress("DEPRECATION")
-    private fun initOrUpdateNotification() {
+    private fun send(to: Messenger, msg: Message) {
         try {
-            Log.d(TAG, "Creating/updating notification with address: ${localAddress()}")
-            
-            val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                PendingIntent.FLAG_IMMUTABLE
-            } else {
-                0
-            }
+            to.send(msg)
+        } catch (e: RemoteException) {
+            Log.w(TAG, "Client is gone", e)
+            main.post { clients.remove(to) }
+        }
+    }
 
-            val pendingIntent = PendingIntent.getActivity(
-                this, 0, Intent(this, MainActivity::class.java), pendingIntentFlags
-            )
-
-            val shutdownAction = PendingIntent.getBroadcast(
-                this, 0, Intent(ACTION_SHUTDOWN), pendingIntentFlags
-            )
-
-            val copyAddressPendingIntent = PendingIntent.getBroadcast(
-                this, 0, Intent(ACTION_COPY_ADDRESS), pendingIntentFlags
-            )
-
-            val builder = Notification.Builder(applicationContext)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val chan = NotificationChannel(
-                    NOTIFICATION_CHAN_ID,
-                    getString(R.string.openlist_server),
-                    NotificationManager.IMPORTANCE_LOW
-                )
-                chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-                chan.setShowBadge(false)
-
-                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.createNotificationChannel(chan)
-                
-                builder.setChannelId(NOTIFICATION_CHAN_ID)
-            }
-
-            val smallIconRes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                R.drawable.server
-            } else {
-                R.mipmap.ic_launcher_round
-            }
-
-            val notification = builder
-                .setContentTitle(getString(R.string.openlist_server_running))
-                .setContentText("地址: ${localAddress()}")
-                .setSmallIcon(smallIconRes)
-                .setContentIntent(pendingIntent)
-                .addAction(0, getString(R.string.shutdown), shutdownAction)
-                .addAction(0, getString(R.string.copy_address), copyAddressPendingIntent)
-                .setOngoing(true)
-                .setAutoCancel(false)
-                .build()
-
-            notification.flags = notification.flags or 
-                Notification.FLAG_NO_CLEAR or
-                Notification.FLAG_ONGOING_EVENT
-
-            startForeground(FOREGROUND_ID, notification)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to create notification", e)
-            // Minimal fallback
-            try {
-                val minimal = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Notification.Builder(applicationContext, NOTIFICATION_CHAN_ID)
-                } else {
-                    Notification.Builder(applicationContext)
-                }.setContentTitle("OpenList")
-                    .setContentText("Starting...")
-                    .setSmallIcon(R.mipmap.ic_launcher_round)
-                    .build()
-                startForeground(FOREGROUND_ID, minimal)
-            } catch (fallbackError: Exception) {
-                Log.e(TAG, "Failed to create minimal notification", fallbackError)
+    private fun broadcast(what: Int, data: Bundle) {
+        main.post {
+            clients.toList().forEach {
+                send(it, Message.obtain(null, what).apply { this.data = Bundle(data) })
             }
         }
     }
 
-    /**
-     * 更新通知
-     */
-    private fun updateNotification() {
-        initOrUpdateNotification()
+    // ---- Logs ----
+
+    override fun onLog(level: Int, time: String, msg: String) {
+        val entry = Bundle().apply {
+            putInt(P.KEY_LEVEL, level)
+            putString(P.KEY_TIME, time)
+            putString(P.KEY_MESSAGE, msg.take(MAX_LOG_LENGTH))
+        }
+        synchronized(logs) {
+            logs.addLast(entry)
+            while (logs.size > MAX_LOGS) logs.removeFirst()
+        }
+        broadcast(P.MSG_LOG, entry)
     }
 
-    /**
-     * 取消通知
-     */
-    private fun cancelNotification() {
-        try {
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.cancel(FOREGROUND_ID)
-            Log.d(TAG, "Notification cancelled")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to cancel notification", e)
+    private fun logsBundle(): Bundle {
+        val snapshot = synchronized(logs) { logs.toList() }
+        return Bundle().apply {
+            putIntArray(P.KEY_LEVELS, snapshot.map { it.getInt(P.KEY_LEVEL) }.toIntArray())
+            putStringArrayList(P.KEY_TIMES, ArrayList(snapshot.map { it.getString(P.KEY_TIME).orEmpty() }))
+            putStringArrayList(
+                P.KEY_MESSAGES, ArrayList(snapshot.map { it.getString(P.KEY_MESSAGE).orEmpty() })
+            )
         }
     }
 
-    inner class NotificationActionReceiver : BroadcastReceiver() {
-        override fun onReceive(ctx: Context?, intent: Intent?) {
-            when (intent?.action) {
-                ACTION_SHUTDOWN -> {
-                    Log.d(TAG, "Shutdown action received from notification")
-                    startOrShutdown()
-                }
-
-                ACTION_COPY_ADDRESS -> {
-                    Log.d(TAG, "Copy address action received from notification")
-                    ClipboardUtils.copyText("OpenList", localAddress())
-                    toast(R.string.address_copied)
-                }
-            }
-        }
+    /** Go runtime status merged with Android process resource usage. */
+    private fun runtimeJson(): String {
+        val o = if (isRunning) JSONObject(OpenList.runtimeStatus()) else JSONObject().put("running", false)
+        val mem = Debug.MemoryInfo().also { Debug.getMemoryInfo(it) }
+        return o.put("pid", Process.myPid())
+            .put("pss_kb", mem.totalPss)
+            .put("cpu_time_ms", Process.getElapsedCpuTime())
+            .toString()
     }
 }

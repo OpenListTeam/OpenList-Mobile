@@ -57,7 +57,7 @@ final class AppStoreUpdateBridge: NSObject, SKStoreProductViewControllerDelegate
 
     private func presentStoreProduct(trackId: Int, completion: @escaping (Bool) -> Void) {
         DispatchQueue.main.async { [weak self] in
-            guard let presenter = self?.viewController ?? UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+            guard let presenter = self?.viewController ?? AppStoreUpdateBridge.foregroundWindow()?.rootViewController else {
                 completion(false)
                 return
             }
@@ -99,5 +99,18 @@ final class AppStoreUpdateBridge: NSObject, SKStoreProductViewControllerDelegate
 
     func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
         viewController.dismiss(animated: true)
+    }
+
+    private static func foregroundWindow() -> UIWindow? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        if !scenes.isEmpty {
+            let activeScenes = scenes.filter { $0.activationState == .foregroundActive }
+            let candidates = activeScenes.isEmpty ? scenes : activeScenes
+            if let window = candidates.compactMap({ $0.windows.first(where: { $0.isKeyWindow }) ?? $0.windows.first }).first {
+                return window
+            }
+        }
+        // Legacy app-delegate lifecycle (no scene manifest).
+        return UIApplication.shared.delegate?.window ?? nil
     }
 }

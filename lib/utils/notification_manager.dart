@@ -3,18 +3,19 @@ import 'dart:developer';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart' as getx;
 import 'download_manager.dart';
-import '../pages/download_manager_page.dart';
+import 'package:openlist_mobile/screens/transfers_screen.dart';
 import '../generated/l10n.dart';
 
 class NotificationManager {
-  static final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
   static bool _isInitialized = false;
   static const int _downloadNotificationId = 1000;
-  
+
   /// 初始化通知
   static Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
       // Android 初始化设置
       const AndroidInitializationSettings initializationSettingsAndroid =
@@ -35,18 +36,20 @@ class NotificationManager {
       );
 
       await _notifications.initialize(
-        initializationSettings,
+        settings: initializationSettings,
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
       // 请求通知权限
       if (Platform.isAndroid) {
         await _notifications
-            .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
             ?.requestNotificationsPermission();
       } else if (Platform.isIOS) {
         await _notifications
-            .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+            .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin>()
             ?.requestPermissions(
               alert: true,
               badge: true,
@@ -64,10 +67,10 @@ class NotificationManager {
   /// 处理通知点击事件
   static void _onNotificationTapped(NotificationResponse response) {
     log('通知被点击: ${response.payload}');
-    
-    // 跳转到下载管理页面
+
+    // Open the Downloads tab in the unified transfer view.
     if (getx.Get.context != null) {
-      getx.Get.to(() => const DownloadManagerPage());
+      getx.Get.to(() => const TransfersScreen(initialTab: 1));
     }
   }
 
@@ -84,7 +87,7 @@ class NotificationManager {
 
       if (activeTasks.isEmpty) {
         // 没有活跃下载任务，取消通知
-        await _notifications.cancel(_downloadNotificationId);
+        await _notifications.cancel(id: _downloadNotificationId);
         return;
       }
 
@@ -103,14 +106,14 @@ class NotificationManager {
         // 多个文件下载
         title = S.current.currentlyDownloading;
         body = S.current.currentDownloadingFiles(activeTasks.length);
-        
+
         // 计算总进度 - 所有文件下载进度的总和
         double totalProgress = 0;
-        
+
         for (DownloadTask task in activeTasks) {
           totalProgress += task.progress;
         }
-        
+
         // 总进度条为所有文件进度的平均值
         double avgProgress = totalProgress / activeTasks.length;
         progress = (avgProgress * 100).round();
@@ -153,13 +156,12 @@ class NotificationManager {
       );
 
       await _notifications.show(
-        _downloadNotificationId,
-        title,
-        body,
-        notificationDetails,
+        id: _downloadNotificationId,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
         payload: 'download_progress',
       );
-
     } catch (e) {
       log('显示下载进度通知失败: $e');
     }
@@ -182,7 +184,7 @@ class NotificationManager {
       }
 
       // 先取消进度通知
-      await _notifications.cancel(_downloadNotificationId);
+      await _notifications.cancel(id: _downloadNotificationId);
 
       // 获取最近完成的任务数量
       List<DownloadTask> completedTasks = DownloadManager.completedTasks
@@ -238,20 +240,20 @@ class NotificationManager {
       );
 
       await _notifications.show(
-        _downloadNotificationId + 1,
-        title,
-        body,
-        notificationDetails,
+        id: _downloadNotificationId + 1,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
         payload: 'download_complete',
       );
-
     } catch (e) {
       log('显示下载完成通知失败: $e');
     }
   }
 
   /// 显示单个文件下载完成通知
-  static Future<void> showSingleFileCompleteNotification(DownloadTask task) async {
+  static Future<void> showSingleFileCompleteNotification(
+      DownloadTask task) async {
     if (!_isInitialized) {
       await initialize();
     }
@@ -267,7 +269,7 @@ class NotificationManager {
       }
 
       // 先取消进度通知
-      await _notifications.cancel(_downloadNotificationId);
+      await _notifications.cancel(id: _downloadNotificationId);
 
       String title = S.current.downloadCompleteNotificationTitle(task.filename);
       String body = S.current.clickToJumpToDownloadManager;
@@ -305,13 +307,12 @@ class NotificationManager {
       );
 
       await _notifications.show(
-        _downloadNotificationId + 1,
-        title,
-        body,
-        notificationDetails,
+        id: _downloadNotificationId + 1,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
         payload: 'download_complete',
       );
-
     } catch (e) {
       log('显示单个文件下载完成通知失败: $e');
     }
@@ -320,7 +321,7 @@ class NotificationManager {
   /// 取消下载通知
   static Future<void> cancelDownloadNotification() async {
     try {
-      await _notifications.cancel(_downloadNotificationId);
+      await _notifications.cancel(id: _downloadNotificationId);
     } catch (e) {
       log('取消下载通知失败: $e');
     }
@@ -333,13 +334,5 @@ class NotificationManager {
     } catch (e) {
       log('取消所有通知失败: $e');
     }
-  }
-
-  /// 格式化字节大小
-  static String _formatBytes(int bytes) {
-    if (bytes < 1024) return '${bytes}B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)}GB';
   }
 }
