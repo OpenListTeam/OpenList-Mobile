@@ -815,8 +815,7 @@ class _FilesController extends GetxController {
 
   Future<void> pickAndUploadFiles(FilePickType type) async {
     try {
-      final picked = await FilePicker.platform.pickFiles(
-        allowMultiple: true,
+      final picked = await FilePicker.pickFiles(
         type: switch (type) {
           FilePickType.image => FileType.image,
           FilePickType.video => FileType.video,
@@ -824,52 +823,55 @@ class _FilesController extends GetxController {
         },
       );
 
-      if (picked == null || picked.files.isEmpty) {
-        return;
-      }
+      if (picked.isEmpty) return;
 
       final dir = currentPath.value;
       final password = passwordFor(dir);
       final fs = _session.fs;
+      final jobs = <UploadJob>[];
+      for (final f in picked) {
+        final path = f.path;
+        if (path == null) continue;
+        final size = await f.length() ?? 0;
+        jobs.add(
+          UploadJob(
+            name: f.name,
+            dir: dir,
+            size: size,
+            run: (token, onProgress) {
+              final dstPath = OpenListClient.join(dir, f.name);
+              return NativeUploader.instance.upload(
+                fs.client,
+                filePath: path,
+                dstPath: dstPath,
+                title: f.name,
+                dir: dir,
+                size: size,
+                password: password,
+                onProgress: onProgress,
+                cancelToken: token,
+                fallback: () async {
+                  final file = File(path);
+                  await fs.upload(
+                    dstPath,
+                    file.openRead(),
+                    await file.length(),
+                    password: password,
+                    onProgress: onProgress,
+                    cancelToken: token,
+                  );
+                },
+              );
+            },
+          ),
+        );
+      }
+      UploadQueue.instance.addAll(jobs);
 
-      // Queue upload jobs for each selected file
-      UploadQueue.instance.addAll([
-        for (final f in picked.files)
-          if (f.path != null)
-            UploadJob(
-              name: f.name,
-              dir: dir,
-              size: f.size,
-              run: (token, onProgress) {
-                final dstPath = OpenListClient.join(dir, f.name);
-                return NativeUploader.instance.upload(
-                  fs.client,
-                  filePath: f.path!,
-                  dstPath: dstPath,
-                  title: f.name,
-                  dir: dir,
-                  size: f.size,
-                  password: password,
-                  onProgress: onProgress,
-                  cancelToken: token,
-                  fallback: () async {
-                    final file = File(f.path!);
-                    await fs.upload(
-                      dstPath,
-                      file.openRead(),
-                      await file.length(),
-                      password: password,
-                      onProgress: onProgress,
-                      cancelToken: token,
-                    );
-                  },
-                );
-              },
-            ),
-      ]);
-
-      Get.snackbar(S.current.info,
-          '${S.current.uploading} ${picked.files.length} ${S.current.files}');
+      Get.snackbar(
+        S.current.info,
+        '${S.current.uploading} ${jobs.length} ${S.current.files}',
+      );
     } catch (e) {
       Get.snackbar(S.current.error, S.current.uploadFailed);
       debugPrint('File picker failed: $e');

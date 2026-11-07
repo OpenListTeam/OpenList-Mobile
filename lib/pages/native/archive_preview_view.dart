@@ -201,7 +201,7 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
           final input = await extracted.file.open();
           try {
             await input.setPosition(offset);
-            return input.read(1024 * 1024);
+            return await input.read(1024 * 1024);
           } finally {
             await input.close();
           }
@@ -235,18 +235,20 @@ class _ArchivePreviewViewState extends State<ArchivePreviewView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      if (_innerPath != '/')
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            onPressed: _loading ? null : _up,
-            icon: const Icon(Icons.arrow_upward),
-            label: Text(_innerPath),
+    return Column(
+      children: [
+        if (_innerPath != '/')
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: _loading ? null : _up,
+              icon: const Icon(Icons.arrow_upward),
+              label: Text(_innerPath),
+            ),
           ),
-        ),
-      Expanded(child: _body()),
-    ]);
+        Expanded(child: _body()),
+      ],
+    );
   }
 
   Widget _body() {

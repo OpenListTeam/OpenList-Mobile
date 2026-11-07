@@ -83,7 +83,7 @@ class CommonBridge: NSObject, NativeCommon {
     
     private func showToast(message: String, duration: TimeInterval) {
         DispatchQueue.main.async { [weak self] in
-            guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else {
+            guard let window = self?.viewController?.viewIfLoaded?.window ?? CommonBridge.foregroundWindow() else {
                 print("[CommonBridge] No key window found for toast")
                 return
             }
@@ -120,5 +120,18 @@ class CommonBridge: NSObject, NativeCommon {
                 }
             }
         }
+    }
+
+    private static func foregroundWindow() -> UIWindow? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        if !scenes.isEmpty {
+            let activeScenes = scenes.filter { $0.activationState == .foregroundActive }
+            let candidates = activeScenes.isEmpty ? scenes : activeScenes
+            if let window = candidates.compactMap({ $0.windows.first(where: { $0.isKeyWindow }) ?? $0.windows.first }).first {
+                return window
+            }
+        }
+        // Legacy app-delegate lifecycle (no scene manifest).
+        return UIApplication.shared.delegate?.window ?? nil
     }
 }

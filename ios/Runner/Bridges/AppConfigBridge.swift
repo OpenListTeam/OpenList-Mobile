@@ -1,7 +1,7 @@
 import Flutter
 import Foundation
 import UIKit
-import MobileCoreServices
+import UniformTypeIdentifiers
 
 /// Bridge implementation for App Configuration APIs
 class AppConfigBridge: NSObject, AppConfig {
@@ -171,7 +171,7 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
             return
         }
         pickerCompletion = completion
-        let picker = UIDocumentPickerViewController(documentTypes: [kUTTypeFolder as String], in: .open)
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder], asCopy: false)
         picker.delegate = self
         picker.allowsMultipleSelection = false
         controller.present(picker, animated: true)
@@ -241,7 +241,7 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
 
     func truncateFile(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void) {
         withFileHandle(fileReference: fileReference, completion: completion) { handle in
-            handle.truncateFile(atOffset: 0)
+            try handle.truncate(atOffset: 0)
         }
     }
 
@@ -251,14 +251,14 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
             return
         }
         withFileHandle(fileReference: fileReference, completion: completion) { handle in
-            handle.seek(toFileOffset: UInt64(offset))
-            handle.write(data.data)
+            _ = try handle.seek(toOffset: UInt64(offset))
+            try handle.write(contentsOf: data.data)
         }
     }
 
     func flushFile(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void) {
         withFileHandle(fileReference: fileReference, completion: completion) { handle in
-            handle.synchronizeFile()
+            try handle.synchronize()
         }
     }
 
@@ -367,13 +367,16 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
     }
 
     private func presentingController() -> UIViewController? {
-        if #available(iOS 13.0, *) {
-            return UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap { $0.windows }
-                .first(where: { $0.isKeyWindow })?.rootViewController
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        if !scenes.isEmpty {
+            let activeScenes = scenes.filter { $0.activationState == .foregroundActive }
+            let candidates = activeScenes.isEmpty ? scenes : activeScenes
+            let window = candidates.compactMap { $0.windows.first(where: { $0.isKeyWindow }) ?? $0.windows.first }.first
+            return window?.rootViewController
         }
-        return UIApplication.shared.keyWindow?.rootViewController
+        // Legacy app-delegate lifecycle (no scene manifest).
+        let delegateWindow = UIApplication.shared.delegate?.window ?? nil
+        return delegateWindow?.rootViewController
     }
 
     private func defaultDirectory() throws -> DirectoryHandle {
@@ -469,9 +472,9 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
         let size = (attributes[.size] as? NSNumber)?.int64Value ?? 0
         let modified = (attributes[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
         var mime: String?
-        if let identifier = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, url.pathExtension as CFString, nil)?.takeRetainedValue(),
-           let value = UTTypeCopyPreferredTagWithClass(identifier, kUTTagClassMIMEType)?.takeRetainedValue() {
-            mime = value as String
+        if let type = UTType(filenameExtension: url.pathExtension),
+           let value = type.preferredMIMEType {
+            mime = value
         }
         return DownloadFile(reference: reference, directoryReference: directory.reference, name: name, size: size, modifiedAt: Int64(modified * 1000), mimeType: mime)
     }
@@ -479,10 +482,13 @@ final class DownloadStorageBridge: NSObject, DownloadStorage, UIDocumentPickerDe
     private func withFileHandle(fileReference: String, completion: @escaping (Result<Void, Error>) -> Void, operation: (FileHandle) throws -> Void) {
         do {
             let file = try file(reference: fileReference)
-            guard let handle = FileHandle(forUpdatingAtPath: file.url.path) else {
+            let handle: FileHandle
+            do {
+                handle = try FileHandle(forUpdating: file.url)
+            } catch {
                 throw PigeonError(code: "file-open-failed", message: "Cannot open download file", details: nil)
             }
-            defer { handle.closeFile() }
+            defer { try? handle.close() }
             try operation(handle)
             completion(.success(()))
         } catch {

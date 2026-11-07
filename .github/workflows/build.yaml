@@ -121,7 +121,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.7'
+          flutter-version: '3.47.9'
 
       - name: Run Dart Unit Tests
         run: |
@@ -219,7 +219,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.7'
+          flutter-version: '3.47.9'
 
       # Also generates the Gradle wrapper and local.properties used below.
       # app/build.gradle always splits per ABI, so Flutter must expect splits.
@@ -308,7 +308,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.7'
+          flutter-version: '3.47.9'
 
       - name: Generate iOS Build Number
         run: |

@@ -44,29 +44,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final controller = Get.put(_SettingsController());
     return Scaffold(
-        body: Obx(
-      () => ListView(
-        children: [
-          // SizedBox(height: MediaQuery.of(context).padding.top),
-          // Android-specific permission requests
-          if (Platform.isAndroid) ...[
-            Visibility(
-              visible: !controller._managerStorageGranted.value ||
-                  !controller._notificationGranted.value ||
-                  !controller._storageGranted.value,
-              child: DividerPreference(title: S.of(context).importantSettings),
-            ),
-            Visibility(
-              visible: !controller._managerStorageGranted.value,
-              child: BasicPreference(
-                title: S.of(context).grantManagerStoragePermission,
-                subtitle: S.of(context).grantStoragePermissionDesc,
-                onTap: () {
-                  Permission.manageExternalStorage.request();
-                },
+      body: Obx(
+        () => ListView(
+          children: [
+            // SizedBox(height: MediaQuery.of(context).padding.top),
+            // Android-specific permission requests
+            if (Platform.isAndroid) ...[
+              Visibility(
+                visible: !controller._managerStorageGranted.value ||
+                    !controller._notificationGranted.value ||
+                    !controller._storageGranted.value,
+                child: DividerPreference(
+                  title: S.of(context).importantSettings,
+                ),
               ),
-            ),
-            Visibility(
+              Visibility(
+                visible: !controller._managerStorageGranted.value,
+                child: BasicPreference(
+                  title: S.of(context).grantManagerStoragePermission,
+                  subtitle: S.of(context).grantStoragePermissionDesc,
+                  onTap: () {
+                    Permission.manageExternalStorage.request();
+                  },
+                ),
+              ),
+              Visibility(
                 visible: !controller._storageGranted.value,
                 child: BasicPreference(
                   title: S.of(context).grantStoragePermission,
@@ -83,101 +85,106 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () {
                     Permission.notification.request();
                   },
-                )),
-          ], // End of Android-specific permissions
+                ),
+              ),
+            ], // End of Android-specific permissions
 
-          DividerPreference(title: S.of(context).general),
+            DividerPreference(title: S.of(context).general),
 
-          // Language Settings
-          BasicPreference(
-            title: S.of(context).language,
-            subtitle: _getLanguageDisplayName(),
-            leading: const Icon(Icons.language),
-            onTap: () {
-              _showLanguageSelectionDialog(context);
-            },
-          ),
-
-          SwitchPreference(
-            title: S.of(context).autoCheckForUpdates,
-            subtitle: S.of(context).autoCheckForUpdatesDesc,
-            icon: const Icon(Icons.system_update),
-            value: controller.autoUpdate,
-            onChanged: (value) {
-              controller.autoUpdate = value;
-            },
-          ),
-          if (Platform.isAndroid) ...[
-            SwitchPreference(
-              title: S.of(context).wakeLock,
-              subtitle: S.of(context).wakeLockDesc,
-              icon: const Icon(Icons.screen_lock_portrait),
-              value: controller.wakeLock,
-              onChanged: (value) {
-                controller.wakeLock = value;
-              },
-            ),
-            SwitchPreference(
-              title: S.of(context).bootAutoStartService,
-              subtitle: S.of(context).bootAutoStartServiceDesc,
-              icon: const Icon(Icons.power_settings_new),
-              value: controller.startAtBoot,
-              onChanged: (value) {
-                controller.startAtBoot = value;
-              },
-            ),
-          ],
-          // Data directory setting - only for Android
-          if (Platform.isAndroid)
+            // Language Settings
             BasicPreference(
-              title: S.of(context).dataDirectory,
-              subtitle: controller._dataDir.value,
-              leading: const Icon(Icons.folder),
-              onTap: () async {
-                final path = await FilePicker.platform.getDirectoryPath();
-
-                if (path == null) {
-                  Get.showSnackbar(GetSnackBar(
-                      message: S.current.setDefaultDirectory,
-                      duration: const Duration(seconds: 3),
-                      mainButton: TextButton(
-                        onPressed: () {
-                          controller.setDataDir("");
-                          Get.back();
-                        },
-                        child: Text(S.current.confirm),
-                      )));
-                } else {
-                  controller.setDataDir(path);
-                }
+              title: S.of(context).language,
+              subtitle: _getLanguageDisplayName(),
+              leading: const Icon(Icons.language),
+              onTap: () {
+                _showLanguageSelectionDialog(context);
               },
             ),
-          DividerPreference(title: S.of(context).uiSettings),
-          SwitchPreference(
+            SwitchPreference(
+              title: S.of(context).autoCheckForUpdates,
+              subtitle: S.of(context).autoCheckForUpdatesDesc,
+              icon: const Icon(Icons.system_update),
+              value: controller.autoUpdate,
+              onChanged: (value) {
+                controller.autoUpdate = value;
+              },
+            ),
+            if (Platform.isAndroid) ...[
+              SwitchPreference(
+                title: S.of(context).wakeLock,
+                subtitle: S.of(context).wakeLockDesc,
+                icon: const Icon(Icons.screen_lock_portrait),
+                value: controller.wakeLock,
+                onChanged: (value) {
+                  controller.wakeLock = value;
+                },
+              ),
+              SwitchPreference(
+                title: S.of(context).bootAutoStartService,
+                subtitle: S.of(context).bootAutoStartServiceDesc,
+                icon: const Icon(Icons.power_settings_new),
+                value: controller.startAtBoot,
+                onChanged: (value) {
+                  controller.startAtBoot = value;
+                },
+              ),
+            ],
+            // Data directory setting - only for Android
+            if (Platform.isAndroid)
+              BasicPreference(
+                title: S.of(context).dataDirectory,
+                subtitle: controller._dataDir.value,
+                leading: const Icon(Icons.folder),
+                onTap: () async {
+                  final path = await FilePicker.getDirectoryPath();
+
+                  if (path == null) {
+                    Get.showSnackbar(
+                      GetSnackBar(
+                        message: S.current.setDefaultDirectory,
+                        duration: const Duration(seconds: 3),
+                        mainButton: TextButton(
+                          onPressed: () {
+                            controller.setDataDir("");
+                            Get.back();
+                          },
+                          child: Text(S.current.confirm),
+                        ),
+                      ),
+                    );
+                  } else {
+                    controller.setDataDir(path);
+                  }
+                },
+              ),
+            DividerPreference(title: S.of(context).uiSettings),
+            SwitchPreference(
               icon: const Icon(Icons.pan_tool_alt_outlined),
               title: S.of(context).silentJumpApp,
               subtitle: S.of(context).silentJumpAppDesc,
               value: controller._silentJumpApp.value,
               onChanged: (value) {
                 controller.silentJumpApp = value;
-              }),
+              },
+            ),
 
-          BasicPreference(
-            title: S.of(context).troubleshooting,
-            subtitle: S.of(context).troubleshootingDesc,
-            leading: const Icon(Icons.help_outline),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TroubleshootingPage(),
-                ),
-              );
-            },
-          ),
-        ],
+            BasicPreference(
+              title: S.of(context).troubleshooting,
+              subtitle: S.of(context).troubleshootingDesc,
+              leading: const Icon(Icons.help_outline),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TroubleshootingPage(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   String _getLanguageDisplayName() {
@@ -288,21 +295,14 @@ class _SettingsController extends GetxController {
 
     _dataDir.value = await cfg.getDataDir();
 
+    if (!Platform.isAndroid) return;
     final sdk = await NativeBridge.common.getDeviceSdkInt();
-    // A11
-    if (sdk >= 30) {
-      _managerStorageGranted.value =
-          await Permission.manageExternalStorage.isGranted;
-    } else {
-      _managerStorageGranted.value = true;
-      _storageGranted.value = await Permission.storage.isGranted;
-    }
-
-    // A12
-    if (sdk >= 32) {
-      _notificationGranted.value = await Permission.notification.isGranted;
-    } else {
-      _notificationGranted.value = true;
-    }
+    _managerStorageGranted.value =
+        sdk < 30 || await Permission.manageExternalStorage.isGranted;
+    _storageGranted.value = sdk >= 33 ||
+        (sdk >= 30 && _managerStorageGranted.value) ||
+        await Permission.storage.isGranted;
+    _notificationGranted.value =
+        sdk < 33 || await Permission.notification.isGranted;
   }
 }

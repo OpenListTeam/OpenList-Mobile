@@ -7,7 +7,7 @@ import 'package:openlist_mobile/generated/l10n.dart';
 import 'package:openlist_mobile/utils/download_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class _FilePicker extends FilePicker {
+class _FilePicker extends FilePickerPlatform {
   _FilePicker(this.directory);
 
   final String? directory;
@@ -15,8 +15,11 @@ class _FilePicker extends FilePicker {
   @override
   Future<String?> getDirectoryPath({
     String? dialogTitle,
-    bool lockParentWindow = false,
     String? initialDirectory,
+    AndroidOptions androidOptions = const AndroidOptions(),
+    WindowsOptions windowsOptions = const WindowsOptions(),
+    LinuxOptions linuxOptions = const LinuxOptions(),
+    WebOptions webOptions = const WebOptions(),
   }) async =>
       directory;
 }
@@ -24,31 +27,45 @@ class _FilePicker extends FilePicker {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  late FilePickerPlatform originalFilePicker;
+
   setUp(() async {
+    originalFilePicker = FilePickerPlatform.instance;
     SharedPreferences.setMockInitialValues({});
     await S.load(const Locale('en'));
   });
 
-  test('download directory and ask-before-download preferences persist',
-      () async {
-    final directory =
-        await Directory.systemTemp.createTemp('openlist-download-');
-    try {
-      expect(
-          await DownloadManager.setDownloadDirectory(directory.path), isTrue);
-      expect(await DownloadManager.getConfiguredDownloadDirectory(),
-          directory.path);
-      expect(await DownloadManager.getAskForDownloadDirectory(), isFalse);
-
-      await DownloadManager.setAskForDownloadDirectory(true);
-      expect(await DownloadManager.getAskForDownloadDirectory(), isTrue);
-
-      await DownloadManager.resetDownloadDirectory();
-      expect(await DownloadManager.getConfiguredDownloadDirectory(), isNull);
-    } finally {
-      await directory.delete(recursive: true);
-    }
+  tearDown(() {
+    FilePickerPlatform.instance = originalFilePicker;
   });
+
+  test(
+    'download directory and ask-before-download preferences persist',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'openlist-download-',
+      );
+      try {
+        expect(
+          await DownloadManager.setDownloadDirectory(directory.path),
+          isTrue,
+        );
+        expect(
+          await DownloadManager.getConfiguredDownloadDirectory(),
+          directory.path,
+        );
+        expect(await DownloadManager.getAskForDownloadDirectory(), isFalse);
+
+        await DownloadManager.setAskForDownloadDirectory(true);
+        expect(await DownloadManager.getAskForDownloadDirectory(), isTrue);
+
+        await DownloadManager.resetDownloadDirectory();
+        expect(await DownloadManager.getConfiguredDownloadDirectory(), isNull);
+      } finally {
+        await directory.delete(recursive: true);
+      }
+    },
+  );
 
   test('clearing downloads removes untracked files too', () async {
     final directory =
@@ -106,17 +123,33 @@ void main() {
     }
   });
 
-  test('dismissing the save-directory picker creates no download task',
-      () async {
-    FilePicker.platform = _FilePicker(null);
-    await DownloadManager.setAskForDownloadDirectory(true);
-
-    final result = await DownloadManager.downloadFileWithProgress(
-      url: 'https://files.example.test/archive.bin',
-      filename: 'archive.bin',
+  test('selecting a save directory returns its writable path', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'openlist-download-picker-',
     );
-
-    expect(result, isFalse);
-    expect(DownloadManager.activeTasks, isEmpty);
+    FilePickerPlatform.instance = _FilePicker(directory.path);
+    try {
+      final target = await DownloadManager.chooseDownloadDirectory();
+      expect(target?.directory?.path, directory.path);
+    } finally {
+      await DownloadManager.resetDownloadDirectory();
+      await directory.delete(recursive: true);
+    }
   });
+
+  test(
+    'dismissing the save-directory picker creates no download task',
+    () async {
+      FilePickerPlatform.instance = _FilePicker(null);
+      await DownloadManager.setAskForDownloadDirectory(true);
+
+      final result = await DownloadManager.downloadFileWithProgress(
+        url: 'https://files.example.test/archive.bin',
+        filename: 'archive.bin',
+      );
+
+      expect(result, isFalse);
+      expect(DownloadManager.activeTasks, isEmpty);
+    },
+  );
 }

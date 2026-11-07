@@ -122,38 +122,38 @@ class BackgroundDiagnostics {
 
 @HostApi()
 abstract class ServerApi {
-  @async
+  @asyncCallback
   void start();
 
-  @async
+  @asyncCallback
   void stop();
 
-  @async
+  @asyncCallback
   void restart();
 
-  @async
+  @asyncCallback
   ServerStatus getStatus();
 
   String getMode();
 
   void setMode(String mode);
 
-  @async
+  @asyncCallback
   void setAdminPassword(String pwd);
 
   /// Admin token for the in-app client, issued over private IPC only.
-  @async
+  @asyncCallback
   String getLocalToken();
 
   /// JSON produced by the Go core `RuntimeStatus`, plus process stats.
-  @async
+  @asyncCallback
   String getRuntimeStatus();
 
   /// JSON produced by the Go core `SecurityReport` for the given mode.
-  @async
+  @asyncCallback
   String getSecurityReport(String mode);
 
-  @async
+  @asyncCallback
   List<LogEntry> getRecentLogs();
 }
 
@@ -173,56 +173,56 @@ abstract class BackgroundApi {
 @HostApi()
 abstract class DownloadStorage {
   /// Returns the app's default download directory without exposing its path.
-  @async
+  @asyncCallback
   DownloadDirectory getDefaultDirectory();
 
   /// Presents the platform directory picker and persists its permission.
-  @async
+  @asyncCallback
   DownloadDirectory? chooseDirectory();
 
   /// Resets the selected directory to the platform default without deleting files.
-  @async
+  @asyncCallback
   void resetSelectedDirectory();
 
   /// Creates a temporary file reservation and returns its opaque reference.
-  @async
+  @asyncCallback
   DownloadFile reserveFile(String directoryReference, String filename);
 
-  @async
+  @asyncCallback
   int getFileLength(String fileReference);
 
-  @async
+  @asyncCallback
   void truncateFile(String fileReference);
 
-  @async
+  @asyncCallback
   void writeFile(String fileReference, int offset, Uint8List data);
 
-  @async
+  @asyncCallback
   void flushFile(String fileReference);
 
   /// Renames the reserved temporary file to its final name.
-  @async
+  @asyncCallback
   DownloadFile finalizeFile(String fileReference);
 
-  @async
+  @asyncCallback
   void discardFile(String fileReference);
 
-  @async
+  @asyncCallback
   DownloadFile? getFile(String fileReference);
 
-  @async
+  @asyncCallback
   List<DownloadFile> listFiles(String directoryReference);
 
-  @async
+  @asyncCallback
   void deleteFile(String fileReference);
 
-  @async
+  @asyncCallback
   void clearDirectory(String directoryReference);
 
-  @async
+  @asyncCallback
   bool openFile(String fileReference);
 
-  @async
+  @asyncCallback
   bool openDirectory(String directoryReference);
 }
 
@@ -307,24 +307,24 @@ abstract class UploadApi {
   /// Unfinished jobs resume sending events. Ids the platform no longer knows
   /// are left out of the result; results kept for ids not in [ids] are
   /// dropped, so Dart passes every id it still tracks.
-  @async
+  @asyncCallback
   List<UploadEvent> restore(List<String> ids);
 }
 
 @FlutterApi()
 abstract class UploadEventApi {
+  @asyncCallback
   void onUploadEvent(UploadEvent event);
 }
 
 @FlutterApi()
 abstract class Event {
+  @asyncCallback
   void onServiceStatusChanged(bool isRunning);
 
+  @asyncCallback
   void onServerStatus(ServerStatus status);
 
-  void onServerLog(
-    int level,
-    String time,
-    String log,
-  );
+  @asyncCallback
+  void onServerLog(int level, String time, String log);
 }

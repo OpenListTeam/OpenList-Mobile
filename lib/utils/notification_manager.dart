@@ -36,7 +36,7 @@ class NotificationManager {
       );
 
       await _notifications.initialize(
-        initializationSettings,
+        settings: initializationSettings,
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
@@ -87,7 +87,7 @@ class NotificationManager {
 
       if (activeTasks.isEmpty) {
         // 没有活跃下载任务，取消通知
-        await _notifications.cancel(_downloadNotificationId);
+        await _notifications.cancel(id: _downloadNotificationId);
         return;
       }
 
@@ -156,10 +156,10 @@ class NotificationManager {
       );
 
       await _notifications.show(
-        _downloadNotificationId,
-        title,
-        body,
-        notificationDetails,
+        id: _downloadNotificationId,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
         payload: 'download_progress',
       );
     } catch (e) {
@@ -184,7 +184,7 @@ class NotificationManager {
       }
 
       // 先取消进度通知
-      await _notifications.cancel(_downloadNotificationId);
+      await _notifications.cancel(id: _downloadNotificationId);
 
       // 获取最近完成的任务数量
       List<DownloadTask> completedTasks = DownloadManager.completedTasks
@@ -240,10 +240,10 @@ class NotificationManager {
       );
 
       await _notifications.show(
-        _downloadNotificationId + 1,
-        title,
-        body,
-        notificationDetails,
+        id: _downloadNotificationId + 1,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
         payload: 'download_complete',
       );
     } catch (e) {
@@ -269,7 +269,7 @@ class NotificationManager {
       }
 
       // 先取消进度通知
-      await _notifications.cancel(_downloadNotificationId);
+      await _notifications.cancel(id: _downloadNotificationId);
 
       String title = S.current.downloadCompleteNotificationTitle(task.filename);
       String body = S.current.clickToJumpToDownloadManager;
@@ -307,10 +307,10 @@ class NotificationManager {
       );
 
       await _notifications.show(
-        _downloadNotificationId + 1,
-        title,
-        body,
-        notificationDetails,
+        id: _downloadNotificationId + 1,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
         payload: 'download_complete',
       );
     } catch (e) {
@@ -321,7 +321,7 @@ class NotificationManager {
   /// 取消下载通知
   static Future<void> cancelDownloadNotification() async {
     try {
-      await _notifications.cancel(_downloadNotificationId);
+      await _notifications.cancel(id: _downloadNotificationId);
     } catch (e) {
       log('取消下载通知失败: $e');
     }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -35,8 +34,9 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
       final data = await OpenListSession.instance.admin
           .exportMedia(mediaType: mediaType);
       final bytes = Uint8List.fromList(
-          utf8.encode(const JsonEncoder.withIndent('  ').convert(data)));
-      final path = await FilePicker.platform.saveFile(
+        utf8.encode(const JsonEncoder.withIndent('  ').convert(data)),
+      );
+      final path = await FilePicker.saveFile(
         fileName: 'openlist-media-$mediaType.json',
         bytes: bytes,
       );
@@ -50,18 +50,12 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
 
   Future<void> _import(BuildContext context) async {
     try {
-      final selection = await FilePicker.platform.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: const ['json'],
-        withData: true,
       );
-      if (selection == null || selection.files.isEmpty) return;
-      final file = selection.files.single;
-      final bytes = file.bytes ??
-          (file.path == null ? null : await File(file.path!).readAsBytes());
-      if (bytes == null) {
-        throw const FormatException('Selected file is unreadable');
-      }
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
       final decoded = jsonDecode(utf8.decode(bytes));
       if (decoded is! Map) throw const FormatException('Invalid media export');
       await OpenListSession.instance.admin
@@ -105,31 +99,37 @@ class _MediaAdminPageState extends State<MediaAdminPage> {
           content: SizedBox(
             width: 480,
             child: SingleChildScrollView(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                if (keys.isEmpty) Text(S.current.adminEmpty),
-                for (final key in keys)
-                  ListTile(
-                    title: Text('${key['name'] ?? ''}'),
-                    subtitle: Text('${key['prefix'] ?? ''}'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () async {
-                        if (!await confirmDialog(
-                            context, S.current.adminMediaDeleteKeyConfirm,
-                            title: S.current.delete)) {
-                          return;
-                        }
-                        try {
-                          await api
-                              .deleteMediaAppKey((key['id'] as num).toInt());
-                          setDialogState(() => keys.remove(key));
-                        } catch (e) {
-                          showError(e);
-                        }
-                      },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (keys.isEmpty) Text(S.current.adminEmpty),
+                  for (final key in keys)
+                    ListTile(
+                      title: Text('${key['name'] ?? ''}'),
+                      subtitle: Text('${key['prefix'] ?? ''}'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () async {
+                          if (!await confirmDialog(
+                            context,
+                            S.current.adminMediaDeleteKeyConfirm,
+                            title: S.current.delete,
+                          )) {
+                            return;
+                          }
+                          try {
+                            await api.deleteMediaAppKey(
+                              (key['id'] as num).toInt(),
+                            );
+                            setDialogState(() => keys.remove(key));
+                          } catch (e) {
+                            showError(e);
+                          }
+                        },
+                      ),
                     ),
-                  ),
-              ]),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -480,162 +480,224 @@ class _MediaTypeAdminViewState extends State<_MediaTypeAdminView> {
     final progressDone = (_progress['done'] as num?)?.toInt() ?? 0;
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView(padding: const EdgeInsets.only(bottom: 24), children: [
-        SwitchListTile(
-          title: Text(S.current.adminMediaEnabled),
-          subtitle: Text(_mediaTypeLabel(widget.mediaType)),
-          value: enabled,
-          onChanged: _busy ? null : _setEnabled,
-        ),
-        Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(S.current.adminMediaProgress,
-                  style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Text(running
-                  ? '${S.current.adminMediaRunning}: $progressDone / $progressTotal'
-                  : S.current.adminMediaDone),
-              if ((_progress['message'] as String? ?? '').isNotEmpty)
-                Text('${_progress['message']}'),
-              if ((_progress['error'] as String? ?? '').isNotEmpty)
-                Text('${_progress['error']}'),
-            ]),
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 24),
+        children: [
+          SwitchListTile(
+            title: Text(S.current.adminMediaEnabled),
+            subtitle: Text(_mediaTypeLabel(widget.mediaType)),
+            value: enabled,
+            onChanged: _busy ? null : _setEnabled,
           ),
-        ),
-        Wrap(alignment: WrapAlignment.center, spacing: 8, children: [
-          FilledButton.tonal(
-              onPressed: _busy || !enabled
-                  ? null
-                  : () => _act(() => OpenListSession.instance.admin
-                      .startMediaScan(widget.mediaType)),
-              child: Text(S.current.adminMediaScan)),
-          FilledButton.tonal(
-              onPressed: _busy || !enabled
-                  ? null
-                  : () => _act(() => OpenListSession.instance.admin
-                      .startMediaScrape(widget.mediaType)),
-              child: Text(S.current.adminMediaScrape)),
-          PopupMenuButton<String>(
-            enabled: !_busy,
-            onSelected: (action) => switch (action) {
-              'clear' => _act(
-                  () => OpenListSession.instance.admin
-                      .clearMedia(widget.mediaType),
-                  confirm: true),
-              'scrape' => _act(
-                  () => OpenListSession.instance.admin
-                      .clearMediaScrape(mediaType: widget.mediaType),
-                  confirm: true),
-              _ => _act(
-                  () => OpenListSession.instance.admin
-                      .deleteInvalidMedia(mediaType: widget.mediaType),
-                  confirm: true),
-            },
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                  value: 'clear', child: Text(S.current.adminMediaClear)),
-              PopupMenuItem(
-                  value: 'scrape',
-                  child: Text(S.current.adminMediaClearScrape)),
-              PopupMenuItem(
-                  value: 'invalid',
-                  child: Text(S.current.adminMediaDeleteInvalid)),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    S.current.adminMediaProgress,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    running
+                        ? '${S.current.adminMediaRunning}: $progressDone / $progressTotal'
+                        : S.current.adminMediaDone,
+                  ),
+                  if ((_progress['message'] as String? ?? '').isNotEmpty)
+                    Text('${_progress['message']}'),
+                  if ((_progress['error'] as String? ?? '').isNotEmpty)
+                    Text('${_progress['error']}'),
+                ],
+              ),
+            ),
+          ),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            children: [
+              FilledButton.tonal(
+                onPressed: _busy || !enabled
+                    ? null
+                    : () => _act(
+                          () => OpenListSession.instance.admin.startMediaScan(
+                            widget.mediaType,
+                          ),
+                        ),
+                child: Text(S.current.adminMediaScan),
+              ),
+              FilledButton.tonal(
+                onPressed: _busy || !enabled
+                    ? null
+                    : () => _act(
+                          () => OpenListSession.instance.admin.startMediaScrape(
+                            widget.mediaType,
+                          ),
+                        ),
+                child: Text(S.current.adminMediaScrape),
+              ),
+              PopupMenuButton<String>(
+                enabled: !_busy,
+                onSelected: (action) => switch (action) {
+                  'clear' => _act(
+                      () => OpenListSession.instance.admin.clearMedia(
+                        widget.mediaType,
+                      ),
+                      confirm: true,
+                    ),
+                  'scrape' => _act(
+                      () => OpenListSession.instance.admin.clearMediaScrape(
+                        mediaType: widget.mediaType,
+                      ),
+                      confirm: true,
+                    ),
+                  _ => _act(
+                      () => OpenListSession.instance.admin.deleteInvalidMedia(
+                        mediaType: widget.mediaType,
+                      ),
+                      confirm: true,
+                    ),
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 'clear',
+                    child: Text(S.current.adminMediaClear),
+                  ),
+                  PopupMenuItem(
+                    value: 'scrape',
+                    child: Text(S.current.adminMediaClearScrape),
+                  ),
+                  PopupMenuItem(
+                    value: 'invalid',
+                    child: Text(S.current.adminMediaDeleteInvalid),
+                  ),
+                ],
+              ),
             ],
           ),
-        ]),
-        ListTile(
-          title: Text(S.current.adminMediaScanPaths),
-          trailing: IconButton(
+          ListTile(
+            title: Text(S.current.adminMediaScanPaths),
+            trailing: IconButton(
               onPressed: _busy ? null : () => _editPath(),
-              icon: const Icon(Icons.add)),
-        ),
-        for (final path in _paths)
+              icon: const Icon(Icons.add),
+            ),
+          ),
+          for (final path in _paths)
+            ListTile(
+              title: Text('${path['name'] ?? path['path'] ?? ''}'),
+              subtitle: Text('${path['path'] ?? ''}'),
+              trailing: PopupMenuButton<String>(
+                onSelected: (action) => switch (action) {
+                  'edit' => _editPath(path),
+                  'scan' => _act(
+                      () => OpenListSession.instance.admin.startMediaScan(
+                        widget.mediaType,
+                        scanPathId: (path['id'] as num).toInt(),
+                      ),
+                    ),
+                  'clear' => _act(
+                      () => OpenListSession.instance.admin.clearMediaScanPath(
+                        (path['id'] as num).toInt(),
+                      ),
+                      confirm: true,
+                    ),
+                  _ => _act(
+                      () => OpenListSession.instance.admin.deleteMediaScanPath(
+                        (path['id'] as num).toInt(),
+                      ),
+                      confirm: true,
+                    ),
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'edit', child: Text(S.current.edit)),
+                  PopupMenuItem(
+                    value: 'scan',
+                    child: Text(S.current.adminMediaScan),
+                  ),
+                  PopupMenuItem(
+                    value: 'clear',
+                    child: Text(S.current.adminMediaClear),
+                  ),
+                  PopupMenuItem(value: 'delete', child: Text(S.current.delete)),
+                ],
+              ),
+            ),
           ListTile(
-            title: Text('${path['name'] ?? path['path'] ?? ''}'),
-            subtitle: Text('${path['path'] ?? ''}'),
-            trailing: PopupMenuButton<String>(
-              onSelected: (action) => switch (action) {
-                'edit' => _editPath(path),
-                'scan' => _act(() => OpenListSession.instance.admin
-                    .startMediaScan(widget.mediaType,
-                        scanPathId: (path['id'] as num).toInt())),
-                'clear' => _act(
-                    () => OpenListSession.instance.admin
-                        .clearMediaScanPath((path['id'] as num).toInt()),
-                    confirm: true),
-                _ => _act(
-                    () => OpenListSession.instance.admin
-                        .deleteMediaScanPath((path['id'] as num).toInt()),
-                    confirm: true),
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(value: 'edit', child: Text(S.current.edit)),
-                PopupMenuItem(
-                    value: 'scan', child: Text(S.current.adminMediaScan)),
-                PopupMenuItem(
-                    value: 'clear', child: Text(S.current.adminMediaClear)),
-                PopupMenuItem(value: 'delete', child: Text(S.current.delete)),
+            title: Text('${S.current.files} ($_total)'),
+            trailing: Wrap(
+              children: [
+                IconButton(
+                  tooltip: S.current.adminPreviousPage,
+                  onPressed: _page > 1
+                      ? () {
+                          setState(() => _page--);
+                          _load();
+                        }
+                      : null,
+                  icon: const Icon(Icons.chevron_left),
+                ),
+                IconButton(
+                  tooltip: S.current.adminNextPage,
+                  onPressed: _page * _pageSize < _total
+                      ? () {
+                          setState(() => _page++);
+                          _load();
+                        }
+                      : null,
+                  icon: const Icon(Icons.chevron_right),
+                ),
               ],
             ),
           ),
-        ListTile(
-          title: Text('${S.current.files} ($_total)'),
-          trailing: Wrap(children: [
-            IconButton(
-                tooltip: S.current.adminPreviousPage,
-                onPressed: _page > 1
-                    ? () {
-                        setState(() => _page--);
-                        _load();
-                      }
-                    : null,
-                icon: const Icon(Icons.chevron_left)),
-            IconButton(
-                tooltip: S.current.adminNextPage,
-                onPressed: _page * _pageSize < _total
-                    ? () {
-                        setState(() => _page++);
-                        _load();
-                      }
-                    : null,
-                icon: const Icon(Icons.chevron_right)),
-          ]),
-        ),
-        for (final item in _items)
-          ListTile(
-            title: Text('${item['scraped_name'] ?? ''}'.isNotEmpty
-                ? '${item['scraped_name']}'
-                : '${item['file_name'] ?? ''}'),
-            subtitle: Text('${item['folder_path'] ?? ''}',
-                maxLines: 1, overflow: TextOverflow.ellipsis),
-            trailing: PopupMenuButton<String>(
-              onSelected: (action) async {
-                if (action == 'edit') {
-                  await _editItem(item);
-                } else if (action == 'scrape') {
-                  await _act(() => OpenListSession.instance.admin
-                      .startMediaScrape(widget.mediaType,
-                          itemId: (item['id'] as num).toInt()));
-                } else if (await confirmDialog(
-                    context, S.current.adminMediaConfirmClear,
-                    title: S.current.delete)) {
-                  await _act(() => OpenListSession.instance.admin
-                      .deleteAdminMediaItem((item['id'] as num).toInt()));
-                }
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(value: 'edit', child: Text(S.current.edit)),
-                PopupMenuItem(
-                    value: 'scrape', child: Text(S.current.adminMediaScrape)),
-                PopupMenuItem(value: 'delete', child: Text(S.current.delete)),
-              ],
+          for (final item in _items)
+            ListTile(
+              title: Text(
+                '${item['scraped_name'] ?? ''}'.isNotEmpty
+                    ? '${item['scraped_name']}'
+                    : '${item['file_name'] ?? ''}',
+              ),
+              subtitle: Text(
+                '${item['folder_path'] ?? ''}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: PopupMenuButton<String>(
+                onSelected: (action) async {
+                  if (action == 'edit') {
+                    await _editItem(item);
+                  } else if (action == 'scrape') {
+                    await _act(
+                      () => OpenListSession.instance.admin.startMediaScrape(
+                        widget.mediaType,
+                        itemId: (item['id'] as num).toInt(),
+                      ),
+                    );
+                  } else if (await confirmDialog(
+                    context,
+                    S.current.adminMediaConfirmClear,
+                    title: S.current.delete,
+                  )) {
+                    await _act(
+                      () => OpenListSession.instance.admin.deleteAdminMediaItem(
+                        (item['id'] as num).toInt(),
+                      ),
+                    );
+                  }
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'edit', child: Text(S.current.edit)),
+                  PopupMenuItem(
+                    value: 'scrape',
+                    child: Text(S.current.adminMediaScrape),
+                  ),
+                  PopupMenuItem(value: 'delete', child: Text(S.current.delete)),
+                ],
+              ),
             ),
-          ),
-      ]),
+        ],
+      ),
     );
   }
 }

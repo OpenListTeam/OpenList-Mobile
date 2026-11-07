@@ -387,7 +387,7 @@ class DownloadManager {
         _notifyChanged(filesChanged: true);
         return DownloadDirectoryTarget.native(directory);
       }
-      final path = await FilePicker.platform.getDirectoryPath(
+      final path = await FilePicker.getDirectoryPath(
         dialogTitle: S.current.downloadDirectory,
       );
       if (path == null || path.trim().isEmpty) return null;
@@ -453,12 +453,15 @@ class DownloadManager {
                 selectedPath
                     .startsWith('$privatePath${Platform.pathSeparator}'));
         if (!isAppPrivate) {
-          var storageGranted = await Permission.storage.isGranted;
+          final sdk = await NativeBridge.common.getDeviceSdkInt();
+          var storageGranted = sdk <= 32 && await Permission.storage.isGranted;
           var allFilesGranted =
-              await Permission.manageExternalStorage.isGranted;
+              sdk >= 30 && await Permission.manageExternalStorage.isGranted;
           if (!storageGranted && !allFilesGranted) {
-            storageGranted = (await Permission.storage.request()).isGranted;
-            if (!storageGranted) {
+            if (sdk <= 32) {
+              storageGranted = (await Permission.storage.request()).isGranted;
+            }
+            if (!storageGranted && sdk >= 30) {
               allFilesGranted =
                   (await Permission.manageExternalStorage.request()).isGranted;
             }
@@ -583,15 +586,17 @@ class DownloadManager {
       }
       _notifyChanged(persistHistory: true, filesChanged: true);
       unawaited(NotificationManager.showSingleFileCompleteNotification(task));
-      _showSnackbar(getx.GetSnackBar(
-        message: S.current.downloadCompleteFile(task.filename),
-        duration: const Duration(seconds: 3),
-        backgroundColor: Colors.blue,
-        mainButton: TextButton(
-          onPressed: () => unawaited(_openTaskFile(task)),
-          child: Text(S.current.open),
+      _showSnackbar(
+        getx.GetSnackBar(
+          message: S.current.downloadCompleteFile(task.filename),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.blue,
+          mainButton: TextButton(
+            onPressed: () => unawaited(_openTaskFile(task)),
+            child: Text(S.current.open),
+          ),
         ),
-      ));
+      );
       return true;
     } catch (error) {
       final cancelled = task.status == DownloadStatus.cancelling ||
@@ -933,15 +938,17 @@ class DownloadManager {
       _notifyChanged(persistHistory: true, filesChanged: true);
 
       await NotificationManager.showSingleFileCompleteNotification(task);
-      _showSnackbar(getx.GetSnackBar(
-        message: S.current.downloadCompleteFile(task.filename),
-        duration: const Duration(seconds: 3),
-        backgroundColor: Colors.blue,
-        mainButton: TextButton(
-          onPressed: () => unawaited(_openTaskFile(task)),
-          child: Text(S.current.open),
+      _showSnackbar(
+        getx.GetSnackBar(
+          message: S.current.downloadCompleteFile(task.filename),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.blue,
+          mainButton: TextButton(
+            onPressed: () => unawaited(_openTaskFile(task)),
+            child: Text(S.current.open),
+          ),
         ),
-      ));
+      );
       log('文件下载完成: ${task.filename}');
       return true;
     } catch (error) {
@@ -1270,27 +1277,31 @@ class DownloadManager {
           break;
         case ResultType.noAppToOpen:
           if (_isApkFile(filePath)) {
-            _showSnackbar(getx.GetSnackBar(
-              message: S.current.cannotInstallApkNeedPermission,
-              duration: const Duration(seconds: 5),
-              mainButton: TextButton(
-                onPressed: () {
-                  openAppSettings();
-                },
-                child: Text(S.current.goToSettings),
+            _showSnackbar(
+              getx.GetSnackBar(
+                message: S.current.cannotInstallApkNeedPermission,
+                duration: const Duration(seconds: 5),
+                mainButton: TextButton(
+                  onPressed: () {
+                    openAppSettings();
+                  },
+                  child: Text(S.current.goToSettings),
+                ),
               ),
-            ));
+            );
           } else {
-            _showSnackbar(getx.GetSnackBar(
-              message: S.current.noAppToOpenFile,
-              duration: const Duration(seconds: 3),
-              mainButton: TextButton(
-                onPressed: () {
-                  _showFileLocation(filePath);
-                },
-                child: Text(S.current.viewLocation),
+            _showSnackbar(
+              getx.GetSnackBar(
+                message: S.current.noAppToOpenFile,
+                duration: const Duration(seconds: 3),
+                mainButton: TextButton(
+                  onPressed: () {
+                    _showFileLocation(filePath);
+                  },
+                  child: Text(S.current.viewLocation),
+                ),
               ),
-            ));
+            );
           }
           break;
         case ResultType.fileNotFound:
@@ -1301,16 +1312,18 @@ class DownloadManager {
           break;
         case ResultType.permissionDenied:
           if (_isApkFile(filePath)) {
-            _showSnackbar(getx.GetSnackBar(
-              message: S.current.noPermissionToInstallApkFile,
-              duration: const Duration(seconds: 5),
-              mainButton: TextButton(
-                onPressed: () {
-                  openAppSettings();
-                },
-                child: Text(S.current.goToSettings),
+            _showSnackbar(
+              getx.GetSnackBar(
+                message: S.current.noPermissionToInstallApkFile,
+                duration: const Duration(seconds: 5),
+                mainButton: TextButton(
+                  onPressed: () {
+                    openAppSettings();
+                  },
+                  child: Text(S.current.goToSettings),
+                ),
               ),
-            ));
+            );
           } else {
             _showSnackbar(getx.GetSnackBar(
               message: S.current.noPermissionToOpenFile,
@@ -1319,30 +1332,34 @@ class DownloadManager {
           }
           break;
         case ResultType.error:
-          _showSnackbar(getx.GetSnackBar(
-            message: S.current.openFileFailed(result.message),
-            duration: const Duration(seconds: 3),
-            mainButton: TextButton(
-              onPressed: () {
-                _showFileLocation(filePath);
-              },
-              child: Text(S.current.viewLocation),
+          _showSnackbar(
+            getx.GetSnackBar(
+              message: S.current.openFileFailed(result.message),
+              duration: const Duration(seconds: 3),
+              mainButton: TextButton(
+                onPressed: () {
+                  _showFileLocation(filePath);
+                },
+                child: Text(S.current.viewLocation),
+              ),
             ),
-          ));
+          );
           break;
       }
     } catch (e) {
       log('打开文件异常: $e');
-      _showSnackbar(getx.GetSnackBar(
-        message: S.current.openFileException(e.toString()),
-        duration: const Duration(seconds: 3),
-        mainButton: TextButton(
-          onPressed: () {
-            _showFileLocation(filePath);
-          },
-          child: Text(S.current.viewLocation),
+      _showSnackbar(
+        getx.GetSnackBar(
+          message: S.current.openFileException(e.toString()),
+          duration: const Duration(seconds: 3),
+          mainButton: TextButton(
+            onPressed: () {
+              _showFileLocation(filePath);
+            },
+            child: Text(S.current.viewLocation),
+          ),
         ),
-      ));
+      );
     }
   }
 
@@ -1499,7 +1516,9 @@ class DownloadManager {
       final target = await getDownloadDirectoryTarget();
       if (target == null) return false;
       if (target.isNative) {
-        return NativeBridge.downloadStorage.openDirectory(target.reference);
+        return await NativeBridge.downloadStorage.openDirectory(
+          target.reference,
+        );
       }
       final directory = target.directory!;
       await openFileManager(

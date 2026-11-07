@@ -77,8 +77,8 @@ class _TlsPageState extends State<TlsPage> {
 
   /// Copies a picked PEM file into the data dir and remembers its path.
   Future<void> _pick({required bool key}) async {
-    final picked = await FilePicker.platform.pickFiles();
-    final path = picked?.files.single.path;
+    final picked = await FilePicker.pickFile();
+    final path = picked?.path;
     if (path == null) return;
     try {
       final text = await File(path).readAsString();

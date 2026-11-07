@@ -200,17 +200,19 @@ class _ServerEvents extends Event {
   final ServiceManager _m;
 
   @override
-  void onServiceStatusChanged(bool isRunning) {
+  Future<void> onServiceStatusChanged(bool isRunning) async {
     // iOS only sends the boolean; refresh the full status there.
     _m._updateServiceStatus(isRunning);
     if (Platform.isIOS) unawaited(_m.checkServiceStatus());
   }
 
   @override
-  void onServerStatus(ServerStatus status) => _m._onStatus(status);
+  Future<void> onServerStatus(ServerStatus status) async {
+    _m._onStatus(status);
+  }
 
   @override
-  void onServerLog(int level, String time, String log) {
+  Future<void> onServerLog(int level, String time, String log) async {
     if (!_m._logController.isClosed) {
       _m._logController.add(LogEntry(level: level, time: time, message: log));
     }

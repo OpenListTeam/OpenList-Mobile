@@ -67,7 +67,7 @@ class NativeUploader {
   static const _maxEarly = 256;
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(migrateWithBackup: true),
   );
 
   bool _listening = false;
@@ -581,5 +581,7 @@ class _EventHandler extends UploadEventApi {
   final NativeUploader _uploader;
 
   @override
-  void onUploadEvent(UploadEvent event) => _uploader._onEvent(event);
+  Future<void> onUploadEvent(UploadEvent event) async {
+    _uploader._onEvent(event);
+  }
 }

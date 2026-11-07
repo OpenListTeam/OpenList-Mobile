@@ -62,9 +62,9 @@ if ! ls *.go >/dev/null 2>&1; then
 fi
 
 if [ "$1" == "debug" ]; then
-  gomobile bind -ldflags "$ldflags" -v -androidapi 19 -target="android/arm64"
+  gomobile bind -ldflags "$ldflags" -v -androidapi 24 -target="android/arm64"
 else
-  gomobile bind -ldflags "$ldflags" -v -androidapi 19
+  gomobile bind -ldflags "$ldflags" -v -androidapi 24
 fi
 
 echo "Moving aar and jar files to android/app/libs"

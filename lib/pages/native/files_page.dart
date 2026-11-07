@@ -239,47 +239,52 @@ class _FilesPageState extends State<FilesPage> {
   }
 
   Future<void> _upload() async {
-    final picked = await FilePicker.platform.pickFiles(allowMultiple: true);
-    if (picked == null) return;
+    final picked = await FilePicker.pickFiles();
+    if (picked.isEmpty) return;
     final dir = _path;
     final fs = _session.fs;
     final password = _passwordFor(dir);
-    UploadQueue.instance.addAll([
-      for (final f in picked.files)
-        if (f.path != null)
-          UploadJob(
-            name: f.name,
-            dir: dir,
-            size: f.size,
-            // Each attempt is a new native job, or reopens the file on the
-            // Dart path, so retries work.
-            run: (token, onProgress) {
-              final dstPath = OpenListClient.join(dir, f.name);
-              return NativeUploader.instance.upload(
-                fs.client,
-                filePath: f.path!,
-                dstPath: dstPath,
-                title: f.name,
-                dir: dir,
-                size: f.size,
-                password: password,
-                onProgress: onProgress,
-                cancelToken: token,
-                fallback: () async {
-                  final file = File(f.path!);
-                  await fs.upload(
-                    dstPath,
-                    file.openRead(),
-                    await file.length(),
-                    password: password,
-                    onProgress: onProgress,
-                    cancelToken: token,
-                  );
-                },
-              );
-            },
-          ),
-    ]);
+    final jobs = <UploadJob>[];
+    for (final f in picked) {
+      final path = f.path;
+      if (path == null) continue;
+      final size = await f.length() ?? 0;
+      jobs.add(
+        UploadJob(
+          name: f.name,
+          dir: dir,
+          size: size,
+          // Each attempt is a new native job, or reopens the file on the
+          // Dart path, so retries work.
+          run: (token, onProgress) {
+            final dstPath = OpenListClient.join(dir, f.name);
+            return NativeUploader.instance.upload(
+              fs.client,
+              filePath: path,
+              dstPath: dstPath,
+              title: f.name,
+              dir: dir,
+              size: size,
+              password: password,
+              onProgress: onProgress,
+              cancelToken: token,
+              fallback: () async {
+                final file = File(path);
+                await fs.upload(
+                  dstPath,
+                  file.openRead(),
+                  await file.length(),
+                  password: password,
+                  onProgress: onProgress,
+                  cancelToken: token,
+                );
+              },
+            );
+          },
+        ),
+      );
+    }
+    UploadQueue.instance.addAll(jobs);
   }
 
   void _showActions(FsObject o) {
@@ -297,24 +302,40 @@ class _FilesPageState extends State<FilesPage> {
               },
             );
         return SafeArea(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ListTile(
-                title:
-                    Text(o.name, maxLines: 2, overflow: TextOverflow.ellipsis)),
-            if (!o.isDir) ...[
-              item(Icons.download, S.current.download, () => _download(o)),
-              item(Icons.link, S.current.copyLink, () => _copyLink(o)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(
+                  o.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (!o.isDir) ...[
+                item(Icons.download, S.current.download, () => _download(o)),
+                item(Icons.link, S.current.copyLink, () => _copyLink(o)),
+              ],
+              if (canWrite) ...[
+                item(
+                  Icons.drive_file_rename_outline,
+                  S.current.rename,
+                  () => _rename(o),
+                ),
+                item(
+                  Icons.drive_file_move_outline,
+                  S.current.moveTo,
+                  () => _transfer(o, copy: false),
+                ),
+                item(
+                  Icons.copy,
+                  S.current.copyTo,
+                  () => _transfer(o, copy: true),
+                ),
+                item(Icons.delete_outline, S.current.delete, () => _delete(o)),
+              ],
             ],
-            if (canWrite) ...[
-              item(Icons.drive_file_rename_outline, S.current.rename,
-                  () => _rename(o)),
-              item(Icons.drive_file_move_outline, S.current.moveTo,
-                  () => _transfer(o, copy: false)),
-              item(
-                  Icons.copy, S.current.copyTo, () => _transfer(o, copy: true)),
-              item(Icons.delete_outline, S.current.delete, () => _delete(o)),
-            ],
-          ]),
+          ),
         );
       },
     );

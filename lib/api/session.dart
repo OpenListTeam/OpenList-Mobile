@@ -30,7 +30,7 @@ class OpenListSession extends ChangeNotifier {
   /// be decrypted (e.g. restored from backup) is dropped; the user signs in
   /// again instead of the app failing.
   static const _secure = FlutterSecureStorage(
-    aOptions: AndroidOptions(resetOnError: true),
+    aOptions: AndroidOptions(resetOnError: true, migrateWithBackup: true),
     iOptions: IOSOptions(
         accessibility: KeychainAccessibility.first_unlock_this_device),
   );

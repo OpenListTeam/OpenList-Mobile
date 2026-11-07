@@ -96,7 +96,7 @@ jobs:
         id: setup-ndk
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          ndk-version: r25c
+          ndk-version: r28c
 
       - name: Setup Gradle
         if: steps.cache.outputs.cache-hit != 'true'

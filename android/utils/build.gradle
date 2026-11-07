@@ -5,10 +5,11 @@ plugins {
 
 android {
     namespace "com.openlist.utils"
-    compileSdk 35
+    compileSdk 37
+    ndkVersion "28.2.13676358"
 
     defaultConfig {
-        minSdk 21
+        minSdk 24
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

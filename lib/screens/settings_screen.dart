@@ -615,7 +615,7 @@ class _PlatformStorageSettingsState extends State<_PlatformStorageSettings> {
 
   Future<void> _pickDataDirectory() async {
     if (!await AndroidStoragePermission.ensure(context)) return;
-    final path = await FilePicker.platform.getDirectoryPath(
+    final path = await FilePicker.getDirectoryPath(
       dialogTitle: S.current.dataDirectory,
     );
     if (path == null) return;
