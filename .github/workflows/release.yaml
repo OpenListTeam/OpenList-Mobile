@@ -17,7 +17,8 @@ jobs:
       openlist_web_version: ${{ steps.openlist_version.outputs.openlist_web_version }}
       openlist_built_at: ${{ steps.openlist_version.outputs.openlist_built_at }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -77,7 +78,8 @@ jobs:
     env:
       output: "${{ github.workspace }}/build/app/outputs/apk/release"
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -177,7 +179,8 @@ jobs:
     needs: [version, android] # Add ios when iOS build is enabled: [version, android, ios]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 

@@ -27,7 +27,8 @@ jobs:
       openlist_web_version: ${{ steps.openlist_version.outputs.openlist_web_version }}
       openlist_built_at: ${{ steps.openlist_version.outputs.openlist_built_at }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -58,7 +59,8 @@ jobs:
     needs: [version]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -81,10 +83,10 @@ jobs:
           ./init_openlist.sh
           ./init_web.sh
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          go-version: 1.25.0
+          go-version: "1.27.3"
 
       - uses: actions/setup-java@v4
         if: steps.cache.outputs.cache-hit != 'true'
@@ -139,7 +141,8 @@ jobs:
     needs: [version]
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -151,10 +154,10 @@ jobs:
           path: ${{ github.workspace }}/ios/Frameworks
           key: openlist-xcframework-go1.25.0-${{ needs.version.outputs.openlist_version }}-${{ needs.version.outputs.openlist_web_version }}-${{ hashFiles('openlist-lib/**', '.github/workflows/build_openlist.yaml') }}
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          go-version: 1.25.0
+          go-version: "1.27.3"
 
       - name: Download OpenList Source Code
         if: steps.cache.outputs.cache-hit != 'true'
