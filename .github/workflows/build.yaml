@@ -13,6 +13,12 @@ on:
     branches: ["main"]
 
   workflow_dispatch:
+    inputs:
+      upload_to_app_store:
+        description: Upload the iOS build to App Store Connect
+        required: false
+        type: boolean
+        default: false
 
 # A new push to a PR supersedes its running build; main builds always finish
 # so TestFlight uploads are never cut off.
@@ -285,7 +291,7 @@ jobs:
     runs-on: macos-latest
     env:
       output: "${{ github.workspace }}/build/ios/ipa"
-      testflight_ready: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.TESTFLIGHT_UPLOAD_ENABLED == 'true' && secrets.APP_STORE_CONNECT_KEY_ID != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_KEY_P8 != '' && secrets.IOS_CERT_PFX != '' && secrets.IOS_CERT_PASSWORD != '' && secrets.IOS_PROVISION_PROFILE != '' }}
+      testflight_ready: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.TESTFLIGHT_UPLOAD_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.upload_to_app_store)) && secrets.APP_STORE_CONNECT_KEY_ID != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_KEY_P8 != '' && secrets.IOS_CERT_PFX != '' && secrets.IOS_CERT_PASSWORD != '' && secrets.IOS_PROVISION_PROFILE != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
