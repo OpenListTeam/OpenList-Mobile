@@ -84,18 +84,18 @@ jobs:
           fetch-depth: 0
 
       - name: Download OpenList Android AAR
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: openlist-android-aar
           path: ${{ github.workspace }}/android/app/libs/
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Init Signature
         run: |
@@ -119,13 +119,13 @@ jobs:
 
       - name: Upload missing_rules.txt
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: "missing_rules"
           path: "${{ github.workspace }}/build/app/outputs/mapping/release/missing_rules.txt"
 
       - name: Upload Android APKs for Release
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: "android-release-files"
           path: "${{ env.output }}/*.apk"
@@ -185,7 +185,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
@@ -222,7 +222,7 @@ jobs:
           fi
 
       - name: Download Android artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: android-release-files
           path: release_files/
