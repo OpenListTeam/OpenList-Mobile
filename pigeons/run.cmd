@@ -1,5 +1,2 @@
-flutter pub run pigeon --input pigeons/pigeon.dart^
- --dart_out lib/generated_api.dart^
- --java_out android/app/src/main/java/com/openlist/pigeon/GeneratedApi.java^
- --java_package "com.openlist.pigeon"
-`
+REM Outputs are declared by @ConfigurePigeon in pigeons/pigeon.dart
+dart run pigeon --input pigeons/pigeon.dart

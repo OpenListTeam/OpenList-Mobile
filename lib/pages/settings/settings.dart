@@ -1,10 +1,10 @@
 import 'dart:io';
+
 import 'package:openlist_mobile/contant/native_bridge.dart';
 import 'package:openlist_mobile/generated_api.dart';
 import 'package:openlist_mobile/pages/settings/preference_widgets.dart';
 import 'package:openlist_mobile/pages/settings/troubleshooting_page.dart';
 import 'package:openlist_mobile/utils/language_controller.dart';
-import 'package:openlist_mobile/utils/web_browser_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -45,176 +45,155 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final controller = Get.put(_SettingsController());
     return Scaffold(
-        body: Obx(
-      () => ListView(
-        children: [
-          // SizedBox(height: MediaQuery.of(context).padding.top),
-          // Android-specific permission requests
-          if (Platform.isAndroid) ...[
-          Visibility(
-            visible: !controller._managerStorageGranted.value ||
-                !controller._notificationGranted.value ||
-                !controller._storageGranted.value,
-            child: DividerPreference(title: S.of(context).importantSettings),
-          ),
-          Visibility(
-            visible: !controller._managerStorageGranted.value,
-            child: BasicPreference(
-              title: S.of(context).grantManagerStoragePermission,
-              subtitle: S.of(context).grantStoragePermissionDesc,
-              onTap: () {
-                Permission.manageExternalStorage.request();
-              },
-            ),
-          ),
-          Visibility(
-              visible: !controller._storageGranted.value,
-              child: BasicPreference(
-                title: S.of(context).grantStoragePermission,
-                subtitle: S.of(context).grantStoragePermissionDesc,
-                onTap: () {
-                  Permission.storage.request();
-                },
-              )),
+      body: Obx(
+        () => ListView(
+          children: [
+            // SizedBox(height: MediaQuery.of(context).padding.top),
+            // Android-specific permission requests
+            if (Platform.isAndroid) ...[
+              Visibility(
+                visible:
+                    !controller._managerStorageGranted.value ||
+                    !controller._notificationGranted.value ||
+                    !controller._storageGranted.value,
+                child: DividerPreference(
+                  title: S.of(context).importantSettings,
+                ),
+              ),
+              Visibility(
+                visible: !controller._managerStorageGranted.value,
+                child: BasicPreference(
+                  title: S.of(context).grantManagerStoragePermission,
+                  subtitle: S.of(context).grantStoragePermissionDesc,
+                  onTap: () {
+                    Permission.manageExternalStorage.request();
+                  },
+                ),
+              ),
+              Visibility(
+                visible: !controller._storageGranted.value,
+                child: BasicPreference(
+                  title: S.of(context).grantStoragePermission,
+                  subtitle: S.of(context).grantStoragePermissionDesc,
+                  onTap: () {
+                    Permission.storage.request();
+                  },
+                ),
+              ),
+              Visibility(
+                visible: !controller._notificationGranted.value,
+                child: BasicPreference(
+                  title: S.of(context).grantNotificationPermission,
+                  subtitle: S.of(context).grantNotificationPermissionDesc,
+                  onTap: () {
+                    Permission.notification.request();
+                  },
+                ),
+              ),
+            ], // End of Android-specific permissions
 
-          Visibility(
-              visible: !controller._notificationGranted.value,
-              child: BasicPreference(
-                title: S.of(context).grantNotificationPermission,
-                subtitle: S.of(context).grantNotificationPermissionDesc,
-                onTap: () {
-                  Permission.notification.request();
-                },
-              )),
-          ], // End of Android-specific permissions
+            DividerPreference(title: S.of(context).general),
 
-          DividerPreference(title: S.of(context).general),
-
-          // Language Settings
-          BasicPreference(
-            title: S.of(context).language,
-            subtitle: _getLanguageDisplayName(),
-            leading: const Icon(Icons.language),
-            onTap: () {
-              _showLanguageSelectionDialog(context);
-            },
-          ),
-
-          SwitchPreference(
-            title: S.of(context).autoCheckForUpdates,
-            subtitle: S.of(context).autoCheckForUpdatesDesc,
-            icon: const Icon(Icons.system_update),
-            value: controller.autoUpdate,
-            onChanged: (value) {
-              controller.autoUpdate = value;
-            },
-          ),
-          SwitchPreference(
-            title: S.of(context).wakeLock,
-            subtitle: S.of(context).wakeLockDesc,
-            icon: const Icon(Icons.screen_lock_portrait),
-            value: controller.wakeLock,
-            onChanged: (value) {
-              controller.wakeLock = value;
-            },
-          ),
-          SwitchPreference(
-            title: S.of(context).bootAutoStartService,
-            subtitle: S.of(context).bootAutoStartServiceDesc,
-            icon: const Icon(Icons.power_settings_new),
-            value: controller.startAtBoot,
-            onChanged: (value) {
-              controller.startAtBoot = value;
-            },
-          ),
-          // AutoStartWebPage
-          SwitchPreference(
-            title: S.of(context).autoStartWebPage,
-            subtitle: S.of(context).autoStartWebPageDesc,
-            icon: const Icon(Icons.open_in_browser),
-            value: controller._autoStartWebPage.value,
-            onChanged: (value) {
-              controller.autoStartWebPage = value;
-            },
-          ),
-          BasicPreference(
-            title: S.of(context).webBrowserStatus,
-            subtitle: WebBrowserManager.instance.running.value
-                ? S.of(context).running
-                : S.of(context).stopped,
-            leading: const Icon(Icons.web),
-            trailing: WebBrowserManager.instance.running.value
-                ? TextButton(
-                    onPressed: WebBrowserManager.instance.stop,
-                    child: Text(S.of(context).stopWebBrowser),
-                  )
-                : null,
-          ),
-          SwitchPreference(
-            title: S.of(context).enableWebBrowser,
-            subtitle: S.of(context).enableWebBrowserDesc,
-            icon: const Icon(Icons.web_asset),
-            value: WebBrowserManager.instance.enabled.value,
-            onChanged: WebBrowserManager.instance.setEnabled,
-          ),
-
-          // Data directory setting - only for Android
-          if (Platform.isAndroid)
+            // Language Settings
             BasicPreference(
-              title: S.of(context).dataDirectory,
-              subtitle: controller._dataDir.value,
-              leading: const Icon(Icons.folder),
-              onTap: () async {
-                final path = await FilePicker.platform.getDirectoryPath();
-
-                if (path == null) {
-                  Get.showSnackbar(GetSnackBar(
-                      message: S.current.setDefaultDirectory,
-                      duration: const Duration(seconds: 3),
-                      mainButton: TextButton(
-                        onPressed: () {
-                          controller.setDataDir("");
-                          Get.back();
-                        },
-                        child: Text(S.current.confirm),
-                      )));
-                } else {
-                  controller.setDataDir(path);
-                }
+              title: S.of(context).language,
+              subtitle: _getLanguageDisplayName(),
+              leading: const Icon(Icons.language),
+              onTap: () {
+                _showLanguageSelectionDialog(context);
               },
             ),
-          DividerPreference(title: S.of(context).uiSettings),
-          SwitchPreference(
+            SwitchPreference(
+              title: S.of(context).autoCheckForUpdates,
+              subtitle: S.of(context).autoCheckForUpdatesDesc,
+              icon: const Icon(Icons.system_update),
+              value: controller.autoUpdate,
+              onChanged: (value) {
+                controller.autoUpdate = value;
+              },
+            ),
+            if (Platform.isAndroid) ...[
+              SwitchPreference(
+                title: S.of(context).wakeLock,
+                subtitle: S.of(context).wakeLockDesc,
+                icon: const Icon(Icons.screen_lock_portrait),
+                value: controller.wakeLock,
+                onChanged: (value) {
+                  controller.wakeLock = value;
+                },
+              ),
+              SwitchPreference(
+                title: S.of(context).bootAutoStartService,
+                subtitle: S.of(context).bootAutoStartServiceDesc,
+                icon: const Icon(Icons.power_settings_new),
+                value: controller.startAtBoot,
+                onChanged: (value) {
+                  controller.startAtBoot = value;
+                },
+              ),
+            ],
+            // Data directory setting - only for Android
+            if (Platform.isAndroid)
+              BasicPreference(
+                title: S.of(context).dataDirectory,
+                subtitle: controller._dataDir.value,
+                leading: const Icon(Icons.folder),
+                onTap: () async {
+                  final path = await FilePicker.getDirectoryPath();
+
+                  if (path == null) {
+                    Get.showSnackbar(
+                      GetSnackBar(
+                        message: S.current.setDefaultDirectory,
+                        duration: const Duration(seconds: 3),
+                        mainButton: TextButton(
+                          onPressed: () {
+                            controller.setDataDir("");
+                            Get.back();
+                          },
+                          child: Text(S.current.confirm),
+                        ),
+                      ),
+                    );
+                  } else {
+                    controller.setDataDir(path);
+                  }
+                },
+              ),
+            DividerPreference(title: S.of(context).uiSettings),
+            SwitchPreference(
               icon: const Icon(Icons.pan_tool_alt_outlined),
               title: S.of(context).silentJumpApp,
               subtitle: S.of(context).silentJumpAppDesc,
               value: controller._silentJumpApp.value,
               onChanged: (value) {
                 controller.silentJumpApp = value;
-              }),
-          
-          BasicPreference(
-            title: S.of(context).troubleshooting,
-            subtitle: S.of(context).troubleshootingDesc,
-            leading: const Icon(Icons.help_outline),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TroubleshootingPage(),
-                ),
-              );
-            },
-          ),
-        ],
+              },
+            ),
+
+            BasicPreference(
+              title: S.of(context).troubleshooting,
+              subtitle: S.of(context).troubleshootingDesc,
+              leading: const Icon(Icons.help_outline),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TroubleshootingPage(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   String _getLanguageDisplayName() {
     final languageController = Get.find<LanguageController>();
     final currentOption = languageController.currentLanguageOption;
-    
+
     switch (currentOption.name) {
       case 'followSystem':
         return S.of(context).followSystem;
@@ -270,47 +249,38 @@ class _SettingsController extends GetxController {
   get dataDir => _dataDir.value;
 
   set autoUpdate(value) => {
-        _autoUpdate.value = value,
-        NativeBridge.appConfig.setAutoCheckUpdateEnabled(value)
-      };
+    _autoUpdate.value = value,
+    NativeBridge.appConfig.setAutoCheckUpdateEnabled(value),
+  };
 
   get autoUpdate => _autoUpdate.value;
 
   final _wakeLock = true.obs;
 
   set wakeLock(value) => {
-        _wakeLock.value = value,
-        NativeBridge.appConfig.setWakeLockEnabled(value)
-      };
+    _wakeLock.value = value,
+    NativeBridge.appConfig.setWakeLockEnabled(value),
+  };
 
   get wakeLock => _wakeLock.value;
 
   final _autoStart = true.obs;
 
   set startAtBoot(value) => {
-        _autoStart.value = value,
-        NativeBridge.appConfig.setStartAtBootEnabled(value)
-      };
+    _autoStart.value = value,
+    NativeBridge.appConfig.setStartAtBootEnabled(value),
+  };
 
   get startAtBoot => _autoStart.value;
-
-  final _autoStartWebPage = false.obs;
-
-  set autoStartWebPage(value) => {
-        _autoStartWebPage.value = value,
-        NativeBridge.appConfig.setAutoOpenWebPageEnabled(value)
-      };
-
-  get autoStartWebPage => _autoStartWebPage.value;
 
   final _silentJumpApp = false.obs;
 
   get silentJumpApp => _silentJumpApp.value;
 
   set silentJumpApp(value) => {
-        _silentJumpApp.value = value,
-        NativeBridge.appConfig.setSilentJumpAppEnabled(value)
-      };
+    _silentJumpApp.value = value,
+    NativeBridge.appConfig.setSilentJumpAppEnabled(value),
+  };
 
   @override
   void onInit() async {
@@ -324,26 +294,19 @@ class _SettingsController extends GetxController {
     cfg.isAutoCheckUpdateEnabled().then((value) => autoUpdate = value);
     cfg.isWakeLockEnabled().then((value) => wakeLock = value);
     cfg.isStartAtBootEnabled().then((value) => startAtBoot = value);
-    cfg.isAutoOpenWebPageEnabled().then((value) => autoStartWebPage = value);
     cfg.isSilentJumpAppEnabled().then((value) => silentJumpApp = value);
 
     _dataDir.value = await cfg.getDataDir();
 
+    if (!Platform.isAndroid) return;
     final sdk = await NativeBridge.common.getDeviceSdkInt();
-    // A11
-    if (sdk >= 30) {
-      _managerStorageGranted.value =
-          await Permission.manageExternalStorage.isGranted;
-    } else {
-      _managerStorageGranted.value = true;
-      _storageGranted.value = await Permission.storage.isGranted;
-    }
-
-    // A12
-    if (sdk >= 32) {
-      _notificationGranted.value = await Permission.notification.isGranted;
-    } else {
-      _notificationGranted.value = true;
-    }
+    _managerStorageGranted.value =
+        sdk < 30 || await Permission.manageExternalStorage.isGranted;
+    _storageGranted.value =
+        sdk >= 33 ||
+        (sdk >= 30 && _managerStorageGranted.value) ||
+        await Permission.storage.isGranted;
+    _notificationGranted.value =
+        sdk < 33 || await Permission.notification.isGranted;
   }
 }

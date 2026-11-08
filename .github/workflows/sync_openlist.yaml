@@ -30,7 +30,8 @@ jobs:
     env:
       VERSION_FILE: ${{ github.workspace }}/openlist_version
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       
       - name: Check OpenList Version
         run: |

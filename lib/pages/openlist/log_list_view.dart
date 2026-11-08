@@ -10,7 +10,8 @@ class Log {
 }
 
 class LogListView extends StatefulWidget {
-  const LogListView({Key? key, required this.logs, this.controller}) : super(key: key);
+  const LogListView({Key? key, required this.logs, this.controller})
+    : super(key: key);
 
   final List<Log> logs;
   final ScrollController? controller;

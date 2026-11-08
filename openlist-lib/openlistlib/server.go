@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/OpenListTeam/OpenList/v4/internal/bootstrap"
+	"github.com/OpenListTeam/OpenList/v4/internal/conf"
 	"github.com/OpenListTeam/OpenList/v4/internal/db"
 	"github.com/OpenListTeam/OpenList/v4/openlistlib/internal"
 	"github.com/OpenListTeam/OpenList/v4/pkg/utils"
@@ -35,6 +36,9 @@ func Init(event Event, cb LogCallback) error {
 		shutdownHookUuid = ""
 	}
 	bootstrap.Init()
+	if err := ensureAdmin(); err != nil {
+		return err
+	}
 	startFailedHookUuid = bootstrap.RegisterEndpointStartFailedHook(event.OnStartError)
 	shutdownHookUuid = bootstrap.RegisterEndpointShutdownHook(event.OnShutdown)
 	logFormatter = &internal.MyFormatter{
@@ -52,18 +56,26 @@ func Init(event Event, cb LogCallback) error {
 }
 
 func IsRunning(t string) bool {
+	if t == "" {
+		if conf.Conf == nil {
+			return false
+		}
+		return endpointRunning(conf.Conf)
+	}
 	return bootstrap.IsRunning(t)
 }
 
 // Start starts the server
 func Start() {
 	bootstrap.Start()
+	startedAt.Store(time.Now().Unix())
 }
 
 // Shutdown timeout 毫秒
 func Shutdown(timeout int64) (err error) {
 	timeoutDuration := time.Duration(timeout) * time.Millisecond
 	bootstrap.Shutdown(timeoutDuration)
+	startedAt.Store(0)
 
 	// Force database sync before shutdown
 	ForceDBSync()

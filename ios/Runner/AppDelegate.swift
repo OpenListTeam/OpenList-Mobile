@@ -6,7 +6,10 @@ import UIKit
   var eventAPI: Event?
   private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
   private var appStoreUpdateBridge: AppStoreUpdateBridge?
-  
+  // Created eagerly so a background-session relaunch can reattach to it.
+  private let uploadBridge = UploadBridge()
+  private let downloadStorageBridge = DownloadStorageBridge()
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -23,8 +26,13 @@ import UIKit
     
     // Register Pigeon API implementations
     AppConfigSetup.setUp(binaryMessenger: messenger, api: AppConfigBridge())
-    AndroidSetup.setUp(binaryMessenger: messenger, api: OpenListBridge())
+    let openListBridge = OpenListBridge()
+    AndroidSetup.setUp(binaryMessenger: messenger, api: openListBridge)
+    ServerApiSetup.setUp(binaryMessenger: messenger, api: openListBridge)
     NativeCommonSetup.setUp(binaryMessenger: messenger, api: CommonBridge(viewController: controller))
+    uploadBridge.eventAPI = UploadEventApi(binaryMessenger: messenger)
+    UploadApiSetup.setUp(binaryMessenger: messenger, api: uploadBridge)
+    DownloadStorageSetup.setUp(binaryMessenger: messenger, api: downloadStorageBridge)
 
     let appStoreChannel = FlutterMethodChannel(
       name: "openlist/app_store_update",
@@ -71,7 +79,7 @@ import UIKit
   
   override func applicationWillTerminate(_ application: UIApplication) {
     // Cleanup OpenList core
-    OpenListManager.shared.stopServer()
+    OpenListManager.shared.stopServerSync()
     
     // End background task if still active
     endBackgroundTask()
@@ -80,7 +88,7 @@ import UIKit
   }
   
   override func applicationDidEnterBackground(_ application: UIApplication) {
-    // Begin background task to prevent WebView process suspension
+    // Request limited time to finish in-flight work; this does not keep the server alive indefinitely.
     backgroundTask = application.beginBackgroundTask { [weak self] in
       // Background task is about to expire, clean up
       self?.endBackgroundTask()
@@ -92,6 +100,22 @@ import UIKit
     endBackgroundTask()
   }
   
+  override func application(
+    _ application: UIApplication,
+    handleEventsForBackgroundURLSession identifier: String,
+    completionHandler: @escaping () -> Void
+  ) {
+    guard identifier == UploadBridge.sessionIdentifier else {
+      super.application(
+        application, handleEventsForBackgroundURLSession: identifier,
+        completionHandler: completionHandler)
+      return
+    }
+    uploadBridge.backgroundCompletionHandler = completionHandler
+    // Touching the session reconnects it so pending events are delivered.
+    _ = uploadBridge.session
+  }
+
   // MARK: - Background Task Management
   
   private func endBackgroundTask() {

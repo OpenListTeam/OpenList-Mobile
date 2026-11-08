@@ -34,8 +34,7 @@ func SetAdminPassword(pwd string) {
 		utils.Log.Errorf("failed update admin user: %+v", err)
 		return
 	}
-	utils.Log.Infof("admin user has been updated:")
-	utils.Log.Infof("username: %s", admin.Username)
-	utils.Log.Infof("password: %s", pwd)
+	// Never log the password: logs are shown in the app and can be exported.
+	utils.Log.Infof("admin password has been updated for user %s", admin.Username)
 	cmd.DelAdminCacheOnline()
 }

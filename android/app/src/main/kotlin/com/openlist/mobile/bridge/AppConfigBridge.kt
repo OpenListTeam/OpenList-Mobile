@@ -1,6 +1,8 @@
 package com.openlist.mobile.bridge
 
 import com.openlist.mobile.config.AppConfig
+import com.openlist.mobile.server.ServerClient
+import com.openlist.mobile.server.ServerProtocol
 import com.openlist.pigeon.GeneratedApi
 
 
@@ -14,7 +16,30 @@ object AppConfigBridge : GeneratedApi.AppConfig {
     override fun getDataDir() = AppConfig.dataDir
 
     override fun setDataDir(dir: String) {
-        AppConfig.dataDir = dir
+        val selected = dir.trim()
+        val uri = android.net.Uri.parse(selected)
+        val rawPath = when (uri.scheme) {
+            "file" -> uri.path ?: throw IllegalArgumentException("Invalid data directory path")
+            null -> selected
+            else -> throw IllegalArgumentException("Data directory must be a filesystem path")
+        }
+        if (rawPath.isNotEmpty()) {
+            val directory = java.io.File(rawPath)
+            if (!directory.isAbsolute) {
+                throw IllegalArgumentException("Data directory must be an absolute filesystem path")
+            }
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw IllegalArgumentException("Cannot create data directory")
+            }
+            if (!directory.isDirectory || !directory.canWrite()) {
+                throw IllegalArgumentException("Data directory is not writable")
+            }
+            val probe = java.io.File.createTempFile(".openlist-data-", ".tmp", directory)
+            if (!probe.delete()) {
+                throw IllegalArgumentException("Cannot verify data directory access")
+            }
+        }
+        AppConfig.dataDir = rawPath
     }
 
     override fun isSilentJumpAppEnabled(): Boolean = AppConfig.isSilentJumpAppEnabled
@@ -37,5 +62,6 @@ object AppConfigBridge : GeneratedApi.AppConfig {
 
     override fun setWakeLockEnabled(enabled: Boolean) {
         AppConfig.isWakeLockEnabled = enabled
+        ServerClient.notify(ServerProtocol.MSG_REFRESH_SETTINGS)
     }
 }

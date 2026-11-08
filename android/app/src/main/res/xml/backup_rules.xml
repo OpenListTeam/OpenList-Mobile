@@ -1,2 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<full-backup-content/>
+<full-backup-content>
+    <exclude domain="database" path="androidx.work.workdb" />
+    <exclude domain="database" path="androidx.work.workdb-journal" />
+    <exclude domain="database" path="androidx.work.workdb-wal" />
+    <exclude domain="database" path="androidx.work.workdb-shm" />
+    <exclude domain="sharedpref" path="openlist_upload_credentials.xml" />
+</full-backup-content>

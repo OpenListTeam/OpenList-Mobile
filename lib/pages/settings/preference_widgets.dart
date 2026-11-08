@@ -7,19 +7,20 @@ class DividerPreference extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      const Divider(
-        height: 1,
-      ),
-      Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).primaryColor),
+    return Column(
+      children: [
+        const Divider(height: 1),
+        Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(color: Theme.of(context).primaryColor),
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 }
 

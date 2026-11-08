@@ -4,8 +4,11 @@ class SwitchFloatingButton extends StatefulWidget {
   final bool isSwitch;
   final ValueChanged<bool> onSwitchChange;
 
-  const SwitchFloatingButton(
-      {super.key, required this.isSwitch, required this.onSwitchChange});
+  const SwitchFloatingButton({
+    super.key,
+    required this.isSwitch,
+    required this.onSwitchChange,
+  });
 
   @override
   State<SwitchFloatingButton> createState() => _SwitchFloatingButtonState();
@@ -47,10 +50,7 @@ class _SwitchFloatingButtonState extends State<SwitchFloatingButton>
           : Theme.of(context).colorScheme.primaryContainer,
       elevation: 8.0,
       shape: const CircleBorder(),
-      child: RotationTransition(
-        turns: _animation,
-        child: icon,
-      ),
+      child: RotationTransition(turns: _animation, child: icon),
     );
   }
 

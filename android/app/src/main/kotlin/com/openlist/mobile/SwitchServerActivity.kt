@@ -1,12 +1,10 @@
 package com.openlist.mobile
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import com.openlist.mobile.config.AppConfig
-import com.openlist.mobile.utils.ToastUtils.toast
 
+/** Launcher shortcut that toggles the server; runs in the `:server` process. */
 class SwitchServerActivity : Activity() {
     companion object {
         private const val TAG = "SwitchServerActivity"
@@ -14,25 +12,18 @@ class SwitchServerActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (OpenListService.isRunning) {
-            Log.d(TAG, "Service is running, stopping it")
-            // 设置手动停止标志
-            AppConfig.isManuallyStoppedByUser = true
-            startService(Intent(this, OpenListService::class.java).apply {
-                action = OpenListService.ACTION_SHUTDOWN
-            })
+        val action = if (OpenListService.isRunning) {
+            OpenListService.ACTION_STOP
         } else {
-            // 检查是否被手动停止
-            if (AppConfig.isManuallyStoppedByUser) {
-                Log.d(TAG, "Service was manually stopped, clearing flag and starting")
-                // 清除手动停止标志
-                AppConfig.isManuallyStoppedByUser = false
-            }
-            Log.d(TAG, "Starting service")
-            startService(Intent(this, OpenListService::class.java))
+            OpenListService.ACTION_START
         }
-
+        Log.d(TAG, "Toggle server: $action")
+        try {
+            // Visible activity: foreground service start is allowed.
+            OpenListService.sendAction(this, action)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to toggle server", e)
+        }
         finish()
     }
 }

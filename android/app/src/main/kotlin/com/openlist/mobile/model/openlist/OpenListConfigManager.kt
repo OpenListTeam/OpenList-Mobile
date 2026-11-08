@@ -4,6 +4,7 @@ import android.os.FileObserver
 import android.util.Log
 import com.openlist.mobile.app
 import com.openlist.mobile.constant.AppConst
+import com.openlist.mobile.server.ServerSettings
 import com.openlist.mobile.utils.ToastUtils.longToast
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.awaitCancellation
@@ -59,6 +60,14 @@ object OpenListConfigManager {
             return OpenListConfig()
         }
     }
+
+    /** Reads config.json without user-facing errors; null before the first start. */
+    @OptIn(ExperimentalSerializationApi::class)
+    fun configOrNull(): OpenListConfig? = runCatching {
+        File(ServerSettings.dataDir, "config.json").takeIf { it.exists() }?.inputStream()?.use {
+            AppConst.json.decodeFromStream<OpenListConfig>(it)
+        }
+    }.onFailure { Log.w(TAG, "Failed to read config.json", it) }.getOrNull()
 
     @OptIn(ExperimentalSerializationApi::class)
     fun update(cfg: OpenListConfig) {

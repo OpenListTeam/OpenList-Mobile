@@ -2,7 +2,17 @@ name: Build OpenList Libraries
 
 on:
   workflow_dispatch:
+    inputs:
+      use_cache:
+        description: Reuse bindings built from the same sources and upstream tag
+        type: boolean
+        default: true
   workflow_call:
+    inputs:
+      use_cache:
+        description: Reuse bindings built from the same sources and upstream tag
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -17,7 +27,8 @@ jobs:
       openlist_web_version: ${{ steps.openlist_version.outputs.openlist_web_version }}
       openlist_built_at: ${{ steps.openlist_version.outputs.openlist_built_at }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -48,39 +59,60 @@ jobs:
     needs: [version]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
+      # The binding only depends on openlist-lib, this workflow, the upstream
+      # tags and the Go toolchain, so an exact key match is safe to reuse
+      # (tests included: a cache is only saved after they passed).
+      - name: Restore OpenList Android AAR
+        id: cache
+        if: inputs.use_cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/android/app/libs
+          key: openlist-aar-go1.25.0-${{ needs.version.outputs.openlist_version }}-${{ needs.version.outputs.openlist_web_version }}-${{ hashFiles('openlist-lib/**', '.github/workflows/build_openlist.yaml') }}
+
       - name: Download OpenList Source Code
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd $GITHUB_WORKSPACE/openlist-lib/scripts
           chmod +x *.sh
           ./init_openlist.sh
           ./init_web.sh
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        if: steps.cache.outputs.cache-hit != 'true'
         with:
-          go-version: 1.25.0
+          go-version: "1.27.3"
 
       - uses: actions/setup-java@v4
+        if: steps.cache.outputs.cache-hit != 'true'
         with:
           distribution: temurin
           java-version: 17
 
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
+        if: steps.cache.outputs.cache-hit != 'true'
         with:
-          ndk-version: r25c
+          ndk-version: r28c
 
       - name: Setup Gradle
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: gradle/gradle-build-action@v3
 
-      - name: Build OpenList Android AAR
+      # Tests run after init_gomobile.sh because its `go get` calls resolve
+      # the go.mod edits made by init_openlist.sh; before that go.mod is stale.
+      - name: Test and Build OpenList Android AAR
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd $GITHUB_WORKSPACE/openlist-lib/scripts
           chmod +x *.sh
           ./init_gomobile.sh
+          (cd .. && go test -count=1 ./openlistlib/...)
           ./gobind.sh
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
@@ -89,6 +121,13 @@ jobs:
           OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
           OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
           OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@oplist.org>
+
+      - name: Save OpenList Android AAR
+        if: steps.cache.outcome == 'success' && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/android/app/libs
+          key: ${{ steps.cache.outputs.cache-primary-key }}
 
       - name: Upload OpenList Android AAR
         uses: actions/upload-artifact@v4
@@ -102,15 +141,26 @@ jobs:
     needs: [version]
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
+      - name: Restore OpenList iOS Framework
+        id: cache
+        if: inputs.use_cache
+        uses: actions/cache/restore@v4
         with:
-          go-version: 1.25.0
+          path: ${{ github.workspace }}/ios/Frameworks
+          key: openlist-xcframework-go1.25.0-${{ needs.version.outputs.openlist_version }}-${{ needs.version.outputs.openlist_web_version }}-${{ hashFiles('openlist-lib/**', '.github/workflows/build_openlist.yaml') }}
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          go-version: "1.27.3"
 
       - name: Download OpenList Source Code
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd $GITHUB_WORKSPACE/openlist-lib/scripts
           chmod +x *.sh
@@ -118,6 +168,7 @@ jobs:
           ./init_web_ios.sh
 
       - name: Build OpenList iOS Framework
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd $GITHUB_WORKSPACE/openlist-lib/scripts
           chmod +x *.sh
@@ -129,6 +180,13 @@ jobs:
           OPENLIST_BUILT_AT: ${{ needs.version.outputs.openlist_built_at }}
           OPENLIST_GIT_COMMIT: ${{ needs.version.outputs.openlist_git_commit }}
           OPENLIST_GIT_AUTHOR: The OpenList Projects Contributors <noreply@oplist.org>
+
+      - name: Save OpenList iOS Framework
+        if: steps.cache.outcome == 'success' && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/ios/Frameworks
+          key: ${{ steps.cache.outputs.cache-primary-key }}
 
       - name: Upload OpenList iOS Framework
         uses: actions/upload-artifact@v4

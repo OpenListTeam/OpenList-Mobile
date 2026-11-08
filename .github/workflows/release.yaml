@@ -17,7 +17,8 @@ jobs:
       openlist_web_version: ${{ steps.openlist_version.outputs.openlist_web_version }}
       openlist_built_at: ${{ steps.openlist_version.outputs.openlist_built_at }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -61,25 +62,32 @@ jobs:
           echo "openlist_web_version=${OPENLIST_WEB_VERSION}" >> $GITHUB_OUTPUT
           echo "openlist_built_at=${OPENLIST_BUILT_AT}" >> $GITHUB_OUTPUT
 
+  # Build the gomobile bindings from this checkout so the release links
+  # against the openlistlib API of the same commit.
+  libs:
+    name: Build OpenList Libraries
+    uses: ./.github/workflows/build_openlist.yaml
+    # Releases always build and test the bindings from scratch.
+    with:
+      use_cache: false
+
   android:
     name: Build OpenList Android APK
-    needs: [version]
+    needs: [version, libs]
     runs-on: ubuntu-latest
     env:
       output: "${{ github.workspace }}/build/app/outputs/apk/release"
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
-      - name: Download OpenList Android AAR from latest build
-        uses: dawidd6/action-download-artifact@v6
+      - name: Download OpenList Android AAR
+        uses: actions/download-artifact@v4
         with:
-          workflow: sync_openlist.yaml
           name: openlist-android-aar
           path: ${{ github.workspace }}/android/app/libs/
-          check_artifacts: true
-          search_artifacts: true
 
       - uses: actions/setup-java@v4
         with:
@@ -102,7 +110,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.7'
+          flutter-version: '3.47.9'
           
       - name: Build APK with Version
         env:
@@ -171,7 +179,8 @@ jobs:
     needs: [version, android] # Add ios when iOS build is enabled: [version, android, ios]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 

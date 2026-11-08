@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:get/get.dart';
+
 import '../../contant/native_bridge.dart';
 import '../../generated/l10n.dart';
 import '../../utils/service_manager.dart';
@@ -40,10 +42,10 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
   /// Real-time JSON syntax validation with debounce
   void _validateJson() {
     if (_isPreview) return; // Skip validation in preview mode
-    
+
     // Cancel previous timer to implement debounce
     _debounceTimer?.cancel();
-    
+
     // Create new timer with 300ms delay
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       final text = _controller.text.trim();
@@ -71,7 +73,9 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
           final match = RegExp(r'line (\d+)').firstMatch(e.message);
           setState(() {
             _jsonErrorMessage = e.message;
-            _jsonErrorLine = match != null ? int.tryParse(match.group(1) ?? '') : null;
+            _jsonErrorLine = match != null
+                ? int.tryParse(match.group(1) ?? '')
+                : null;
           });
         }
       }
@@ -90,7 +94,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
       _filePath = '$dataDir/config.json';
       _backupFilePath = '$dataDir/config.json.backup';
       final file = File(_filePath);
-      
+
       if (await file.exists()) {
         _controller.text = await file.readAsString();
       } else {
@@ -104,9 +108,9 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
     } on FileSystemException catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.osError?.errorCode == 13 
-            ? S.of(context).filePermissionDenied 
-            : S.of(context).loadFailed(e.message);
+          _errorMessage = e.osError?.errorCode == 13
+              ? S.of(context).filePermissionDenied
+              : S.of(context).loadFailed(e.message);
         });
       }
     } catch (e) {
@@ -128,10 +132,12 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
       final backupFile = File(_backupFilePath);
       if (!await backupFile.exists()) {
         if (mounted) {
-          Get.showSnackbar(GetSnackBar(
-            message: S.of(context).noBackupFound,
-            duration: const Duration(seconds: 2),
-          ));
+          Get.showSnackbar(
+            GetSnackBar(
+              message: S.of(context).noBackupFound,
+              duration: const Duration(seconds: 2),
+            ),
+          );
         }
         return;
       }
@@ -142,17 +148,21 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
       });
 
       if (mounted) {
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).backupRestored,
-          duration: const Duration(seconds: 2),
-        ));
+        Get.showSnackbar(
+          GetSnackBar(
+            message: S.of(context).backupRestored,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).restoreBackupFailed(e.toString()),
-          duration: const Duration(seconds: 2),
-        ));
+        Get.showSnackbar(
+          GetSnackBar(
+            message: S.of(context).restoreBackupFailed(e.toString()),
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
     }
   }
@@ -184,7 +194,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
 
     if (result == 'save' || result == 'save_restart') {
       final saveSuccess = await _saveConfigFile();
-      
+
       // Restart service if requested and save was successful
       if (saveSuccess && result == 'save_restart') {
         await _restartOpenListService();
@@ -198,10 +208,12 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
   Future<void> _restartOpenListService() async {
     if (!Platform.isAndroid) {
       if (mounted) {
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).serviceRestartOnlyAndroid,
-          duration: const Duration(seconds: 2),
-        ));
+        Get.showSnackbar(
+          GetSnackBar(
+            message: S.of(context).serviceRestartOnlyAndroid,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
       return;
     }
@@ -209,37 +221,45 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
     try {
       // Show loading indicator
       if (mounted) {
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).restartingService,
-          duration: const Duration(seconds: 2),
-          showProgressIndicator: true,
-        ));
+        Get.showSnackbar(
+          GetSnackBar(
+            message: S.of(context).restartingService,
+            duration: const Duration(seconds: 2),
+            showProgressIndicator: true,
+          ),
+        );
       }
 
       // Restart service via ServiceManager
       final success = await ServiceManager.instance.restartService();
-      
+
       if (mounted) {
         if (success) {
-          Get.showSnackbar(GetSnackBar(
-            message: S.of(context).serviceRestartSuccess,
-            duration: const Duration(seconds: 3),
-          ));
+          Get.showSnackbar(
+            GetSnackBar(
+              message: S.of(context).serviceRestartSuccess,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         } else {
-          Get.showSnackbar(GetSnackBar(
-            message: S.of(context).serviceRestartFailed,
-            duration: const Duration(seconds: 3),
-            backgroundColor: Colors.orange,
-          ));
+          Get.showSnackbar(
+            GetSnackBar(
+              message: S.of(context).serviceRestartFailed,
+              duration: const Duration(seconds: 3),
+              backgroundColor: Colors.orange,
+            ),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).saveFailed(e.toString()),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ));
+        Get.showSnackbar(
+          GetSnackBar(
+            message: S.of(context).saveFailed(e.toString()),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -248,7 +268,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
   /// Returns true if save was successful, false otherwise
   Future<bool> _saveConfigFile() async {
     final text = _controller.text.trim();
-    
+
     // Validate JSON format before saving
     try {
       jsonDecode(text);
@@ -256,13 +276,15 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
       if (mounted) {
         final match = RegExp(r'line (\d+)').firstMatch(e.message);
         final line = match != null ? int.tryParse(match.group(1) ?? '') : null;
-        Get.showSnackbar(GetSnackBar(
-          message: line != null 
-            ? S.of(context).invalidJsonFormat(line, e.message)
-            : S.of(context).saveFailed(e.message),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ));
+        Get.showSnackbar(
+          GetSnackBar(
+            message: line != null
+                ? S.of(context).invalidJsonFormat(line, e.message)
+                : S.of(context).saveFailed(e.message),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
       return false;
     }
@@ -270,7 +292,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
     File? backupFile;
     try {
       final file = File(_filePath);
-      
+
       // Create backup before saving
       if (await file.exists()) {
         backupFile = File(_backupFilePath);
@@ -279,17 +301,19 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
 
       // Ensure parent directory exists
       await file.parent.create(recursive: true);
-      
+
       // Write new config
       await file.writeAsString(text);
-      
+
       if (mounted) {
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).saved,
-          duration: const Duration(seconds: 2),
-        ));
+        Get.showSnackbar(
+          GetSnackBar(
+            message: S.of(context).saved,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
-      
+
       return true;
     } on FileSystemException catch (e) {
       // Restore backup on failure
@@ -298,16 +322,18 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
           await backupFile.copy(_filePath);
         } catch (_) {}
       }
-      
+
       if (mounted) {
-        final errorMsg = e.osError?.errorCode == 13 
-          ? S.of(context).filePermissionDenied 
-          : S.of(context).saveFailed(e.message);
-        Get.showSnackbar(GetSnackBar(
-          message: errorMsg,
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ));
+        final errorMsg = e.osError?.errorCode == 13
+            ? S.of(context).filePermissionDenied
+            : S.of(context).saveFailed(e.message);
+        Get.showSnackbar(
+          GetSnackBar(
+            message: errorMsg,
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
       return false;
     } catch (e) {
@@ -317,13 +343,15 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
           await backupFile.copy(_filePath);
         } catch (_) {}
       }
-      
+
       if (mounted) {
-        Get.showSnackbar(GetSnackBar(
-          message: S.of(context).saveFailed(e.toString()),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.red,
-        ));
+        Get.showSnackbar(
+          GetSnackBar(
+            message: S.of(context).saveFailed(e.toString()),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
       return false;
     }
@@ -332,7 +360,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('config.json'),
@@ -375,24 +403,38 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
                     padding: const EdgeInsets.all(8),
                     child: Row(
                       children: [
-                        const Icon(Icons.warning, color: Colors.orange, size: 20),
+                        const Icon(
+                          Icons.warning,
+                          color: Colors.orange,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(_errorMessage!, 
-                            style: const TextStyle(color: Colors.orange, fontSize: 12)),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                
+
                 // File path display
                 Container(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(_filePath, 
-                    style: Theme.of(context).textTheme.bodySmall),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Text(
+                    _filePath,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
-                
+
                 // Editor or preview
                 Expanded(
                   child: _isPreview
@@ -422,7 +464,7 @@ class _ConfigEditorPageState extends State<ConfigEditorPage> {
                           ),
                         ),
                 ),
-                
+
                 // JSON syntax error display at bottom
                 if (_jsonErrorMessage != null && !_isPreview)
                   Container(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import 'download_manager.dart';
 import '../generated/l10n.dart';
 
@@ -10,9 +11,7 @@ class DownloadTestPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.current.downloadFunctionTest),
-      ),
+      appBar: AppBar(title: Text(S.current.downloadFunctionTest)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -59,10 +58,12 @@ class DownloadTestPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 // 提示用户通过底部导航栏查看下载文件
-                Get.showSnackbar(GetSnackBar(
-                  message: S.current.checkDownloadManagerForFiles,
-                  duration: const Duration(seconds: 2),
-                ));
+                Get.showSnackbar(
+                  GetSnackBar(
+                    message: S.current.checkDownloadManagerForFiles,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
               },
               child: Text(S.current.viewDownloadFiles),
             ),
@@ -74,7 +75,9 @@ class DownloadTestPage extends StatelessWidget {
                 Get.dialog(
                   AlertDialog(
                     title: Text(S.current.downloadDirectory),
-                    content: SelectableText(path ?? S.current.getDownloadPathFailed),
+                    content: SelectableText(
+                      path ?? S.current.getDownloadPathFailed,
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Get.back(),
