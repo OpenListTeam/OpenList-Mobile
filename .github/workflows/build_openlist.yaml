@@ -22,11 +22,16 @@ jobs:
     name: Get OpenList Version Information
     runs-on: ubuntu-latest
     outputs:
+      go_version: ${{ steps.go_version.outputs.go_version }}
       openlist_version: ${{ steps.openlist_version.outputs.openlist_version }}
       openlist_git_commit: ${{ steps.openlist_version.outputs.openlist_git_commit }}
       openlist_web_version: ${{ steps.openlist_version.outputs.openlist_web_version }}
       openlist_built_at: ${{ steps.openlist_version.outputs.openlist_built_at }}
     steps:
+      - name: Set Go Version
+        id: go_version
+        run: echo "go_version=1.27.3" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -73,7 +78,7 @@ jobs:
         uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ${{ github.workspace }}/android/app/libs
-          key: openlist-aar-go1.25.0-${{ needs.version.outputs.openlist_version }}-${{ needs.version.outputs.openlist_web_version }}-${{ hashFiles('openlist-lib/**', '.github/workflows/build_openlist.yaml') }}
+          key: openlist-aar-go${{ needs.version.outputs.go_version }}-${{ needs.version.outputs.openlist_version }}-${{ needs.version.outputs.openlist_web_version }}-${{ hashFiles('openlist-lib/**', '.github/workflows/build_openlist.yaml') }}
 
       - name: Download OpenList Source Code
         if: steps.cache.outputs.cache-hit != 'true'
@@ -86,7 +91,7 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          go-version: "1.27.3"
+          go-version: ${{ needs.version.outputs.go_version }}
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         if: steps.cache.outputs.cache-hit != 'true'
@@ -152,12 +157,12 @@ jobs:
         uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ${{ github.workspace }}/ios/Frameworks
-          key: openlist-xcframework-go1.25.0-${{ needs.version.outputs.openlist_version }}-${{ needs.version.outputs.openlist_web_version }}-${{ hashFiles('openlist-lib/**', '.github/workflows/build_openlist.yaml') }}
+          key: openlist-xcframework-go${{ needs.version.outputs.go_version }}-${{ needs.version.outputs.openlist_version }}-${{ needs.version.outputs.openlist_web_version }}-${{ hashFiles('openlist-lib/**', '.github/workflows/build_openlist.yaml') }}
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          go-version: "1.27.3"
+          go-version: ${{ needs.version.outputs.go_version }}
 
       - name: Download OpenList Source Code
         if: steps.cache.outputs.cache-hit != 'true'
