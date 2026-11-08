@@ -14,6 +14,7 @@ import javax.crypto.spec.GCMParameterSpec
 object UploadCredentials {
     private const val STORE = "openlist_upload_credentials"
     private const val KEY_ALIAS = "openlist_upload_credentials_key"
+    private const val WORK_PREFIX = "work:"
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
 
     fun store(context: Context, headers: Map<String, String>): String {
@@ -27,6 +28,15 @@ object UploadCredentials {
         return id
     }
 
+    fun bind(context: Context, id: String, workId: String) {
+        check(context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
+            .edit().putString(WORK_PREFIX + workId, id).commit())
+    }
+
+    fun forWork(context: Context, workId: String): String? =
+        context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
+            .getString(WORK_PREFIX + workId, null)
+
     fun read(context: Context, id: String): List<Pair<String, String>> {
         val encoded = context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
             .getString(id, null) ?: return emptyList()
@@ -38,8 +48,12 @@ object UploadCredentials {
     }
 
     fun delete(context: Context, id: String) {
-        context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
-            .edit().remove(id).apply()
+        val preferences = context.getSharedPreferences(STORE, Context.MODE_PRIVATE)
+        val editor = preferences.edit().remove(id)
+        preferences.all.forEach { (key, value) ->
+            if (key.startsWith(WORK_PREFIX) && value == id) editor.remove(key)
+        }
+        editor.apply()
     }
 
     private fun key(): SecretKey {

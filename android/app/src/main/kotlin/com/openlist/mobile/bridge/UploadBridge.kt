@@ -63,7 +63,10 @@ class UploadBridge(private val context: Context, private val events: GeneratedAp
             .addTag(UploadWorker.TAG_UPLOAD)
             .build()
         val id = work.id
-        credentialId?.let { credentialIds[id] = it }
+        credentialId?.let {
+            credentialIds[id] = it
+            UploadCredentials.bind(context, it, id.toString())
+        }
         observe(id)
         watchEnqueue(id, workManager.enqueue(work))
         return id.toString()
@@ -103,7 +106,7 @@ class UploadBridge(private val context: Context, private val events: GeneratedAp
                     events.add(toEvent(info))
                     if (!info.state.isFinished && !observers.containsKey(id)) observe(id)
                     if (info.state.isFinished) {
-                        info.inputData.getString(UploadWorker.KEY_CREDENTIAL_ID)?.let {
+                        UploadCredentials.forWork(context, id.toString())?.let {
                             UploadCredentials.delete(context, it)
                         }
                     }
@@ -126,7 +129,7 @@ class UploadBridge(private val context: Context, private val events: GeneratedAp
             if (info == null) return@Observer
             events.onUploadEvent(toEvent(info), ignoreResult)
             if (info.state.isFinished) {
-                info.inputData.getString(UploadWorker.KEY_CREDENTIAL_ID)?.let {
+                (credentialIds[id] ?: UploadCredentials.forWork(context, id.toString()))?.let {
                     UploadCredentials.delete(context, it)
                 }
                 credentialIds.remove(id)
@@ -154,6 +157,9 @@ class UploadBridge(private val context: Context, private val events: GeneratedAp
                         state.removeObserver(this)
                         Log.w(TAG, "enqueue failed: ${value.throwable.message}")
                         inputCredentialId(id)?.let { UploadCredentials.delete(context, it) }
+                        UploadCredentials.forWork(context, id.toString())?.let {
+                            UploadCredentials.delete(context, it)
+                        }
                         credentialIds.remove(id)
                         stopObserving(id)
                         events.onUploadEvent(
